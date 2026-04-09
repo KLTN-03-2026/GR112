@@ -1,0 +1,235 @@
+/* ================= CHAT AI VIEW STYLES - PREMIUM THEME ================= */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+.chat-view-container {
+  display: flex;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  height: calc(100vh - 75px);
+  background: #f8fafc;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.03);
+}
+
+/* --- TÙY CHỈNH THANH CUỘN --- */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* ==========================================
+   SIDEBAR LỊCH SỬ BÊN TRÁI 
+========================================== */
+.chat-sidebar-left {
+  width: 280px;
+  background-color: #0f172a;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  flex-shrink: 0;
+  border-right: 1px solid #1e293b;
+  transition: width 0.3s ease; 
+  overflow: hidden; 
+}
+
+.chat-sidebar-left.collapsed { width: 70px; }
+.chat-sidebar-left.collapsed .menu-item span,
+.chat-sidebar-left.collapsed .section-header,
+.chat-sidebar-left.collapsed .session-title,
+.chat-sidebar-left.collapsed .history-search-input { display: none; }
+.chat-sidebar-left.collapsed .history-list li { justify-content: center; padding: 12px 0; }
+.chat-sidebar-left.collapsed .history-list li i.fa-comment-alt { margin-right: 0; font-size: 16px; }
+
+.sidebar-top {
+  display: flex; justify-content: space-between; padding: 24px 20px; font-size: 18px; color: #94a3b8; cursor: pointer;
+}
+.sidebar-top i:hover { color: #ffffff; }
+
+.sidebar-menu { padding: 0 12px; display: flex; flex-direction: column; gap: 8px; }
+
+.menu-item {
+  display: flex; align-items: center; gap: 12px; background: transparent; border: 1px solid transparent;
+  color: #cbd5e1; padding: 12px 16px; border-radius: 10px; font-size: 0.9rem; cursor: pointer; font-weight: 500; transition: all 0.2s ease;
+}
+
+.new-chat-btn { background-color: #1e293b; color: #fff; margin-bottom: 10px; justify-content: flex-start; }
+.chat-sidebar-left.collapsed .new-chat-btn { justify-content: center; }
+
+.menu-item:hover:not(.new-chat-btn) { background-color: #1e293b; color: #ffffff; }
+.menu-item:hover i { color: #60a5fa; }
+
+.sidebar-section { padding: 20px 20px 5px; }
+
+.section-header {
+  font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  color: #64748b; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+}
+
+.history-section { flex: 1; overflow-y: auto; padding-top: 10px; padding-left: 12px; padding-right: 12px; }
+
+.history-search-input {
+  width: 100%; padding: 8px 12px; margin-bottom: 15px; border-radius: 6px;
+  border: 1px solid #334155; background: #0f172a; color: white; font-size: 13px; outline: none; transition: border-color 0.2s;
+}
+.history-search-input:focus { border-color: #6366f1; }
+
+.history-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.history-list li {
+  display: flex; align-items: center; justify-content: space-between; padding: 12px 16px;
+  border-radius: 10px; font-size: 0.85rem; cursor: pointer; color: #94a3b8; transition: all 0.2s ease; border: 1px solid transparent; margin-bottom: 2px;
+}
+.history-list li .session-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.history-list li:hover { background-color: #1e293b; color: #f8fafc; }
+.history-list li.active { background-color: #1e293b; border-color: #334155; color: #ffffff; font-weight: 500; }
+
+.delete-icon { opacity: 0; color: #ef4444; font-size: 12px; padding: 5px; transition: 0.2s; }
+.history-list li:hover .delete-icon { opacity: 1; }
+
+.sidebar-bottom { padding: 16px 12px; border-top: 1px solid #1e293b; background: #0f172a; }
+
+/* ==========================================
+   MODAL CÀI ĐẶT
+========================================== */
+.settings-modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(3px); z-index: 9999; display: flex; align-items: center; justify-content: center;
+}
+.settings-modal {
+  background: #ffffff; width: 420px; border-radius: 16px; padding: 24px 30px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); color: #0f172a;
+}
+.modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 20px; }
+.modal-header h3 { margin: 0; font-size: 1.15rem; font-weight: 700; }
+.modal-header i { cursor: pointer; color: #64748b; font-size: 1.2rem; }
+.modal-greeting { font-size: 1.05rem; color: #334155; margin-bottom: 24px; }
+.setting-row { margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; }
+.setting-row label { font-size: 0.9rem; font-weight: 600; color: #475569; }
+.setting-select {
+  width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #e2e8f0; background-color: #f8fafc;
+  color: #64748b; font-size: 0.95rem; outline: none; appearance: none;
+}
+.setting-select.active-select { background-color: #ffffff; color: #0f172a; cursor: pointer; }
+.btn-close-modal {
+  background: #3b82f6; color: white; border: none; padding: 10px 28px; border-radius: 8px; cursor: pointer; font-weight: 600;
+}
+
+/* ==========================================
+   KHU VỰC CHAT CHÍNH 
+========================================== */
+.chat-main { flex: 1; display: flex; flex-direction: column; background-color: #ffffff; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; gap: 35px; scroll-behavior: smooth; }
+
+.msg-row { display: flex; gap: 16px; max-width: 85%; }
+.msg-row.bot { align-self: flex-start; }
+.msg-row.user { align-self: flex-end; flex-direction: row-reverse; }
+
+.msg-avatar {
+  width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;
+}
+.msg-row.bot .msg-avatar { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+.msg-row.user .msg-avatar { background: linear-gradient(135deg, #e0e7ff, #c7d2fe); color: #3730a3; }
+
+.msg-bubble { padding: 16px 22px; border-radius: 18px; font-size: 0.95rem; line-height: 1.6; }
+.msg-row.bot .msg-bubble { background: #ffffff; color: #334155; border: 1px solid #f1f5f9; box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
+.msg-row.user .msg-bubble { background: linear-gradient(135deg, #1e293b, #0f172a); color: #f8fafc; }
+
+/* MarkDown Styles */
+.msg-bubble strong { font-weight: 600; }
+.msg-row.bot .msg-bubble strong { color: #0f172a; }
+
+/* Card Phân tích */
+.msg-card-purple {
+  background: linear-gradient(145deg, #faf5ff, #f3e8ff); border-radius: 14px; padding: 20px; color: #6b21a8;
+  border-left: 4px solid #a855f7;
+}
+
+/* Chat Input */
+.chat-input-area { padding: 20px 40px 30px; background: #ffffff; border-top: 1px solid rgba(0,0,0,0.03); }
+.chat-suggestions { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.chat-sugg-btn { background: #f8fafc; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; }
+
+.chat-input-box {
+  display: flex; align-items: center; background: #f8fafc; border-radius: 24px; padding: 8px 10px 8px 24px; border: 1px solid #e2e8f0;
+}
+.chat-input-box input { flex: 1; border: none; outline: none; background: transparent; }
+
+/* Profile Panel Right */
+.chat-profile-panel { width: 380px; background: #ffffff; border-left: 1px solid #f1f5f9; padding: 35px 25px; overflow-y: auto; }
+.chat-panel-section h4 { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 18px; font-weight: 700; }
+
+.profile-header-card {
+  background: linear-gradient(145deg, #ffffff, #f8fafc); border: 1px solid #e2e8f0; padding: 18px; border-radius: 16px; display: flex; align-items: center; gap: 15px; margin-bottom: 25px;
+}
+.profile-header-card .avatar { width: 52px; height: 52px; background: #e2e8f0; border-radius: 14px; overflow: hidden; }
+.profile-header-card .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.score-box { background: #ffffff; padding: 16px; border-radius: 14px; border: 1px solid #e2e8f0; }
+.score-box span { display: block; font-size: 0.8rem; color: #64748b; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; }
+.score-box strong { font-size: 1.3rem; color: #3b82f6; font-weight: 700; }
+
+.job-card { background: #ffffff; border: 1px solid #e2e8f0; padding: 18px; border-radius: 14px; margin-bottom: 12px; position: relative; }
+.job-card.match { background: linear-gradient(145deg, #f8fafc, #ffffff); }
+.job-card.match::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #3b82f6; }
+
+/* ==============================================================
+   🚀🚀🚀 DARK MODE (CHẾ ĐỘ TỐI) FIX LỖI ẨN ĐIỂM 🚀🚀🚀
+============================================================== */
+
+.dark-mode { background: #0f172a; }
+
+.dark-mode .chat-profile-panel { background-color: #0f172a; border-left-color: #1e293b; }
+.dark-mode .chat-main { background-color: #1e293b; }
+.dark-mode .chat-input-area { background-color: #1e293b; border-top-color: #334155; }
+
+/* Bong bóng Chat Bot */
+.dark-mode .msg-row.bot .msg-bubble { background: #334155; color: #f8fafc; border-color: #475569; }
+.dark-mode .msg-row.bot .msg-bubble strong { color: #bae6fd; }
+
+/* Các hộp bên Sidebar Phải */
+.dark-mode .profile-header-card,
+.dark-mode .score-box,
+/* --- Sửa lỗi mất tiêu đề Nhóm Holland/MBTI trong Dark Mode --- */
+
+.dark-mode .job-card h5 {
+  color: #1e3a8a !important; /* Ép màu xanh đậm cho Nhóm Holland */
+}
+
+.dark-mode .job-card:last-child h5 {
+  color: #4c1d95 !important; /* Ép màu tím đậm cho Nhóm MBTI */
+}
+
+/* Thêm dòng này để tên kết quả (Người dẫn dắt/Người tranh luận) cũng hiện rõ */
+.dark-mode .job-card p {
+  color: #1e293b !important;
+  font-weight: 600;
+}
+
+/* ✅ FIX LỖI ẨN ĐIỂM: Ép màu số điểm hiện lên rõ */
+.dark-mode .score-box strong {
+  color: #60a5fa !important; /* Xanh sáng rực rỡ */
+  display: block;
+}
+.dark-mode .score-box span {
+  color: #94a3b8 !important; /* Tên môn học màu xám bạc */
+}
+
+.dark-mode .profile-header-card h3 { color: #f8fafc; }
+.dark-mode .job-header h5 { color: #f8fafc; }
+.dark-mode .job-card p { color: #cbd5e1; }
+
+/* Input & Buttons */
+.dark-mode .chat-input-box { background-color: #0f172a; border-color: #334155; }
+.dark-mode .chat-input-box input { color: #f8fafc; }
+.dark-mode .chat-sugg-btn { background-color: #0f172a; border-color: #334155; color: #cbd5e1; }
+
+/* Modal Cài đặt */
+.dark-mode .settings-modal { background: #1e293b; color: #f8fafc; border: 1px solid #334155; }
+.dark-mode .modal-header h3 { color: #f8fafc; }
+.dark-mode .setting-select { background-color: #0f172a; border-color: #334155; color: #f8fafc; }
+
+.test-btn { margin-top: 10px; padding: 5px 10px; font-size: 12px; background: #3b82f6; color: white; border: none; border-radius: 5px; cursor: pointer; }

@@ -1,0 +1,283 @@
+/* Tổng thể màn hình */
+.register-container {
+  height: 100vh;
+  background-color: #f4f7fe;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Box nội dung trắng */
+.register-box {
+  width: 440px;
+  background: #fff;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+/* HEADER - CĂN TRÁI CHUẨN */
+.box-header-blue {
+  text-align: center; /* Đưa chữ về trái */
+  margin-bottom: 25px;
+  /* Xóa margin-left cũ gây lệch */
+}
+
+.box-header-blue h1 {
+  font-size: 26px;
+  font-weight: 800;
+  color: #f97316;
+  margin: 0;
+}
+
+.box-header-blue p {
+  font-size: 13px;
+  color: #888;
+  margin-top: 5px;
+}
+
+/* TIÊU ĐỀ FORM */
+.title-left {
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.sub-left {
+  text-align: left;
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 20px;
+  display: block;
+}
+
+/* STEPPER - GIỮ GIỮA ĐỂ CÂN ĐỐI BOX */
+.stepper-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 25px 0;
+}
+
+.step-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #aaa;
+  border: 2px solid #ddd;
+}
+
+.step-circle.active {
+  background: #f97316;
+  border-color: #f97316;
+  color: #fff; /* Chữ trắng cho dễ nhìn trên nền cam */
+}
+
+.line {
+  width: 60px;
+  height: 2px;
+  background: #eee;
+}
+
+.line.active {
+  background: #f97316;
+}
+
+/* FORM GROUP - CĂN TRÁI */
+.form-group {
+  text-align: left;
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  outline: none;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.form-group input:focus {
+  border-color: #f97316;
+}
+
+small {
+  display: block;
+  font-size: 12px;
+  color: #999;
+  margin-top: 5px;
+}
+
+/* OTP - CĂN GIỮA */
+.otp-container {
+  text-align: center;
+}
+
+.icon-center {
+  display: block;
+  margin: 0 auto;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.otp-input-group {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.otp-field {
+  width: 45px;
+  height: 50px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+  outline: none;
+  transition: 0.2s;
+}
+
+.otp-field:focus {
+  border-color: #f97316;
+}
+
+/* NÚT BẤM CAM */
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: #f97316;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.submit-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.submit-btn.green {
+  background: #28a745;
+}
+
+.submit-btn.green:hover {
+  background: #218838;
+  transform: translateY(-1px);
+}
+
+/* Nút quay lại */
+.btn-back {
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  color: #f97316;
+  border: 1px solid #f97316;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+  margin-top: 10px;
+}
+
+.btn-back:hover {
+  background: #f97316;
+  color: #fff;
+}
+
+/* Success container */
+.success-container {
+  text-align: center;
+}
+
+.check-icon-wrapper {
+  margin: 20px 0;
+}
+
+.success-title {
+  font-size: 22px;
+  font-weight: bold;
+  color: #28a745;
+  margin-bottom: 10px;
+}
+
+.success-text {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+/* Message */
+.message {
+  margin-bottom: 15px;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* Timer text */
+.timer-text {
+  font-size: 14px;
+  color: #666;
+  margin: 10px 0;
+}
+
+/* Resend button */
+.btn-resend {
+  background: transparent;
+  color: #f97316;
+  border: 1px solid #f97316;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.3s;
+  margin: 10px 0;
+}
+
+.btn-resend:hover {
+  background: #f97316;
+  color: #fff;
+}
+
+/* Hiệu ứng mượt */
+.fade-in {
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}

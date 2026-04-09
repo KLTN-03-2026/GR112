@@ -1,0 +1,84 @@
+.adm-inner-content {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Header */
+.adm-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.adm-title-area { display: flex; align-items: center; gap: 15px; }
+.adm-icon-wrapper {
+    width: 40px; height: 40px; background: #0f172a; color: white;
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+}
+
+.adm-title-area h2 { font-size: 22px; font-weight: 800; color: #0f172a; margin: 0; }
+.adm-title-area p { color: #94a3b8; font-size: 13px; margin-top: 3px; }
+
+.adm-header-btns { display: flex; gap: 10px; }
+.btn-adm-primary { background: #0f172a; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.btn-adm-secondary { background: white; border: 1px solid #e2e8f0; padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+
+/* Stats Mini Cards */
+.adm-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.adm-mini-stat { background: white; padding: 15px 20px; border-radius: 15px; border: 1px solid #e2e8f0; }
+.adm-mini-stat.highlight { background: #4338ca; color: white; border: none; }
+.mini-label { font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 0.5px; }
+.highlight .mini-label { color: rgba(255,255,255,0.7); }
+.mini-value { font-size: 20px; font-weight: 800; margin-top: 5px; display: flex; align-items: center; gap: 10px; }
+.mini-value small { font-size: 11px; color: #10b981; }
+
+/* Toolbar */
+.adm-toolbar-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.adm-search-wrap {
+    background: white; border: 1px solid #e2e8f0; border-radius: 10px;
+    display: flex; align-items: center; padding: 0 12px; gap: 10px; width: 350px;
+}
+.adm-search-wrap input { border: none; background: transparent; outline: none; height: 38px; width: 100%; font-size: 13px; }
+.adm-filter-wrap { display: flex; gap: 10px; }
+.adm-filter-wrap select { border: 1px solid #e2e8f0; border-radius: 10px; padding: 0 10px; font-weight: 600; font-size: 13px; }
+.btn-filter-icon { background: white; border: 1px solid #e2e8f0; padding: 8px; border-radius: 8px; cursor: pointer; }
+
+/* Table Styling */
+.adm-table-card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; }
+.adm-table { width: 100%; border-collapse: collapse; text-align: left; }
+.adm-table th { padding: 12px 20px; background: #fcfcfc; font-size: 11px; font-weight: 700; color: #94a3b8; border-bottom: 1px solid #f1f5f9; }
+.adm-table td { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+
+.school-cell strong { display: block; font-size: 14px; color: #0f172a; margin-bottom: 3px; }
+.school-cell span { font-size: 11px; color: #3b82f6; font-weight: 700; }
+
+.major-cell p { font-weight: 700; font-size: 14px; margin: 0 0 4px; color: #0f172a; }
+.code-tag { background: #f1f5f9; padding: 2px 6px; border-radius: 5px; font-size: 10px; font-weight: 800; font-family: monospace; }
+
+.blocks-list { display: flex; gap: 4px; }
+.b-tag { background: #0f172a; color: white; padding: 3px 6px; border-radius: 5px; font-size: 10px; font-weight: 700; }
+
+.text-bold { font-weight: 800; font-size: 15px; color: #0f172a; }
+.score-cell { display: flex; align-items: center; gap: 5px; color: #10b981; }
+.score-bold { font-size: 17px; font-weight: 900; color: #2563eb; }
+
+.actions-cell { display: flex; gap: 5px; }
+.btn-edit { background: #eff6ff; color: #3b82f6; border: none; padding: 8px; border-radius: 6px; cursor: pointer; }
+.btn-del { background: #fff1f2; color: #ef4444; border: none; padding: 8px; border-radius: 6px; cursor: pointer; }
+
+/* Pagination */
+.adm-pagination-row { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #94a3b8; }
+.adm-page-nav { display: flex; gap: 5px; }
+.adm-page-nav button { width: 32px; height: 32px; border: 1px solid #e2e8f0; background: white; border-radius: 6px; font-weight: 700; color: #64748b; cursor: pointer; }
+.adm-page-nav button.active { background: #0f172a; color: white; border: none; }

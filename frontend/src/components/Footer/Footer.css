@@ -1,0 +1,198 @@
+/* src/components/Footer/Footer.css */
+
+.site-footer {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  padding: 70px 40px 30px;
+  border-top: 1px solid rgba(226, 232, 240, 0.8);
+  color: #475569;
+  margin-top: auto;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.footer-top {
+  display: grid;
+  grid-template-columns: 2.5fr 1fr 1fr 1.5fr;
+  gap: 50px;
+  max-width: 1200px;
+  margin: 0 auto 50px;
+}
+
+/* KHỐI BRAND (LOGO & MÔ TẢ) */
+.brand-col h3 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin: 0 0 15px 0;
+  background: linear-gradient(135deg, #3b5998, #6366f1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.brand-col p {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #64748b;
+  font-weight: 400;
+  max-width: 320px;
+}
+
+/* TIÊU ĐỀ CÁC CỘT (TÀI NGUYÊN, HỖ TRỢ...) */
+.footer-col h4 {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 25px 0;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  position: relative;
+}
+
+.footer-col h4::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  width: 30px;
+  height: 3px;
+  background: var(--theme-accent-color, #3b5998);
+  border-radius: 2px;
+}
+
+/* CÁC ĐƯỜNG LINK */
+.footer-col a {
+  display: block; /* ĐÃ SỬA THÀNH BLOCK ĐỂ KHÔNG BỊ DÍNH CHỮ */
+  color: #64748b;
+  text-decoration: none;
+  font-size: 0.95rem;
+  margin-bottom: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.footer-col a:hover {
+  color: var(--theme-accent-color, #3b5998);
+  transform: translateX(6px);
+}
+
+/* KHUNG NHẬP EMAIL BẢN TIN */
+.newsletter-col h4 {
+  margin-bottom: 20px;
+}
+
+.newsletter-input {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 6px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.newsletter-input:focus-within {
+  border-color: var(--theme-accent-color, #3b5998);
+  box-shadow: 0 0 0 3px rgba(59, 89, 152, 0.15);
+}
+
+.newsletter-input input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 10px 15px;
+  font-size: 0.9rem;
+  background: transparent;
+  color: #334155;
+}
+
+.newsletter-input input::placeholder {
+  color: #94a3b8;
+}
+
+.newsletter-input button {
+  background: var(--theme-accent-color, #3b5998);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.newsletter-input button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(59, 89, 152, 0.3);
+}
+
+/* PHẦN ĐÁY FOOTER (COPYRIGHT & MXH) */
+.footer-bottom {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-top: 24px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.footer-bottom p {
+  margin: 0;
+}
+
+/* NÚT MẠNG XÃ HỘI BẰNG LOGO TRÒN XOAY */
+.social-links {
+  display: flex;
+  gap: 15px;
+}
+
+.social-links a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; /* Chiều rộng cố định */
+  height: 40px; /* Chiều cao cố định bằng chiều rộng */
+  background: #f1f5f9;
+  color: #64748b;
+  border-radius: 50%; /* Chỗ này giúp nó bo tròn xoe thành vòng tròn */
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.social-links a:hover {
+  color: #ffffff;
+  background: var(--theme-accent-color, #3b5998);
+  transform: translateY(-5px); /* Nảy lên cao hơn 1 xíu cho đẹp */
+  box-shadow: 0 5px 15px rgba(59, 89, 152, 0.3);
+}
+
+/* RESPONSIVE CHO ĐIỆN THOẠI & TABLET */
+@media (max-width: 900px) {
+  .footer-top {
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+  }
+  .brand-col, .newsletter-col {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 600px) {
+  .footer-top {
+    grid-template-columns: 1fr;
+  }
+  .brand-col, .newsletter-col {
+    grid-column: span 1;
+  }
+  .footer-bottom {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+}

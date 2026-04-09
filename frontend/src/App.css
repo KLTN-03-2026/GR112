@@ -1,0 +1,59 @@
+/* src/App.css */
+
+/* ================= Biến màu sắc (CSS Variables) ================= */
+:root {
+  --bg: #f4f5f7;
+  --card: #ffffff;
+  --text: #2f3a4a;
+  --muted: #6b7280;
+  --border: #d8dee8;
+  --shadow: 0 8px 20px rgba(28, 42, 65, 0.09);
+  --theme-accent-color: #3b5998; 
+}
+
+/* ================= Reset CSS cơ bản ================= */
+* { 
+  box-sizing: border-box; 
+}
+
+body, html {
+  margin: 0; 
+  padding: 0;
+  color: var(--text); 
+  background-color: var(--bg);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  scroll-behavior: smooth; /* Hiệu ứng cuộn trang mượt mà */
+}
+
+/* ================= Layout chính ================= */
+/* Container chính bao bọc toàn bộ ứng dụng */
+.app-container { 
+  min-height: 100vh; /* Đảm bảo chiều cao tối thiểu bằng 100% màn hình */
+  width: 100%; 
+  display: flex; 
+  flex-direction: column;
+}
+
+/* Đẩy footer xuống dưới đáy màn hình (Sticky Footer) */
+.main-content {
+  flex: 1; /* Chiếm toàn bộ không gian trống còn lại giữa Header và Footer */
+  display: flex;
+  flex-direction: column;
+}
+
+/* ================= Hiệu ứng (Animations) ================= */
+/* Class tiện ích dùng chung để tạo hiệu ứng mờ dần khi load */
+.fade-in { 
+  animation: fadeIn 0.4s ease forwards; 
+}
+
+@keyframes fadeIn { 
+  from { 
+    opacity: 0; 
+    transform: translateY(10px); 
+  } 
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  } 
+}

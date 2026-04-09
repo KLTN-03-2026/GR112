@@ -1,0 +1,105 @@
+.user-mgmt-content {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.page-header-um {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 25px;
+}
+
+.title-area-um h2 { font-size: 24px; font-weight: 800; color: #0f172a; margin: 0; }
+.title-area-um p { color: #94a3b8; font-size: 14px; margin-top: 4px; }
+
+.header-actions-um { display: flex; gap: 10px; }
+.btn-export-um { background: white; border: 1px solid #e2e8f0; padding: 10px 18px; border-radius: 10px; font-weight: 700; cursor: pointer; display: flex; gap: 8px; }
+.btn-add-um { background: #0f172a; color: white; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; cursor: pointer; display: flex; gap: 8px; }
+
+/* Stats */
+.stats-row-um {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.um-card { background: white; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; }
+.um-card span { font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 1px; }
+.um-card h3 { font-size: 24px; font-weight: 800; margin: 10px 0 0; }
+.um-card small { font-size: 11px; font-weight: 700; margin-left: 5px; }
+.trend-up { color: #10b981; }
+.live { color: #3b82f6; animation: blink 2s infinite; }
+.action { color: #f59e0b; }
+.danger-card { border-color: #fecaca; background: #fff1f2; }
+.danger-text { color: #ef4444; }
+
+/* Toolbar */
+.filter-toolbar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 15px;
+}
+
+.search-input-box {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 1px solid #e2e8f0;
+    padding: 0 15px;
+    border-radius: 12px;
+    gap: 10px;
+}
+
+.search-input-box input { border: none; outline: none; width: 100%; height: 44px; font-size: 14px; }
+.filters-right { display: flex; gap: 10px; }
+.filter-select { border: 1px solid #e2e8f0; border-radius: 10px; padding: 0 15px; font-weight: 600; color: #64748b; font-size: 13px; outline: none; }
+.btn-filter-icon { background: white; border: 1px solid #e2e8f0; padding: 10px; border-radius: 10px; cursor: pointer; }
+
+/* Table */
+.table-wrapper-um { background: white; border-radius: 20px; border: 1px solid #e2e8f0; overflow: hidden; }
+.user-table { width: 100%; border-collapse: collapse; text-align: left; }
+.user-table th { padding: 15px 20px; background: #fcfcfc; font-size: 11px; font-weight: 700; color: #94a3b8; border-bottom: 1px solid #f1f5f9; }
+.user-table td { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+
+.user-info-cell { display: flex; align-items: center; gap: 12px; }
+.avatar-small { width: 32px; height: 32px; border-radius: 50%; background: #0f172a; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; }
+.user-name { font-weight: 700; color: #0f172a; margin: 0; }
+.user-email { font-size: 12px; color: #94a3b8; }
+.text-deleted { text-decoration: line-through; color: #cbd5e1; }
+
+.badge-role { font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; }
+.badge-role.admin { background: #0f172a; color: white; }
+.badge-role.tư-vấn-viên { background: #eff6ff; color: #3b82f6; }
+.badge-role.học-sinh { background: #f1f5f9; color: #64748b; }
+
+.activity-cell { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #64748b; }
+.dot-online { width: 6px; height: 6px; border-radius: 50%; background: #10b981; }
+.text-online { color: #10b981; }
+
+.status-pill { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+.status-pill.active { background: #f0fdf4; color: #16a34a; }
+.status-pill.pending { background: #fff7ed; color: #f59e0b; }
+.status-pill.blocked { background: #fef2f2; color: #ef4444; }
+
+/* AI Banner */
+.ai-insight-banner {
+    margin-top: 25px;
+    background: #4338ca;
+    padding: 20px 25px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    color: white;
+}
+
+.ai-icon-bg { width: 45px; height: 45px; background: rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+.ai-content { flex: 1; }
+.ai-content h4 { margin: 0 0 5px; font-size: 16px; font-weight: 800; }
+.ai-content p { margin: 0; font-size: 13px; opacity: 0.8; line-height: 1.5; }
+.btn-ai-view { background: white; color: #4338ca; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+
+@keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }

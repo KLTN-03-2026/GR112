@@ -1,0 +1,214 @@
+/* ================= GIAO DIỆN TRẮC NGHIỆM AI ================= */
+.qz-container {
+  max-width: 800px;
+  margin: 50px auto;
+  padding: 0 20px;
+  min-height: calc(100vh - 200px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+/* ==========================================
+   0. MÀN HÌNH CHỌN BÀI TEST (MỚI)
+========================================== */
+.quiz-selection-grid {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.quiz-select-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 24px;
+  width: 320px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  text-align: left;
+}
+
+.quiz-select-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+  border-color: #d1d5db;
+}
+
+.qz-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.badge-holland {
+  background-color: #eff6ff; 
+  color: #3b82f6; 
+}
+
+.badge-mbti {
+  background-color: #faf5ff; 
+  color: #a855f7; 
+}
+
+.quiz-select-card h2 {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0 0 8px 0;
+  color: #111827;
+}
+
+.qz-question-count {
+  color: #6b7280;
+  font-size: 15px;
+  margin: 0 0 24px 0;
+}
+
+.qz-update-time {
+  color: #9ca3af;
+  font-size: 13px;
+  font-style: italic;
+  margin: 0;
+}
+
+
+/* 1. MÀN HÌNH INTRO CŨ (Giữ lại phòng hờ) */
+.qz-intro-card {
+  background: #ffffff;
+  padding: 50px 40px;
+  border-radius: 24px;
+  box-shadow: 0 10px 40px rgba(15, 23, 42, 0.08);
+  text-align: center;
+  border: 1px solid #e2e8f0;
+}
+
+.qz-icon-pulse {
+  width: 80px;
+  height: 80px;
+  background: #f3e8ff;
+  color: #7e22ce;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  margin: 0 auto 20px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(126, 34, 206, 0.2); }
+  70% { box-shadow: 0 0 0 20px rgba(126, 34, 206, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(126, 34, 206, 0); }
+}
+
+.qz-intro-card h1 { font-size: 2.2rem; color: #0f172a; margin-bottom: 15px; font-weight: 800; }
+.qz-intro-card p { font-size: 1.05rem; color: #475569; line-height: 1.6; margin-bottom: 30px; }
+
+.qz-features {
+  list-style: none; padding: 0; margin: 0 auto 40px;
+  display: flex; justify-content: center; gap: 30px; flex-wrap: wrap;
+}
+.qz-features li { display: flex; align-items: center; gap: 8px; font-weight: 600; color: #334155; font-size: 0.95rem;}
+.qz-features i { color: #4f46e5; font-size: 1.1rem;}
+
+.qz-btn-primary {
+  background: #0f172a; color: white; border: none; padding: 16px 36px; border-radius: 12px;
+  font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: 0.3s;
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.2);
+}
+.qz-btn-primary:hover { background: #1e293b; transform: translateY(-2px); }
+
+
+/* 2. MÀN HÌNH CÂU HỎI */
+.qz-question-card {
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  border: 1px solid #f1f5f9;
+  width: 100%;
+}
+
+.qz-progress-header { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; color: #64748b; margin-bottom: 10px; text-transform: uppercase;}
+.qz-progress-bar { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-bottom: 40px; }
+.qz-progress-fill { height: 100%; background: #4f46e5; border-radius: 4px; transition: width 0.4s ease; }
+
+.qz-question-text { font-size: 1.6rem; color: #0f172a; line-height: 1.4; margin-bottom: 40px; font-weight: 700; text-align: center;}
+
+.qz-options-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 40px; }
+.qz-option-btn {
+  background: #f8fafc; border: 2px solid #e2e8f0; padding: 16px 20px; border-radius: 12px;
+  font-size: 1.05rem; color: #334155; font-weight: 600; display: flex; align-items: center; gap: 15px;
+  cursor: pointer; transition: 0.2s; text-align: left;
+}
+.qz-option-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+.qz-option-btn.selected { background: #eff6ff; border-color: #3b82f6; color: #1e3a8a; }
+.qz-option-btn.selected .qz-opt-circle { background: #3b82f6; color: white; border-color: #3b82f6; }
+
+.qz-opt-circle {
+  width: 30px; height: 30px; border-radius: 50%; border: 2px solid #cbd5e1;
+  display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; color: #94a3b8; transition: 0.2s;
+}
+
+.qz-nav-buttons { display: flex; justify-content: space-between; align-items: center; padding-top: 20px; border-top: 1px solid #f1f5f9; }
+.qz-btn-text { background: none; border: none; color: #64748b; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s; padding: 10px; }
+.qz-btn-text:hover:not(:disabled) { color: #0f172a; }
+.qz-btn-text:disabled { opacity: 0.4; cursor: not-allowed; }
+.qz-hint { font-size: 0.85rem; color: #94a3b8; font-style: italic; }
+
+
+/* 3. MÀN HÌNH AI ANALYZING */
+.qz-analyzing-card { text-align: center; width: 100%; padding: 60px 20px; }
+.qz-spinner {
+  width: 60px; height: 60px; border: 5px solid #e2e8f0; border-top-color: #7e22ce;
+  border-radius: 50%; margin: 0 auto 30px; animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.qz-analyzing-card h2 { font-size: 1.8rem; color: #0f172a; margin-bottom: 10px; }
+.qz-analyzing-card p { color: #64748b; margin-bottom: 40px; }
+.qz-analyzing-steps { max-width: 400px; margin: 0 auto; text-align: left; display: flex; flex-direction: column; gap: 15px; }
+.qz-step-item { font-size: 1rem; color: #94a3b8; display: flex; align-items: center; gap: 10px; font-weight: 500;}
+.qz-step-item.active { color: #10b981; } /* Màu xanh lá hoàn thành */
+.qz-step-item.loading { color: #3b82f6; } /* Màu xanh dương đang chạy */
+
+
+/* 4. MÀN HÌNH KẾT QUẢ */
+.qz-result-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); width: 100%; }
+.qz-result-header { text-align: center; margin-bottom: 40px; }
+.qz-badge-top { background: #f3e8ff; color: #7e22ce; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.5px; display: inline-block; margin-bottom: 15px;}
+.qz-result-header h2 { font-size: 1.8rem; color: #0f172a; margin-bottom: 15px; }
+.qz-result-header h2 strong { color: #4c1d95; }
+.qz-result-header p { color: #475569; line-height: 1.6; max-width: 600px; margin: 0 auto; }
+
+.qz-result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 40px; }
+.qz-result-box { background: #f8fafc; padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0; }
+.qz-result-box h3 { font-size: 1.1rem; color: #0f172a; margin: 0 0 20px 0; display: flex; align-items: center; gap: 10px; }
+.qz-result-box h3 i { color: #3b82f6; }
+
+.qz-tags { display: flex; flex-wrap: wrap; gap: 10px; }
+.qz-tags span { background: #ffffff; border: 1px solid #cbd5e1; color: #334155; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; }
+
+.qz-uni-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+.qz-uni-list li { display: flex; justify-content: space-between; align-items: center; background: white; padding: 12px 16px; border-radius: 8px; border: 1px solid #e2e8f0; }
+.uni-name { font-weight: 600; color: #1e293b; font-size: 0.9rem;}
+.uni-match { background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 0.8rem; }
+
+.qz-result-actions { display: flex; justify-content: center; gap: 20px; padding-top: 20px; border-top: 1px solid #f1f5f9; }
+.qz-btn-outline { background: transparent; border: 2px solid #cbd5e1; padding: 14px 24px; border-radius: 10px; color: #475569; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px;}
+.qz-btn-outline:hover { background: #f1f5f9; border-color: #94a3b8; color: #0f172a;}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .qz-result-grid { grid-template-columns: 1fr; }
+  .qz-result-actions { flex-direction: column; }
+  .qz-features { flex-direction: column; gap: 15px; align-items: flex-start; }
+  .quiz-select-card { width: 100%; } /* Thêm vào để 2 cái thẻ co giãn trên điện thoại */
+}

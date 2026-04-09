@@ -1,0 +1,194 @@
+/* ================= CHI TIẾT TRƯỜNG ĐẠI HỌC ================= */
+.ud-page {
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background-color: #f8fafc;
+  min-height: 100vh;
+}
+
+/* --- HERO BANNER --- */
+.ud-hero {
+  position: relative;
+  height: 400px;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 40px;
+}
+.ud-hero-bg {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 1;
+}
+.ud-hero-bg img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.ud-hero-overlay {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(to top, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.2) 100%);
+}
+
+.ud-hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 1250px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.ud-logo-box {
+  width: 100px; height: 100px;
+  background: white;
+  border-radius: 16px;
+  padding: 10px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  flex-shrink: 0;
+}
+.ud-logo-box img { width: 100%; height: 100%; object-fit: contain; }
+
+.ud-hero-info { flex: 1; color: white; }
+.ud-hero-info h1 { font-size: 2.5rem; font-weight: 800; margin: 0 0 8px 0; letter-spacing: -0.5px;}
+.ud-hero-info p { font-size: 1.05rem; margin: 0; color: #cbd5e1; }
+
+.ud-hero-actions { display: flex; gap: 15px; align-items: center; }
+.ud-btn-apply {
+  background: white; color: #0f172a;
+  border: none; padding: 14px 28px; border-radius: 8px;
+  font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s;
+}
+.ud-btn-apply:hover { background: #f1f5f9; transform: translateY(-2px); }
+.ud-btn-favorite {
+  background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white;
+  width: 50px; height: 50px; border-radius: 8px; font-size: 1.2rem; cursor: pointer; transition: 0.2s;
+  display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);
+}
+.ud-btn-favorite:hover { background: rgba(255,255,255,0.3); }
+
+
+/* --- TABS --- */
+.ud-tabs-wrapper {
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 61px; /* Dưới Navbar chính */
+  z-index: 40;
+}
+.ud-tabs {
+  max-width: 1250px; margin: 0 auto; padding: 0 20px;
+  display: flex; gap: 30px;
+}
+.ud-tabs button {
+  background: none; border: none; padding: 20px 0;
+  font-size: 0.95rem; font-weight: 600; color: #64748b;
+  cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s;
+}
+.ud-tabs button:hover { color: #0f172a; }
+.ud-tabs button.active { color: #0f172a; border-bottom-color: #0f172a; }
+
+
+/* --- LAYOUT CHÍNH --- */
+.ud-layout {
+  max-width: 1250px; margin: 50px auto; padding: 0 20px;
+  display: flex; gap: 40px; align-items: flex-start;
+}
+.ud-main-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 60px; }
+.ud-sidebar { width: 360px; flex-shrink: 0; display: flex; flex-direction: column; gap: 30px;}
+
+.ud-section h2 { font-size: 1.8rem; font-weight: 800; color: #0f172a; margin: 0 0 20px 0; letter-spacing: -0.5px;}
+
+/* Về trường */
+.ud-desc-text p { font-size: 1.05rem; color: #475569; line-height: 1.7; margin-bottom: 15px; }
+.ud-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 30px; }
+.ud-stat-item { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: center; }
+.ud-stat-item h3 { font-size: 1.6rem; font-weight: 800; color: #0f172a; margin: 0 0 8px 0; }
+.ud-stat-item span { font-size: 0.75rem; font-weight: 700; color: #64748b; letter-spacing: 0.5px; text-transform: uppercase;}
+
+/* Ngành đào tạo */
+.ud-section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; }
+.ud-subtitle { font-size: 1rem; color: #64748b; margin: 5px 0 0 0; }
+.ud-link-all { font-size: 0.9rem; font-weight: 600; color: #0f172a; text-decoration: none; }
+.ud-link-all:hover { text-decoration: underline; }
+.ud-majors-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.ud-major-card { background: white; padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0; transition: 0.2s; }
+.ud-major-card:hover { border-color: #cbd5e1; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+.ud-major-card h4 { font-size: 1.15rem; font-weight: 700; color: #0f172a; margin: 0 0 10px 0; }
+.ud-major-card p { font-size: 0.95rem; color: #64748b; margin: 0; line-height: 1.5;}
+
+/* Thông tin tuyển sinh */
+.ud-admissions-box { background: white; border-radius: 16px; border: 1px solid #e2e8f0; display: flex; overflow: hidden; }
+.ud-adm-col { flex: 1; padding: 30px; }
+.ud-border-left { border-left: 1px solid #e2e8f0; background: #f8fafc; }
+.ud-adm-title { font-size: 0.85rem; font-weight: 700; color: #64748b; letter-spacing: 0.5px; margin: 0 0 20px 0; }
+.ud-adm-dates, .ud-adm-reqs { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 18px;}
+.ud-adm-dates li { display: flex; justify-content: space-between; font-size: 0.95rem; color: #334155; }
+.ud-adm-dates li strong { color: #0f172a; }
+.ud-adm-reqs li { display: flex; gap: 12px; font-size: 0.95rem; color: #334155; line-height: 1.5; align-items: flex-start;}
+.ud-adm-reqs li i { color: #0f172a; font-size: 1.1rem; margin-top: 2px;}
+
+/* Đánh giá */
+.ud-reviews-list { display: flex; flex-direction: column; gap: 25px; }
+.ud-review-item { display: flex; gap: 20px; background: white; padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0;}
+.ud-rev-avatar { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; }
+.ud-rev-content { flex: 1; }
+.ud-rev-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.ud-rev-header h4 { margin: 0 0 4px 0; font-size: 1.05rem; color: #0f172a; }
+.ud-rev-header span { font-size: 0.85rem; color: #64748b; }
+.ud-stars { color: #fbbf24; font-size: 0.9rem; letter-spacing: 2px;}
+.ud-rev-content p { font-size: 1rem; color: #475569; line-height: 1.6; font-style: italic; margin: 0; }
+
+
+/* --- CỘT PHẢI (SIDEBAR) --- */
+/* AI Card */
+.ud-ai-card {
+  background: linear-gradient(135deg, #4c1d95, #3b0764);
+  color: white; border-radius: 16px; padding: 30px;
+  box-shadow: 0 15px 30px rgba(76, 29, 149, 0.2);
+}
+.ud-ai-header { font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; color: #d8b4fe; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;}
+.ud-ai-card h3 { font-size: 1.5rem; font-weight: 800; margin: 0 0 10px 0; }
+.ud-ai-card p { font-size: 0.95rem; color: #e9d5ff; margin: 0 0 30px 0; line-height: 1.5; }
+
+/* SVG Circular Chart */
+.ud-circular-progress { width: 140px; margin: 0 auto 30px; }
+.circular-chart { display: block; margin: 0 auto; max-width: 80%; max-height: 250px; }
+.circle-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 3.8; }
+.circle { fill: none; stroke-width: 2.8; stroke-linecap: round; animation: progress 1s ease-out forwards; stroke: #a855f7; }
+@keyframes progress { 0% { stroke-dasharray: 0 100; } }
+.percentage { fill: white; font-family: 'Inter', sans-serif; font-size: 0.5em; text-anchor: middle; font-weight: 800; }
+
+.ud-ai-bullets { list-style: disc; padding-left: 20px; margin: 0 0 30px 0; color: #e9d5ff; font-size: 0.9rem; line-height: 1.6;}
+.ud-ai-bullets li { margin-bottom: 8px; }
+
+.ud-ai-btn {
+  width: 100%; background: white; color: #4c1d95; border: none; padding: 14px;
+  border-radius: 8px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s;
+}
+.ud-ai-btn:hover { background: #f3e8ff; }
+
+/* Quick Info */
+.ud-quick-info { background: white; padding: 30px; border-radius: 16px; border: 1px solid #e2e8f0; }
+.ud-quick-info h4 { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0 0 20px 0; }
+.ud-quick-info ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 20px; }
+.ud-quick-info li { display: flex; gap: 15px; align-items: flex-start; }
+.qi-icon { width: 36px; height: 36px; background: #f1f5f9; color: #0f172a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0;}
+.qi-text strong { display: block; font-size: 0.75rem; color: #64748b; letter-spacing: 0.5px; margin-bottom: 4px; }
+.qi-text span, .qi-text a { font-size: 0.95rem; color: #0f172a; font-weight: 600; text-decoration: none;}
+.qi-text a:hover { text-decoration: underline; color: #2563eb;}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 1024px) {
+  .ud-layout { flex-direction: column; }
+  .ud-sidebar { width: 100%; }
+  .ud-stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .ud-hero-content { flex-direction: column; align-items: flex-start; text-align: left;}
+  .ud-logo-box { margin-bottom: -10px; }
+  .ud-majors-grid { grid-template-columns: 1fr; }
+  .ud-admissions-box { flex-direction: column; }
+  .ud-border-left { border-left: none; border-top: 1px solid #e2e8f0; }
+}

@@ -1,0 +1,301 @@
+/* ================= BỐ CỤC 2 CỘT (LIVE PREVIEW) ================= */
+.profile-page-wrapper {
+  display: flex;
+  gap: 30px;
+  max-width: 1100px; /* Mở rộng chiều ngang để chứa 2 cột */
+  margin: 40px auto;
+  align-items: flex-start;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ================= CỘT TRÁI (FORM NHẬP LIỆU) ================= */
+.form-left-side {
+  flex: 1; /* Tự động co giãn chiếm phần lớn không gian */
+  background: #ffffff;
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.form-left-side h2 {
+  text-align: center;
+  color: #1e293b;
+  margin-bottom: 30px;
+  font-size: 24px;
+}
+
+.form-section {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px dashed #cbd5e1;
+}
+
+.form-section h3 {
+  color: #4338ca;
+  font-size: 18px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Grid layout chung */
+.grid-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+/* Riêng phần thông tin cá nhân cho ô Tên dài ra */
+.personal-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+}
+.school-class-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+/* Ô nhập liệu & Chọn khối */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-group label {
+  font-size: 14px;
+  color: #475569;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+}
+
+.input-group input[type="text"],
+.input-group input[type="number"],
+.input-group select {
+  padding: 10px 15px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: all 0.2s;
+  background-color: white;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+  outline: none;
+  border-color: #4338ca;
+  box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.1);
+}
+
+/* Thanh kéo Slider (Range) cho thế mạnh - Đã fix lỗi gạch vàng */
+.slider-group input[type="range"] {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 5px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none; /* Chuẩn chung */
+  margin-top: 5px;
+}
+
+.slider-group input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none; /* Chuẩn chung */
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #4338ca;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.slider-group input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.percent-value {
+  color: #4338ca;
+  font-weight: bold;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: #4338ca;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.submit-btn:hover {
+  background: #3730a3;
+}
+
+/* ================= CỘT PHẢI (LIVE PREVIEW) ================= */
+.preview-right-side {
+  width: 380px; /* Cố định độ rộng để không bị bóp méo */
+  background: #f8fafc;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  position: sticky; /* Trượt theo màn hình khi lăn chuột */
+  top: 20px;
+}
+
+.preview-right-side h3 {
+  font-size: 16px;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 15px;
+  letter-spacing: 1px;
+}
+
+.profile-header-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: #1e293b;
+  color: white;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+}
+
+.profile-header-card .avatar img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid #4338ca;
+}
+
+.profile-header-card h3 {
+  color: white;
+  margin: 0 0 5px 0;
+  font-size: 18px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.profile-header-card p {
+  margin: 0;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.score-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+
+.score-box {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border: 1px solid #e2e8f0;
+}
+
+.score-box span {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.score-box strong {
+  font-size: 20px;
+  color: #1e293b;
+}
+
+.strength-item {
+  margin-bottom: 15px;
+}
+
+.strength-item span {
+  display: block;
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.progress-wrapper {
+  background: #e2e8f0;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  background: #4338ca;
+  height: 100%;
+  transition: width 0.3s ease;
+}
+/* Thẻ / Nút Trợ lý AI */
+.ai-status-card {
+  margin-top: 25px;
+  background-color: #f0fdf4; /* Màu xanh lá cực nhạt */
+  border: 2px solid #bbf7d0;  /* Viền xanh lá */
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none; /* Nếu là thẻ a */
+}
+
+.ai-status-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  background-color: #dcfce7;
+  border-color: #86efac;
+}
+
+.ai-status-card .ai-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #166534;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ai-status-card .ai-message {
+  color: #15803d;
+  font-size: 18px;
+  font-weight: 800;
+  text-align: center;
+  margin: 0;
+}
+
+/* Hiệu ứng nhấp nháy nhẹ cho icon robot */
+.fa-robot {
+  animation: pulse-robot 2s infinite;
+}
+
+@keyframes pulse-robot {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}

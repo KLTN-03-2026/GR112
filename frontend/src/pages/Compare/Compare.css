@@ -1,0 +1,238 @@
+.compare-container {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.compare-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 40px;
+}
+
+.subtitle {
+  color: #64748b;
+  font-size: 1rem;
+  margin-top: 5px;
+}
+
+.btn-add-school {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #f1f5f9;
+  color: #334155;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-add-school:hover {
+  background-color: #e2e8f0;
+}
+
+/* --- Bảng So Sánh Bằng Grid --- */
+.compare-table-wrapper {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  padding: 30px;
+}
+
+.compare-row {
+  display: grid;
+  grid-template-columns: 220px repeat(3, 1fr); /* 1 Cột nhãn + 3 Cột trường */
+  gap: 30px;
+  padding: 20px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.compare-row:last-child {
+  border-bottom: none;
+}
+
+.compare-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.label-col {
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+/* Header Row (Logo & Tên) */
+.header-row {
+  align-items: end;
+  padding-top: 0;
+}
+
+.section-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.school-card {
+  position: relative;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 25px 20px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
+
+.btn-remove {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #cbd5e1;
+  cursor: pointer;
+}
+
+.btn-remove:hover { color: #ef4444; }
+
+.school-logo-wrapper {
+  width: 60px;
+  height: 60px;
+  background: #0f172a;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 15px;
+  overflow: hidden;
+}
+
+.school-logo { width: 100%; height: 100%; object-fit: contain; }
+
+.school-card h3 {
+  font-size: 1.1rem;
+  color: #1e293b;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.location {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #64748b;
+  font-size: 0.85rem;
+  margin-bottom: 15px;
+}
+
+.tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+.tag.public { background: #e0f2fe; color: #0284c7; }
+.tag.private { background: #f3e8ff; color: #9333ea; }
+
+.empty-slot {
+  border: 2px dashed #cbd5e1;
+  border-radius: 16px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #94a3b8;
+  font-weight: 600;
+  background: #f8fafc;
+  padding: 40px 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.empty-slot:hover {
+  border-color: #94a3b8;
+  background: #f1f5f9;
+}
+
+/* AI Row */
+.ai-row { background: #f8fafc; border-radius: 12px; padding: 20px; margin: 10px 0; border: none;}
+.ai-label { flex-direction: row; align-items: flex-start; gap: 10px; color: #1e293b;}
+.ai-label span { font-size: 0.75rem; color: #64748b; font-weight: 400;}
+
+.ai-match-card {
+  background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;
+}
+.match-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;}
+.match-header span { font-size: 0.85rem; font-weight: 700; color: #1e293b; }
+.match-header h2 { font-size: 1.6rem; color: #3b5998; margin: 0; }
+.progress-bar-bg { background: #e2e8f0; height: 6px; border-radius: 6px; margin-bottom: 12px; overflow: hidden;}
+.progress-bar-fill { background: #3b5998; height: 100%; border-radius: 6px;}
+.ai-text { font-style: italic; font-size: 0.85rem; color: #475569; line-height: 1.5; margin: 0;}
+
+/* Data Sections */
+.section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 1px;
+  margin-top: 30px;
+  margin-bottom: -10px;
+}
+
+.data-col { font-size: 0.95rem; color: #334155; line-height: 1.6; }
+.font-semibold { font-weight: 600; color: #1e293b; }
+
+.score-list span { display: block; margin-bottom: 4px; }
+.f-tag {
+  display: inline-block; background: #f1f5f9; padding: 5px 12px; border-radius: 6px; font-size: 0.85rem; margin-right: 8px; margin-bottom: 8px; color: #475569;
+}
+
+.rating-col { flex-direction: row; align-items: center; gap: 8px;}
+.rating-score { display: flex; align-items: center; gap: 4px; font-weight: 700; color: #1e293b;}
+.rating-count { color: #94a3b8; font-size: 0.85rem; }
+
+/* Buttons */
+.action-row { border-bottom: none; padding-bottom: 0;}
+.action-col { gap: 10px; }
+.btn-consult, .btn-detail { width: 100%; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; transition: 0.2s;}
+.btn-consult { background: #0f172a; color: white; }
+.btn-consult:hover { background: #1e293b; }
+.btn-detail { background: #3b5998; color: white; }
+.btn-detail:hover { background: #2a4173; }
+
+/* Bottom Banners */
+.bottom-banners {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  margin-top: 40px;
+}
+
+.banner { padding: 40px; border-radius: 16px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start;}
+.ai-banner { background: #0f172a; color: white; }
+.banner-badge { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; margin-bottom: 20px;}
+.ai-banner h2 { font-size: 1.8rem; margin-bottom: 15px;}
+.ai-banner p { color: #94a3b8; line-height: 1.6; margin-bottom: 25px; font-size: 0.95rem;}
+
+.pdf-banner { background: #f8fafc; border: 1px solid #e2e8f0; align-items: center; text-align: center;}
+.pdf-icon { width: 60px; height: 60px; background: white; border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px;}
+.pdf-banner h3 { color: #1e293b; margin-bottom: 10px; }
+.pdf-banner p { color: #64748b; font-size: 0.9rem; margin-bottom: 25px;}
+
+.btn-white { background: white; color: #0f172a; font-weight: 700; padding: 12px 24px; border-radius: 8px; border: none; cursor: pointer;}
+.btn-white-outline { background: white; color: #0f172a; font-weight: 700; padding: 12px 24px; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer;}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .compare-row { grid-template-columns: 1fr; }
+  .label-col { display: none; /* Giấu nhãn ở mobile, hoặc cần design lại style xếp dọc */ }
+  .bottom-banners { grid-template-columns: 1fr; }
+}
