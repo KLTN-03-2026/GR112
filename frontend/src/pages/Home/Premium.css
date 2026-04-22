@@ -1,53 +1,357 @@
-/* ================= PREMIUM FEATURES STYLES ================= */
+/* ==========================================================================
+   PREMIUM FEATURES STYLES - FULL OPTIMIZED VERSION
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* 1. CSS VARIABLES (Biến màu sắc toàn cục) */
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --bg-main: #f8fafc;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --danger: #ef4444;
+  --success: #10b981;
+  --border: #e2e8f0;
+}
+
+/* 2. BASE & UTILITIES (Cấu trúc nền) */
 .premium-page {
-  max-width: 1200px; margin: 40px auto; padding: 40px 20px;
-  font-family: 'Inter', sans-serif; color: #0f172a;
-}
-.pr-header { text-align: center; margin-bottom: 50px; }
-.pr-header h1 { font-size: 2.8rem; font-weight: 800; margin-bottom: 15px; color: #1e293b; }
-.pr-header p { color: #64748b; font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
-
-/* Thẻ chung */
-.pr-card {
-  background: #ffffff; border-radius: 20px; padding: 40px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 40px 20px;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-main);
 }
 
-/* Form Styles */
-.pr-form-group { margin-bottom: 25px; text-align: left; }
-.pr-form-group label { display: block; font-weight: 600; margin-bottom: 10px; color: #334155; }
-.pr-input {
-  width: 100%; padding: 16px; border-radius: 12px; border: 1px solid #cbd5e1;
-  font-size: 1rem; background: #f8fafc; outline: none; transition: 0.3s;
+.fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.pr-input:focus { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); background: #fff;}
-.pr-btn {
-  width: 100%; padding: 16px; border-radius: 12px; background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: white; font-weight: 700; font-size: 1.1rem; border: none; cursor: pointer; transition: 0.3s;
-}
-.pr-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); }
 
-/* ROI Result Card */
-.roi-result {
-  margin-top: 30px; padding: 30px; background: linear-gradient(145deg, #f0fdf4, #d1fae5);
-  border-radius: 16px; border: 1px solid #a7f3d0; text-align: center;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-.roi-result h3 { color: #065f46; font-size: 1.5rem; margin-bottom: 20px; }
-.roi-stat { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 1.1rem; }
-.roi-stat strong { color: #047857; font-size: 1.3rem; }
 
-/* Mentors Grid */
-.mentors-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+.pr-header { text-align: center; margin-bottom: 40px; }
+.pr-header h1 { 
+  font-size: clamp(2rem, 5vw, 2.8rem); 
+  font-weight: 800; 
+  margin-bottom: 12px; 
+  letter-spacing: -0.02em;
+  color: #1e293b;
+}
+.pr-header p { 
+  color: var(--text-muted); 
+  font-size: 1.1rem; 
+  max-width: 550px; 
+  margin: 0 auto; 
+  line-height: 1.6;
+}
+
+/* 3. MENTORS GRID SYSTEM (Danh sách Cố vấn) */
+.mentors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
+}
+
 .mentor-card {
-  background: white; border-radius: 20px; padding: 30px; text-align: center;
-  border: 1px solid #e2e8f0; transition: 0.3s;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  text-align: center;
+  border: 1px solid var(--border);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-.mentor-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
-.mentor-img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 0 auto 20px; border: 4px solid #eff6ff; }
-.mentor-card h3 { font-size: 1.3rem; margin-bottom: 5px; color: #0f172a; }
-.mentor-card p { color: #64748b; font-size: 0.95rem; margin-bottom: 20px; }
+
+.mentor-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  border-color: var(--primary);
+}
+
+.mentor-img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 20px;
+  border: 4px solid #f8fafc;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.mentor-card:hover .mentor-img {
+  transform: scale(1.05);
+}
+
+.mentor-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text-main);
+}
+
+.mentor-card p {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 24px;
+  min-height: 45px; 
+}
+
+.mentor-card p strong {
+  color: var(--primary);
+  display: block;
+  margin-bottom: 4px;
+}
+
 .mentor-btn {
-  display: inline-block; padding: 12px 24px; border-radius: 8px; background: #e0e7ff; color: #4338ca;
-  text-decoration: none; font-weight: 600; transition: 0.2s; width: 100%;
+  width: 100%;
+  padding: 12px;
+  background: #f1f5f9;
+  color: var(--text-main);
+  text-decoration: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  margin-top: auto; 
+  display: inline-block;
 }
-.mentor-btn:hover { background: #4338ca; color: white; }
+
+.mentor-btn:hover {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 8px 16px -4px rgba(37, 99, 235, 0.4);
+}
+
+/* 4. BOOKING FORM OPTIMIZATION (Form Đặt Lịch) */
+.pr-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: clamp(20px, 5vw, 40px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border);
+  transition: transform 0.3s ease;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.pr-form-group { 
+  margin-bottom: 22px; 
+  flex: 1; 
+}
+
+.pr-form-group label { 
+  display: block; 
+  font-weight: 600; 
+  margin-bottom: 8px; 
+  color: #334155;
+  font-size: 0.95rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 20px;
+}
+
+.pr-input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  font-size: 1rem;
+  background: #fdfdfd;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  color: var(--text-main);
+  font-family: inherit;
+}
+
+.pr-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+  background: #fff;
+}
+
+.pr-input:disabled {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  border-color: var(--border);
+  cursor: not-allowed;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+/* Dropdown chung */
+select.pr-input {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 16px;
+  padding-right: 45px;
+}
+
+/* Nút Submit */
+.pr-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.pr-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -8px rgba(37, 99, 235, 0.5);
+  filter: brightness(1.1);
+}
+
+/* 5. ADVISOR SPECIFIC STYLES (Hiển thị cố vấn chi tiết) */
+.advisor-preview {
+  margin-top: 16px;
+  padding: 16px;
+  background: #f1f5f9;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px dashed var(--border);
+}
+
+.advisor-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.advisor-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.advisor-name {
+  font-weight: 700;
+  color: var(--text-main);
+  font-size: 0.95rem;
+}
+
+.advisor-specialty {
+  font-size: 0.8rem;
+  color: var(--primary);
+  font-weight: 500;
+  background: rgba(37, 99, 235, 0.1);
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+.pr-input.advisor-select {
+  border-left: 4px solid var(--primary);
+  font-weight: 500;
+  background-color: #f8fafc;
+}
+
+.pr-input.advisor-select option {
+  padding: 10px;
+  font-weight: 400;
+}
+
+.advisor-group:hover .pr-input.advisor-select {
+  border-color: var(--primary);
+  background: #fff;
+}
+
+.advisor-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+/* 6. SUCCESS MESSAGE (Thông báo thành công) */
+.success-message {
+  text-align: center;
+  padding: 40px 20px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.success-message i {
+  font-size: 4.5rem;
+  color: var(--success);
+  margin-bottom: 24px;
+  display: block;
+  filter: drop-shadow(0 10px 15px rgba(16, 185, 129, 0.2));
+}
+
+.success-message h2 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 12px;
+}
+
+.success-message p {
+  color: var(--text-muted);
+  line-height: 1.5;
+  font-size: 1.05rem;
+}
+
+/* 7. RESPONSIVE DESIGN (Giao diện Mobile) */
+@media (max-width: 768px) {
+  .mentors-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .pr-card { 
+    padding: 30px 20px; 
+    border-radius: 16px;
+  }
+  
+  .pr-header h1 { 
+    font-size: 2rem; 
+  }
+}

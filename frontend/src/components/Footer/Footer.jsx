@@ -44,7 +44,7 @@ const Footer = () => {
     <footer className="site-footer">
       <div className="footer-top">
         <div className="footer-col brand-col">
-          <h3>🎓ConsulTing</h3>
+          <h3>ConsulTing</h3>
           <p>Trao quyền cho học sinh thông qua khám phá bằng AI và tuyển chọn chiến lược giáo dục đại học.</p>
         </div>
         

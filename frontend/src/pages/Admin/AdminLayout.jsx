@@ -3,7 +3,8 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, School, Database, 
   MessageSquare, BrainCircuit, Layers, Cpu, 
-  Settings, Bell, Search, Menu, LogOut, ChevronRight, Sparkles
+  Settings, Bell, Search, Menu, LogOut, ChevronRight, Sparkles,
+  UserCheck, Calendar // <-- Import thêm 2 icon mới ở đây
 } from 'lucide-react';
 import './AdminLayout.css';
 
@@ -18,21 +19,24 @@ const AdminLayout = () => {
     ]},
     { group: "DỮ LIỆU CỐT LÕI", items: [
       { path: '/admin/users', icon: <Users size={18}/>, label: 'Người dùng' },
-      // Đã sửa 'universities' thành 'university' để khớp với App.js
       { path: '/admin/university', icon: <School size={18}/>, label: 'Trường học' }, 
       { path: '/admin/admission', icon: <Database size={18}/>, label: 'Tuyển sinh' },
-      // Đã sửa 'exam-blocks' thành 'exam-block' để khớp với App.js
       { path: '/admin/exam-block', icon: <Layers size={18}/>, label: 'Khối thi' }, 
     ]},
-    { group: "NỘI DUNG & TƯ VẤN", items: [
+    { group: "NỘI DUNG", items: [
       { path: '/admin/content', icon: <BrainCircuit size={18}/>, label: 'Trắc nghiệm & Review' },
-      { path: '/admin/consultation-history', icon: <MessageSquare size={18}/>, label: 'Lịch sử tư vấn' },
+      { path: '/admin/consultation-history', icon: <MessageSquare size={18}/>, label: 'Lịch sử Chat AI' },
+    ]},
+    // --- THÊM NHÓM QUẢN LÝ MỚI VÀO ĐÂY ---
+    { group: "TƯ VẤN 1-1 (PREMIUM)", items: [
+      { path: '/admin/mentors', icon: <UserCheck size={18}/>, label: 'Quản lý Cố vấn' },
+      { path: '/admin/bookings', icon: <Calendar size={18}/>, label: 'Quản lý Đặt lịch' },
     ]},
   ];
 
   return (
     <div className="master-layout">
-      {/* SIDEBAR NÂNG CẤP */}
+      {/* SIDEBAR */}
       <aside className={`main-sidebar ${isSidebarOpen ? 'expanded' : 'collapsed'}`}>
         <div className="sidebar-header">
           <div className="logo-box">
@@ -55,7 +59,6 @@ const AdminLayout = () => {
                   {isSidebarOpen && (
                     <div className="nav-label">
                       {item.label}
-                      {/* Đã xóa phần us-badge dư thừa gây ra cái ô xám */}
                     </div>
                   )}
                   {location.pathname === item.path && <ChevronRight className="active-arrow" size={14} />}
@@ -103,7 +106,6 @@ const AdminLayout = () => {
         </header>
 
         <main className="content-render">
-          {/* Outlet render các trang con (Dashboard, User, AI...) */}
           <div className="fade-in-container">
             <Outlet />
           </div>

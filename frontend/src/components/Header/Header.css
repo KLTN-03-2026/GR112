@@ -1,11 +1,20 @@
 /* src/components/Header/Header.css */
+
+/* =========================================
+   1. THANH ĐIỀU HƯỚNG CHÍNH (NAVBAR)
+   ========================================= */
 .navbar {
   background-color: var(--theme-accent-color);
-  padding: 14px 32px; display: flex; justify-content: space-between; align-items: center;
-  position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  padding: 14px 32px; 
+  display: flex; justify-content: space-between; align-items: center;
+  position: sticky; top: 0; 
+  z-index: 9999; /* 🚀 Ép Header lên cao nhất để không bị đè, fix lỗi không click được */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   transition: background-color 0.3s ease;
 }
-.nav-brand { font-size: 1.35rem; font-weight: 800; color: #ffffff; }
+
+.nav-brand { font-size: 1.35rem; font-weight: 800; color: #ffffff; text-decoration: none; }
+
 .nav-links { display: flex; gap: 18px; align-items: center; }
 .nav-links a {
   color: rgba(255, 255, 255, 0.9); text-decoration: none; font-size: 0.95rem; font-weight: 600;
@@ -14,29 +23,90 @@
 .nav-links a:hover { background: rgba(255, 255, 255, 0.2); color: #ffffff; }
 
 .nav-actions { display: flex; align-items: center; gap: 10px; }
-.custom-dropdown { position: relative; display: inline-block; }
+
+/* =========================================
+   2. NÚT BẤM DẠNG VIÊN THUỐC (PILL BUTTONS)
+   ========================================= */
 .pill-btn {
   background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.4);
   padding: 8px 16px; border-radius: 999px; cursor: pointer; display: flex; align-items: center; gap: 6px;
   font-size: 0.85rem; color: #ffffff; font-weight: 600; transition: all 0.2s ease;
 }
 .pill-btn:hover { background: rgba(255, 255, 255, 0.3); border-color: #ffffff; }
-.dropdown-menu {
-  display: none; position: absolute; right: 0; background-color: var(--card); min-width: 200px;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15); z-index: 99; border-radius: 10px; top: calc(100% + 10px); overflow: hidden;
-}
-.dropdown-menu.show { display: block; }
-.dropdown-menu a, .dropdown-menu button {
-  color: #334155; padding: 11px 16px; text-decoration: none; display: block; font-size: 0.9rem; transition: background 0.2s ease;
-  width: 100%; text-align: left;
-}
-.dropdown-menu a:hover, .dropdown-menu button:hover { background-color: #f1f5f9; color: var(--theme-accent-color); }
 
+.pill-btn.user-logged-btn { padding: 8px 16px; display: flex; align-items: center; gap: 8px; }
+.pill-btn.user-logged-btn span { font-size: 0.85rem; font-weight: 600; }
+
+/* =========================================
+   3. MENU THẢ XUỐNG (DROPDOWN MENU)
+   ========================================= */
+.custom-dropdown { 
+  position: relative; /* Neo menu con dính vào nút này */
+  display: inline-block; 
+}
+
+.dropdown-menu {
+  display: none; 
+  position: absolute; 
+  right: 0; 
+  top: calc(100% + 10px); /* Đẩy menu xuống dưới nút 1 chút */
+  background-color: #ffffff; 
+  min-width: 220px; 
+  border-radius: 12px; 
+  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.15); 
+  z-index: 10000; /* 🚀 Đảm bảo Menu không bị khối nào che lấp */
+  overflow: hidden; 
+  animation: fadeInDown 0.3s ease;
+}
+
+.dropdown-menu.show { 
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdown-menu a, 
+.dropdown-menu button {
+  color: #333333; 
+  padding: 12px 16px; 
+  text-decoration: none; 
+  font-size: 14px;
+  font-weight: 500;
+  display: flex; 
+  align-items: center; 
+  gap: 10px;
+  width: 100%; 
+  text-align: left;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Hiệu ứng khi rê chuột vào menu */
+.dropdown-menu a:hover, 
+.dropdown-menu button:hover { 
+  background-color: #f0f4ff; 
+  color: #3b5998; 
+  padding-left: 20px; /* Thụt vào tạo hiệu ứng xịn xò */
+}
+
+.dropdown-menu hr {
+  margin: 4px 0;
+  border: 0;
+  border-top: 1px solid #eee;
+}
+
+/* =========================================
+   4. BẢNG CHỌN MÀU (THEME GRID)
+   ========================================= */
 .theme-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px; }
 .theme-item { height: 30px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s ease; }
 .theme-item:hover { transform: translateY(-2px); }
 .theme-item i { color: #fff; display: block; text-align: center; line-height: 30px; }
 
+/* =========================================
+   5. NÚT ĐĂNG NHẬP / ĐĂNG KÝ
+   ========================================= */
 .auth-buttons { display: flex; align-items: center; gap: 12px; margin-left: 10px; padding-left: 18px; border-left: 1px solid rgba(255, 255, 255, 0.4); }
 .nav-actions a.btn-login, .nav-actions a.btn-register { padding: 8px 20px; border-radius: 50px; font-size: 0.85rem; font-weight: 700; text-decoration: none; transition: all 0.3s ease; white-space: nowrap; }
 .nav-actions a.btn-login { background: transparent; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.6); }
@@ -44,8 +114,13 @@
 .nav-actions a.btn-register { background: #ffffff; color: var(--theme-accent-color); border: 1px solid #ffffff; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); }
 .nav-actions a.btn-register:hover { background: #f8fafc; transform: translateY(-1px); box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); }
 
-.pill-btn.user-logged-btn { padding: 8px 16px; display: flex; align-items: center; gap: 8px; }
-.pill-btn.user-logged-btn span { font-size: 0.85rem; font-weight: 600; }
+/* =========================================
+   6. RESPONSIVE VÀ HIỆU ỨNG (ANIMATION)
+   ========================================= */
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 @media (max-width: 900px) {
   .navbar { padding: 12px 18px; }

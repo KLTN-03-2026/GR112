@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, Zap, ShieldCheck, Target, AlertTriangle } from 'lucide-react';
+import axios from 'axios'; // Đã thêm axios
 import './AiSuggestion.css';
 
 const BLOCK_CONFIG = {
@@ -42,6 +43,9 @@ const AiSuggestion = () => {
     setAnalysisData(null); 
   };
 
+  // ==========================================
+  // THUẬT TOÁN AI PHÂN TÍCH LỘ TRÌNH (FRONTEND)
+  // ==========================================
   const handleAnalyze = async () => {
     if (!scores.sub1 || !scores.sub2 || !scores.sub3) {
       alert("Vui lòng nhập đầy đủ điểm 3 môn nhé!");
@@ -50,25 +54,74 @@ const AiSuggestion = () => {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/analyze-score', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          block: selectedBlock,
-          math: parseFloat(scores.sub1),
-          physics: parseFloat(scores.sub2),
-          english: parseFloat(scores.sub3)
-        })
+      // Tính tổng điểm
+      const totalScore = parseFloat(scores.sub1) + parseFloat(scores.sub2) + parseFloat(scores.sub3);
+      
+      // Gọi API lấy toàn bộ dữ liệu trường từ Database
+      const response = await axios.get('http://localhost:8000/api/universities');
+      const allUnis = response.data;
+
+      // Lọc các trường có xét tuyển khối người dùng chọn
+      const blockUnis = allUnis.filter(uni => 
+        uni.subject_block && uni.subject_block.includes(selectedBlock)
+      );
+
+      const safe = [];
+      const moderate = [];
+      const challenge = [];
+
+      // Phân loại nhóm trường
+      blockUnis.forEach(uni => {
+        const uniScore = parseFloat(uni.score_thpt_last_year) || parseFloat(uni.base_score) || 0;
+        if (uniScore === 0) return; // Bỏ qua nếu trường chưa cập nhật điểm
+
+        // Format lại dữ liệu cho chuẩn giao diện
+        const formattedUni = {
+          id: uni.id,
+          school_name: uni.school_name || uni.name,
+          school_logo: uni.school_logo || `https://images.unsplash.com/photo-${1523050854058 + uni.id}-8df90110c9f1?w=100&q=80`,
+          major_name: uni.major_code ? `${uni.major_name} (${uni.major_code})` : (uni.major_name || 'Đa ngành'),
+          base_score: uni.score_thpt_last_year || uni.base_score,
+          ranking_note: uni.ranking_note ? uni.ranking_note.split(' - ')[1] : 'Việt Nam',
+          tuition_fee: uni.tuition_fee || 'Cập nhật...'
+        };
+
+        const diff = totalScore - uniScore;
+
+        if (diff >= 1.5) {
+          // An toàn: Điểm cao hơn điểm chuẩn từ 1.5đ trở lên (Tỉ lệ đỗ 85-99%)
+          formattedUni.match_percent = Math.min(99, Math.round(85 + diff * 3));
+          safe.push(formattedUni);
+        } else if (diff >= -0.5 && diff < 1.5) {
+          // Vừa sức: Lệch trong khoảng -0.5đ đến +1.5đ (Tỉ lệ đỗ 65-84%)
+          formattedUni.match_percent = Math.round(65 + (diff + 0.5) * 10);
+          moderate.push(formattedUni);
+        } else if (diff >= -3 && diff < -0.5) {
+          // Thử thách: Thấp hơn điểm chuẩn từ -3đ đến -0.5đ (Tỉ lệ đỗ 30-64%)
+          formattedUni.match_percent = Math.max(30, Math.round(50 + (diff + 0.5) * 8));
+          challenge.push(formattedUni);
+        }
       });
 
-      const data = await response.json();
-      if (response.ok) {
-        setAnalysisData(data);
-      } else {
-        alert(data.error);
-      }
+      // Sắp xếp các nhóm theo % độ phù hợp giảm dần
+      safe.sort((a, b) => b.match_percent - a.match_percent);
+      moderate.sort((a, b) => b.match_percent - a.match_percent);
+      challenge.sort((a, b) => b.match_percent - a.match_percent);
+
+      // Cắt lấy 4 trường đại diện mỗi nhóm để giao diện không bị dài quá
+      setAnalysisData({
+        total_score: totalScore.toFixed(2),
+        ai_explanation: `Với tổng điểm ${totalScore.toFixed(2)} ở ${BLOCK_CONFIG[selectedBlock].name}, bạn đang có lợi thế lớn ở nhóm trường tầm trung. Hệ thống AI nhận thấy điểm của bạn rất ổn định. Lời khuyên là hãy rải đều nguyện vọng: Đặt 1-2 trường ở nhóm 'Thử thách' lên đầu (NV1, NV2), tiếp theo là 2-3 trường 'Vừa sức', và lót đáy bằng 1-2 trường 'An toàn' để đảm bảo 100% trúng tuyển đại học.`,
+        results: {
+          safe: safe.slice(0, 4),
+          moderate: moderate.slice(0, 4),
+          challenge: challenge.slice(0, 4)
+        }
+      });
+
     } catch (error) {
-      alert("Lỗi kết nối đến Backend!");
+      console.error(error);
+      alert("Lỗi kết nối đến dữ liệu hệ thống!");
     } finally {
       setLoading(false);
     }
@@ -131,7 +184,7 @@ const AiSuggestion = () => {
             <>
               <div className="ai-logic-summary">
                 <h4><Sparkles size={16} /> Tóm tắt AI Logic</h4>
-                <p>Tổng điểm của bạn: <strong>{analysisData.total_score}</strong>. Phân tích dựa trên phổ điểm <strong>{BLOCK_CONFIG[selectedBlock].name}</strong> hiện tại và đối chiếu với cơ sở dữ liệu các trường.</p>
+                <p>Tổng điểm của bạn: <strong style={{color: '#4f46e5', fontSize: '1.2rem'}}>{analysisData.total_score}</strong>. Phân tích dựa trên phổ điểm <strong>{BLOCK_CONFIG[selectedBlock].name}</strong> hiện tại và đối chiếu với cơ sở dữ liệu các trường.</p>
               </div>
 
               {analysisData.results.safe.length > 0 && (
@@ -144,9 +197,10 @@ const AiSuggestion = () => {
                   {analysisData.results.safe.map(school => (
                     <div className="school-card safe-card" key={school.id}>
                       <div className="card-header">
-                        <img src={school.school_logo || "/assets/logos/default.png"} alt="Logo" className="school-logo-sm" />
+                        {/* ĐÃ FIX LỖI ẢNH LOGO BỊ TRỐNG */}
+                        <img src={school.school_logo} alt="Logo" className="school-logo-sm" style={{objectFit: 'contain', background: 'white'}} />
                         <div className="school-info">
-                          <h4>{school.school_name}</h4>
+                          <h4 style={{maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}} title={school.school_name}>{school.school_name}</h4>
                           <p className="major-name text-blue">{school.major_name}</p>
                         </div>
                       </div>
@@ -171,14 +225,13 @@ const AiSuggestion = () => {
                       <div className="school-card" key={school.id}>
                         <div className="card-header flex-col">
                           <div className="badge-match">AI MATCH {school.match_percent}%</div>
-                          {/* ĐÃ THÊM LOGO CHO NHÓM VỪA SỨC */}
-                          <img src={school.school_logo || "/assets/logos/default.png"} alt="Logo" className="school-logo-sm" style={{marginBottom: '10px'}} />
-                          <h4>{school.school_name}</h4>
-                          <p className="major-name">{school.major_name}</p>
+                          <img src={school.school_logo} alt="Logo" className="school-logo-sm" style={{marginBottom: '10px', objectFit: 'contain', background: 'white', width: '50px', height: '50px', borderRadius: '50%'}} />
+                          <h4 style={{textAlign: 'center', height: '40px', overflow: 'hidden'}}>{school.school_name}</h4>
+                          <p className="major-name" style={{textAlign: 'center'}}>{school.major_name}</p>
                         </div>
                         <div className="card-stats-mini">
                           <div><span>ĐIỂM CHUẨN</span><strong>{school.base_score}</strong></div>
-                          <div><span>THÔNG TIN</span><strong>{school.ranking_note || school.tuition_fee}</strong></div>
+                          <div><span>HỌC PHÍ</span><strong style={{fontSize: '0.8rem', fontWeight: '500'}}>{school.tuition_fee}</strong></div>
                         </div>
                       </div>
                     ))}
@@ -195,9 +248,8 @@ const AiSuggestion = () => {
                   </div>
                   {analysisData.results.challenge.map(school => (
                     <div className="school-card challenge-card" key={school.id}>
-                      {/* ĐÃ THÊM LOGO CHO NHÓM THỬ THÁCH */}
                       <div className="card-left">
-                        <img src={school.school_logo || "/assets/logos/default.png"} alt="Logo" className="school-logo-md" />
+                        <img src={school.school_logo} alt="Logo" className="school-logo-md" style={{objectFit: 'contain', background: 'white'}} />
                       </div>
                       <div className="card-center">
                         <h4>{school.school_name}</h4>

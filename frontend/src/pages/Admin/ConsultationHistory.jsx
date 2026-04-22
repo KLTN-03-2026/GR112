@@ -1,22 +1,95 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './ConsultationHistory.css';
-import { 
-  Search, Filter, User, Bot, Clock, 
-  ShieldCheck, AlertTriangle, ChevronRight,
-  Download, Trash2, MessageSquare
-} from 'lucide-react';
+import { Search, User, Bot, Clock, ShieldCheck, AlertTriangle, ChevronRight, Download, Trash2, MessageSquare } from 'lucide-react';
 
 const ConsultationHistory = () => {
-  const [selectedSession, setSelectedSession] = useState(1);
+  const [sessions, setSessions] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [selectedSession, setSelectedSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+  
+  // 🚀 State cho tính năng tìm kiếm
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const sessions = [
-    { id: 1, user: 'Nguyễn Minh Tú', email: 'tunm@gmail.com', time: '10:45 - 06/04/2026', preview: 'Tư vấn về ngành AI và Khoa học máy tính...', status: 'Hoàn thành', sentiment: 'Tích cực' },
-    { id: 2, user: 'Lê Thùy Chi', email: 'chilt@yahoo.com', time: '09:20 - 06/04/2026', preview: 'Học phí trường Đại học Bách Khoa...', status: 'Đang chat', sentiment: 'Trung tính' },
-    { id: 3, user: 'Trần Hoàng Nam', email: 'namth@hotmail.com', time: 'Hôm qua', preview: 'So sánh Ngoại thương và Kinh tế quốc dân...', status: 'Hoàn thành', sentiment: 'Tích cực' },
-  ];
+  const token = localStorage.getItem('token');
+
+  // 1. Tải danh sách phiên chat khi mở trang
+  const fetchSessions = () => {
+    setLoading(true);
+    fetch('http://localhost:8000/api/admin/chat-sessions', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setSessions(data);
+          if (data.length > 0) handleSelectSession(data[0]);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Lỗi:", err);
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    fetchSessions();
+  }, []);
+
+  // 2. Lấy chi tiết tin nhắn
+  const handleSelectSession = (session) => {
+    setSelectedSession(session);
+    setMessages([]); // Clear tin nhắn cũ
+    
+    fetch(`http://localhost:8000/api/admin/chat-sessions/${session.id}/messages`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setMessages(data);
+      })
+      .catch(err => console.error("Lỗi tải tin nhắn:", err));
+  };
+
+  // 🚀 3. Hàm Xuất Lịch sử ra file CSV (Excel)
+  const handleExportCSV = () => {
+    if (sessions.length === 0) return alert("Không có dữ liệu để xuất!");
+    
+    // Tạo tiêu đề cột
+    const headers = ["ID", "Học sinh", "Email", "Thời gian", "Nội dung tóm tắt"];
+    // Map dữ liệu
+    const rows = sessions.map(s => [
+      s.id, 
+      `"${s.user}"`, 
+      s.email, 
+      s.time, 
+      `"${s.preview ? s.preview.replace(/"/g, '""') : ''}"` // Tránh lỗi dấu ngoặc kép trong nội dung
+    ]);
+    
+    // Gộp thành chuỗi CSV (Thêm BOM \uFEFF để Excel không bị lỗi font tiếng Việt)
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" 
+      + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+      
+    // Tự động tải xuống
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "ThongKe_LichSuChat_AI.csv");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  // 🚀 4. Lọc danh sách theo thanh tìm kiếm
+  const filteredSessions = sessions.filter(s => 
+    (s.user && s.user.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (s.email && s.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (s.id && s.id.toString().includes(searchTerm))
+  );
 
   return (
-    <div className="history-inner-content">
+    <div className="history-inner-content fade-in">
       {/* HEADER NỘI BỘ */}
       <div className="history-header-row">
         <div className="history-title">
@@ -29,87 +102,177 @@ const ConsultationHistory = () => {
         <div className="history-actions">
            <div className="search-box-history">
               <Search size={16} />
-              <input type="text" placeholder="Tìm tên, email hoặc ID..." />
+              <input 
+                type="text" 
+                placeholder="Tìm tên, email hoặc ID..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)} // Bắt sự kiện gõ phím
+              />
            </div>
-           <button className="btn-export-history"><Download size={16} /> Xuất CSV</button>
+           <button className="btn-export-history" onClick={handleExportCSV}>
+             <Download size={16} /> Xuất CSV
+           </button>
         </div>
       </div>
 
       <div className="history-split-view">
-        {/* DANH SÁCH PHIÊN BÊN TRÁI */}
+        {/* --- DANH SÁCH PHIÊN BÊN TRÁI --- */}
         <div className="history-list-panel">
-          <div className="list-label">TẤT CẢ PHIÊN (128)</div>
+          <div className="list-label">DANH SÁCH PHIÊN ({filteredSessions.length})</div>
           <div className="list-scroll custom-scrollbar">
-            {sessions.map((s) => (
-              <div 
-                key={s.id} 
-                className={`session-item ${selectedSession === s.id ? 'active' : ''}`}
-                onClick={() => setSelectedSession(s.id)}
-              >
-                <div className="session-top">
-                  <span className="session-id">#S-{s.id}902</span>
-                  <span className={`status-dot ${s.status === 'Đang chat' ? 'online' : ''}`}></span>
-                </div>
-                <h4>{s.user}</h4>
-                <p>{s.preview}</p>
-                <div className="session-bottom">
-                  <span><Clock size={12} /> {s.time}</span>
-                  <ChevronRight size={14} />
-                </div>
-              </div>
-            ))}
+            {loading ? <p style={{padding: 15, textAlign: 'center'}}>Đang tải dữ liệu...</p> : null}
+            
+            {!loading && filteredSessions.length === 0 ? (
+              <p style={{padding: 15, textAlign: 'center', color: '#888'}}>Không tìm thấy phiên nào phù hợp.</p>
+            ) : null}
+
+            {/* --- TRONG PHẦN DANH SÁCH BÊN TRÁI --- */}
+{filteredSessions.map((s) => (
+  <div 
+    key={s.id} 
+    className={`session-item ${selectedSession?.id === s.id ? 'active' : ''}`}
+    onClick={() => handleSelectSession(s)}
+  >
+    <div className="session-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <span className="session-id">#S-{s.id}</span>
+      
+      {/* 🚀 Thêm đoạn này: Nếu is_flagged = true thì hiện icon cờ đỏ */}
+      {s.is_flagged && (
+        <AlertTriangle size={14} color="#ef4444" fill="#fee2e2" />
+      )}
+    </div>
+    
+    <h4>{s.user}</h4>
+    <p>{s.preview}</p>
+    
+    <div className="session-bottom">
+      <span><Clock size={12} /> {s.time}</span>
+      <ChevronRight size={14} />
+    </div>
+  </div>
+))}
           </div>
         </div>
 
-        {/* CHI TIẾT HỘI THOẠI BÊN PHẢI */}
+        {/* --- CHI TIẾT HỘI THOẠI BÊN PHẢI --- */}
         <div className="history-chat-panel">
-          <div className="chat-detail-header">
-            <div className="user-info-chat">
-              <div className="user-avatar-placeholder"><User size={18} /></div>
-              <div>
-                <strong>Nguyễn Minh Tú</strong>
-                <span>Học sinh • tunm@gmail.com</span>
+          {selectedSession ? (
+            <>
+              <div className="chat-detail-header">
+                <div className="user-info-chat">
+                  <div className="user-avatar-placeholder"><User size={18} /></div>
+                  <div>
+                    <strong>{selectedSession.user}</strong>
+                    <span>{selectedSession.email}</span>
+                  </div>
+                </div>
+                <div className="model-info-pill">
+                  <Bot size={14} /> <span>Gemini AI</span>
+                </div>
               </div>
-            </div>
-            <div className="model-info-pill">
-              <Bot size={14} /> <span>Claude 3.5 Sonnet</span>
-            </div>
-          </div>
 
-          <div className="chat-messages-box custom-scrollbar">
-            <div className="chat-row user">
-              <div className="bubble">Chào bạn, mình muốn hỏi về ngành Trí tuệ nhân tạo (AI) tại ĐH Bách Khoa Hà Nội. Điểm chuẩn năm ngoái là bao nhiêu ạ?</div>
-            </div>
-            <div className="chat-row bot">
-              <div className="bot-ico"><Bot size={14} /></div>
-              <div className="bubble">
-                Chào Tú! Ngành Trí tuệ nhân tạo (IT-E10) tại ĐH Bách Khoa HN có điểm chuẩn năm 2023 là 28.29 điểm. 
-                Bạn có cần mình tư vấn thêm về tổ hợp môn không?
-              </div>
-            </div>
-            <div className="chat-row user">
-              <div className="bubble">Học phí ngành này có cao không bạn?</div>
-            </div>
-            <div className="chat-row bot">
-              <div className="bot-ico"><Bot size={14} /></div>
-              <div className="bubble">Học phí chương trình Elitech rơi vào khoảng 35-40 triệu đồng/năm học bạn nhé.</div>
-            </div>
-          </div>
+              {/* KHUNG HIỂN THỊ TIN NHẮN */}
+              <div className="chat-messages-box custom-scrollbar">
+                {messages.length === 0 ? <p style={{textAlign: 'center', marginTop: 20}}>Đang tải tin nhắn...</p> : null}
+                
+                {messages.map((msg) => (
+                  <div key={msg.id} className={`chat-row ${msg.sender}`}>
+                    {msg.sender === 'bot' && <div className="bot-ico"><Bot size={14} /></div>}
+                    
+                    <div className="bubble">
+                      {/* Hiển thị văn bản (Nếu có) */}
+                      {msg.content && <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{msg.content}</p>}
+                      
+                      {/* 🚀 Hiển thị Hình ảnh (Nếu có và khác Null) */}
+                      {msg.image_data && msg.image_data !== "(Null)" && msg.image_data !== "null" && (
+                        <div style={{ marginTop: msg.content ? '10px' : '0' }}>
+                          <img 
+                            src={msg.image_data} 
+                            alt="Ảnh đính kèm" 
+                            style={{ 
+                              maxWidth: '100%', 
+                              maxHeight: '300px',
+                              borderRadius: '8px', 
+                              border: '1px solid rgba(0,0,0,0.1)',
+                              objectFit: 'contain'
+                            }} 
+                          />
+                        </div>
+                      )}
+                    </div>
 
-          <div className="chat-analysis-footer">
-            <div className="insights-card">
-              <div className="insight-head"><ShieldCheck size={14} /> <span>AI INSIGHTS</span></div>
-              <div className="insight-grid">
-                <div className="insight-item"><span>Thái độ:</span> <strong className="text-green">Tích cực</strong></div>
-                <div className="insight-item"><span>Độ chính xác:</span> <strong>98%</strong></div>
-                <div className="insight-item"><span>Thời gian:</span> <strong>4m 12s</strong></div>
+                  </div>
+                ))}
               </div>
+
+              {/* AI INSIGHTS FOOTER */}
+              <div className="chat-analysis-footer">
+                <div className="insights-card">
+                  <div className="insight-head"><ShieldCheck size={14} /> <span>AI INSIGHTS</span></div>
+                  <div className="insight-grid">
+                    <div className="insight-item"><span>Phiên bản:</span> <strong>Gemini 1.5 Flash</strong></div>
+                    <div className="insight-item"><span>Tổng tin nhắn:</span> <strong>{messages.length}</strong></div>
+                  </div>
+                </div>
+                <div className="chat-action-btns">
+                  <button 
+  // Nếu đã gắn cờ thì thêm class 'active-flag' để đổi màu đỏ
+  className={`btn-flag ${selectedSession.is_flagged ? 'active-flag' : ''}`} 
+  onClick={() => {
+    fetch(`http://localhost:8000/api/admin/chat-sessions/${selectedSession.id}/flag`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.message) {
+        // 1. Cập nhật giao diện bên phải ngay lập tức
+        setSelectedSession({...selectedSession, is_flagged: data.is_flagged});
+        
+        // 2. Cập nhật lại danh sách bên trái để có dấu hiệu nhận biết
+        fetchSessions(); 
+      }
+    })
+    .catch(err => console.error("Lỗi gắn cờ:", err));
+  }}
+>
+  <AlertTriangle size={14} /> 
+  {selectedSession.is_flagged ? "Đã Gắn cờ" : "Gắn cờ"}
+</button>
+                  <button 
+  className="btn-del" 
+  onClick={() => {
+    // 1. Hỏi lại cho chắc chắn tránh lỡ tay bấm nhầm
+    if (window.confirm("⚠️ Bạn có chắc chắn muốn xóa TOÀN BỘ lịch sử của phiên chat này không? Dữ liệu không thể khôi phục.")) {
+      
+      // 2. Gọi API Xóa
+      fetch(`http://localhost:8000/api/admin/chat-sessions/${selectedSession.id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      .then(res => {
+        if (res.ok) {
+          alert("✅ Đã xóa thành công!");
+          setSelectedSession(null); // Ẩn khung chat bên phải đi
+          fetchSessions();          // Load lại danh sách bên trái
+        } else {
+          alert("❌ Có lỗi xảy ra khi xóa!");
+        }
+      })
+      .catch(err => console.error("Lỗi xóa:", err));
+    }
+  }}
+>
+  <Trash2 size={14} /> Xóa log
+</button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#888'}}>
+              Vui lòng chọn một phiên chat để xem chi tiết
             </div>
-            <div className="chat-action-btns">
-              <button className="btn-flag"><AlertTriangle size={14} /> Gắn cờ</button>
-              <button className="btn-del"><Trash2 size={14} /> Xóa log</button>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

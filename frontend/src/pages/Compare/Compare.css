@@ -236,3 +236,140 @@
   .label-col { display: none; /* Giấu nhãn ở mobile, hoặc cần design lại style xếp dọc */ }
   .bottom-banners { grid-template-columns: 1fr; }
 }
+
+/* --- MODAL CHỌN TRƯỜNG SO SÁNH --- */
+.cp-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+
+.cp-modal-content {
+  background: white;
+  width: 90%; max-width: 550px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex; flex-direction: column;
+}
+
+.cp-modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 25px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.cp-modal-header h3 { margin: 0; font-size: 1.2rem; color: #0f172a; }
+.cp-close-btn { background: none; border: none; color: #64748b; cursor: pointer; display: flex; }
+.cp-close-btn:hover { color: #ef4444; }
+
+.cp-search-bar {
+  display: flex; align-items: center; gap: 10px;
+  margin: 20px 25px;
+  padding: 12px 15px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.cp-search-bar input {
+  border: none; background: transparent; outline: none;
+  width: 100%; font-size: 0.95rem; color: #1e293b;
+}
+
+.cp-school-list {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0 25px 25px 25px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+.cp-school-item {
+  display: flex; align-items: center; gap: 15px;
+  padding: 15px; border-radius: 12px;
+  border: 1px solid #f1f5f9; cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cp-school-item:hover {
+  background: #f8fafc; border-color: #cbd5e1;
+}
+
+/* Hiệu ứng khi được chọn (Tick xanh) */
+.cp-school-item.selected {
+  border-color: #10b981;
+  background: #ecfdf5;
+}
+
+.cp-school-item img {
+  width: 45px; height: 45px; object-fit: contain;
+  background: white; border-radius: 8px; padding: 5px;
+  border: 1px solid #f1f5f9;
+}
+
+.cp-school-item h4 { margin: 0 0 5px 0; font-size: 0.95rem; color: #1e293b; }
+.cp-school-item span { font-size: 0.8rem; color: #64748b; }
+
+.cp-no-result { text-align: center; color: #64748b; font-size: 0.9rem; padding: 20px; line-height: 1.5; }
+
+/* FOOTER CỦA MODAL */
+.cp-modal-footer {
+  padding: 15px 25px;
+  border-top: 1px solid #e2e8f0;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cp-modal-footer span {
+  font-size: 0.95rem;
+  color: #64748b;
+}
+
+.cp-modal-footer strong {
+  color: #3b5998;
+}
+
+.cp-btn-confirm {
+  background: #3b5998;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.cp-btn-confirm:hover {
+  background: #2a4173;
+}
+/* --- NÚT CHỌN THÊM TRƯỜNG Ở TRẠNG THÁI TRỐNG --- */
+.cp-btn-empty {
+  background: #3b5998; /* Màu xanh đồng bộ với theme */
+  color: white;
+  padding: 14px 35px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: none;
+  border-radius: 99px; /* Bo tròn hoàn toàn dạng viên thuốc */
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow: 0 8px 20px rgba(59, 89, 152, 0.25); /* Đổ bóng xịn xò */
+  transition: all 0.3s ease;
+  width: fit-content; /* Không cho kéo dài full màn hình nữa */
+  margin: 0 auto; /* Căn giữa nút */
+}
+
+.cp-btn-empty:hover {
+  background: #2a4173;
+  transform: translateY(-3px); /* Hiệu ứng nẩy lên khi di chuột */
+  box-shadow: 0 12px 25px rgba(59, 89, 152, 0.35);
+}

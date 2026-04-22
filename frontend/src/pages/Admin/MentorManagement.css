@@ -1,0 +1,74 @@
+/* Prefix 'mm-' (Mentor Management) để tránh trùng lặp CSS toàn cục */
+.mentor-management-container { padding: 10px; max-width: 100%; }
+
+.mm-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+.mm-header-text h2 { font-size: 1.8rem; color: #0f172a; margin-bottom: 6px; }
+.mm-header-text p { color: #64748b; font-size: 0.95rem; }
+
+.mm-btn-primary { display: flex; align-items: center; gap: 8px; background: #0f172a; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.mm-btn-primary:hover { background: #1e293b; }
+
+.mm-controls { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.mm-search-bar { display: flex; align-items: center; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0 16px; flex: 1; max-width: 400px; }
+.mm-search-bar input { border: none; padding: 12px; width: 100%; outline: none; font-size: 0.95rem; }
+.mm-filter-select { padding: 10px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff; outline: none; cursor: pointer; }
+
+.mm-table-wrapper { background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+.mm-table { width: 100%; border-collapse: collapse; text-align: left; }
+.mm-table th { background: #f8fafc; padding: 16px 20px; font-weight: 600; color: #475569; font-size: 0.85rem; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; }
+.mm-table td { padding: 16px 20px; border-bottom: 1px solid #f1f5f9; color: #334155; font-size: 0.95rem; vertical-align: middle; }
+.mm-table tr:hover td { background: #f8fafc; }
+.mm-table tr:last-child td { border-bottom: none; }
+
+.mm-user-cell { display: flex; align-items: center; gap: 12px; }
+.mm-avatar { width: 40px; height: 40px; background: #e0e7ff; color: #4f46e5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; }
+
+.mm-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+.mm-badge-success { background: #d1fae5; color: #059669; }
+.mm-badge-neutral { background: #f1f5f9; color: #475569; }
+
+.mm-actions { min-width: 100px; }
+.mm-btn-icon { background: none; border: none; padding: 6px; border-radius: 6px; cursor: pointer; color: #64748b; transition: 0.2s; }
+.mm-btn-icon:hover { background: #f1f5f9; color: #0f172a; }
+
+.mm-fw-600 { font-weight: 600; }
+.mm-text-sm { font-size: 0.85rem; }
+.mm-text-muted, .mm-icon-muted { color: #64748b; }
+.mm-text-danger { color: #ef4444; }
+.mm-text-right { text-align: right; }
+
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.6);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: white;
+  width: 100%;
+  max-width: 450px;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px;
+}
+
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 5px; color: #475569; }
+.form-group input { 
+  width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; outline: none;
+}
+.form-group input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+
+.modal-actions { display: flex; gap: 12px; margin-top: 24px; }
+.btn-cancel { flex: 1; padding: 10px; background: #f1f5f9; border-radius: 8px; font-weight: 600; }
+.btn-save { flex: 1; padding: 10px; background: #3b82f6; color: white; border-radius: 8px; font-weight: 600; }
+
+.close-btn { background: none; border: none; color: #94a3b8; cursor: pointer; }

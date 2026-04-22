@@ -1,0 +1,151 @@
+/* Prefix 'ms-' (Mentor Schedule) để không đụng hàng */
+.ms-container {
+  padding: 10px;
+  max-width: 1000px;
+}
+
+.ms-header { margin-bottom: 25px; }
+.ms-header h2 { font-size: 1.8rem; color: #1c1917; margin-bottom: 8px; }
+.ms-header p { color: #78716c; font-size: 0.95rem; }
+
+/* Tabs */
+.ms-tabs {
+  display: flex;
+  gap: 20px;
+  border-bottom: 1px solid #e7e5e4;
+  margin-bottom: 24px;
+}
+.ms-tabs button {
+  padding: 12px 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #a8a29e;
+  transition: all 0.3s;
+}
+.ms-tabs button:hover { color: #57534e; }
+.ms-tabs button.active {
+  color: #f59e0b; /* Màu vàng cam đồng bộ với Menu */
+  border-bottom: 3px solid #f59e0b;
+}
+
+/* Danh sách Booking */
+.ms-booking-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e7e5e4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.ms-booking-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border-color: #fcd34d;
+}
+
+.ms-b-user { display: flex; gap: 15px; align-items: center; margin-bottom: 12px; }
+.ms-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: #fef3c7; /* Nền vàng nhạt */
+  color: #d97706; /* Chữ cam đậm */
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 1.2rem;
+}
+.ms-b-user h4 { margin: 0; color: #1c1917; font-size: 1.05rem; }
+.ms-b-user span { font-size: 0.85rem; color: #78716c; font-weight: 500; }
+
+.ms-b-time {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.9rem; color: #57534e;
+  background: #f5f5f4;
+  padding: 6px 12px;
+  border-radius: 6px;
+  display: inline-flex;
+}
+.ms-b-time .divider { color: #d6d3d1; margin: 0 4px; }
+
+/* Buttons Action */
+.ms-b-actions { display: flex; gap: 10px; align-items: center; }
+.ms-btn-confirm {
+  background: #10b981; /* Xanh ngọc lục bảo */
+  color: white; border: none;
+  padding: 10px 16px; border-radius: 8px;
+  cursor: pointer; display: flex; align-items: center; gap: 6px;
+  font-weight: 600; transition: 0.2s;
+}
+.ms-btn-confirm:hover { background: #059669; }
+
+.ms-btn-deny {
+  background: white; color: #ef4444;
+  border: 1px solid #fca5a5;
+  padding: 10px 16px; border-radius: 8px;
+  cursor: pointer; display: flex; align-items: center; gap: 6px;
+  font-weight: 600; transition: 0.2s;
+}
+.ms-btn-deny:hover { background: #fef2f2; border-color: #ef4444; }
+
+.ms-status-confirmed {
+  color: #059669; font-weight: 600;
+  background: #d1fae5;
+  padding: 8px 16px; border-radius: 20px;
+  font-size: 0.9rem; display: flex; align-items: center; gap: 6px;
+}
+
+/* Khu vực thiết lập giờ rảnh */
+.ms-setup-form {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  border: 1px solid #e7e5e4;
+}
+.ms-setup-form h3 { margin-bottom: 6px; color: #1c1917; }
+.ms-setup-form p { color: #78716c; font-size: 0.9rem; margin-bottom: 16px; }
+
+.ms-input-row { display: flex; gap: 15px; align-items: stretch; }
+.ms-input {
+  padding: 12px 16px;
+  border: 1px solid #d6d3d1;
+  border-radius: 8px;
+  flex: 1;
+  font-size: 0.95rem;
+  outline: none;
+  color: #44403c;
+}
+.ms-input:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.1); }
+
+.ms-btn-add {
+  background: #1c1917; /* Đen nhám */
+  color: white; border: none;
+  padding: 0 24px; border-radius: 8px;
+  cursor: pointer; display: flex; align-items: center; gap: 8px;
+  font-weight: 600; transition: 0.2s;
+}
+.ms-btn-add:hover { background: #292524; }
+
+/* Grid các slot thời gian */
+.ms-active-slots h3 { margin-bottom: 16px; color: #1c1917; }
+.ms-slots-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+.ms-slot-pill {
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
+  padding: 10px 16px;
+  border-radius: 30px;
+  display: flex; align-items: center; gap: 12px;
+  font-size: 0.95rem; color: #1c1917; font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.ms-slot-pill button {
+  background: none; border: none; cursor: pointer;
+  color: #ef4444; display: flex; align-items: center; padding: 0;
+  opacity: 0.7; transition: 0.2s;
+}
+.ms-slot-pill button:hover { opacity: 1; transform: scale(1.1); }

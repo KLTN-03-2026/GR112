@@ -1,8 +1,7 @@
 import React from 'react';
 import './AdminDashboard.css';
 import { 
-  Users, MessageSquare, ThumbsUp, School, 
-  Plus, Download, Cpu 
+  Users, MessageSquare, Plus, Download, Cpu, UserCheck, Calendar
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, CartesianGrid, 
@@ -24,7 +23,7 @@ const pieData = [
 const AdminDashboard = () => {
   return (
     <div className="dashboard-content">
-      {/* HEADER CỦA RIÊNG TRANG DASHBOARD */}
+      {/* HEADER */}
       <div className="content-header">
         <div className="page-title">
           <h2>Tổng quan Hệ thống</h2>
@@ -32,16 +31,19 @@ const AdminDashboard = () => {
         </div>
         <div className="header-btns">
           <button className="btn-white"><Download size={16}/> Xuất Báo Cáo</button>
-          <button className="btn-dark"><Plus size={16}/> Thêm Trường Mới</button>
+          {/* Đổi nút này thành Thêm Cố Vấn cho hợp với tính năng mới */}
+          <button className="btn-dark"><Plus size={16}/> Thêm Cố Vấn Mới</button>
         </div>
       </div>
 
-      {/* 4 STATS CARDS */}
+      {/* 4 STATS CARDS ĐÃ ĐƯỢC CẬP NHẬT */}
       <div className="stats-grid">
         <StatItem icon={<Users size={20}/>} label="Tổng số người dùng" value="12,842" trend="+12%" color="blue" />
+        {/* Thêm thẻ Quản lý Cố vấn */}
+        <StatItem icon={<UserCheck size={20}/>} label="Cố vấn hoạt động" value="45" trend="Online 12" color="green" />
+        {/* Thêm thẻ Quản lý Đặt lịch */}
+        <StatItem icon={<Calendar size={20}/>} label="Lịch hẹn chờ duyệt" value="18" trend="Cần xử lý" color="yellow" />
         <StatItem icon={<MessageSquare size={20}/>} label="Tư vấn AI trong ngày" value="3,150" trend="+24%" color="purple" />
-        <StatItem icon={<ThumbsUp size={20}/>} label="Tỷ lệ hài lòng" value="98.2%" trend="Ổn định" color="green" />
-        <StatItem icon={<School size={20}/>} label="Trường ĐH cập nhật" value="15" trend="Mới" color="gray" />
       </div>
 
       {/* CHARTS SECTION */}
@@ -95,11 +97,20 @@ const AdminDashboard = () => {
         </div>
         <div className="activity-list">
           <ActivityItem 
+            title="Đơn đặt lịch mới #BK102" 
+            desc="từ học sinh Trần Văn B" 
+            time="Vừa xong • Cố vấn: TS. Nguyễn A" 
+            tag="CHỜ DUYỆT" 
+            tagColor="yellow" 
+            iconType="calendar"
+          />
+          <ActivityItem 
             title="Nguyễn Minh Tú" 
             desc="vừa đăng ký tài khoản mới" 
             time="2 phút trước • Mục tiêu: ĐH Bách Khoa" 
             tag="THÀNH CÔNG" 
             tagColor="green" 
+            iconType="user"
           />
           <ActivityItem 
             isAi 
@@ -108,6 +119,7 @@ const AdminDashboard = () => {
             time="15 phút trước • Đánh giá: 5 sao" 
             tag="AI INSIGHT" 
             tagColor="dark" 
+            iconType="ai"
           />
         </div>
       </section>
@@ -128,17 +140,25 @@ const StatItem = ({ icon, label, value, trend, color }) => (
   </div>
 );
 
-const ActivityItem = ({ title, desc, time, tag, tagColor, isAi, img }) => (
-  <div className="activity-item">
-    <div className="item-left">
-      {isAi ? <div className="ai-icon-box"><Cpu size={18}/></div> : <div className="user-avatar-mini">U</div>}
-      <div className="item-info">
-        <p><strong>{title}</strong> {desc}</p>
-        <span>{time}</span>
+const ActivityItem = ({ title, desc, time, tag, tagColor, iconType }) => {
+  const getIcon = () => {
+    if (iconType === 'ai') return <div className="ai-icon-box"><Cpu size={18}/></div>;
+    if (iconType === 'calendar') return <div className="ai-icon-box" style={{background: '#fef3c7', color: '#d97706'}}><Calendar size={18}/></div>;
+    return <div className="user-avatar-mini">U</div>;
+  };
+
+  return (
+    <div className="activity-item">
+      <div className="item-left">
+        {getIcon()}
+        <div className="item-info">
+          <p><strong>{title}</strong> {desc}</p>
+          <span>{time}</span>
+        </div>
       </div>
+      <span className={`tag tag-${tagColor}`}>{tag}</span>
     </div>
-    <span className={`tag tag-${tagColor}`}>{tag}</span>
-  </div>
-);
+  );
+};
 
 export default AdminDashboard;

@@ -1,210 +1,221 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // 1. Thêm import này
-import './ProfileForm.css';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; 
+import './ProfileForm.css'; 
 
 const ProfileForm = () => {
-  const navigate = useNavigate(); // 2. Khởi tạo hook điều hướng
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasData, setHasData] = useState(false);
+  const [debugMsg, setDebugMsg] = useState(""); // Thêm state để hiện lỗi lên màn hình
 
-  // --- State dữ liệu ---
-  const [personal, setPersonal] = useState({ fullName: '', className: '', schoolName: '', targetBlock: 'A00' });
-  const [scores, setScores] = useState({ toan: '', ly: '', hoa: '', sinh: '', van: '', su: '', dia: '', gdcd: '', anh: '', ielts: '', ve1: '', ve2: '' });
-  const [strengths, setStrengths] = useState({ logic: 50, giai_quyet_van_de: 50, lam_viec_nhom: 50, giao_tiep: 50, sang_tao: 50 });
-  
-  const [isLoading, setIsLoading] = useState(false);
-  const [showAllSubjects, setShowAllSubjects] = useState(false);
+  const [profileData, setProfileData] = useState({
+    fullName: 'Học sinh ẩn danh', className: 'Chưa cập nhật', schoolName: 'Chưa cập nhật', 
+    block: 'A00', examScore: '-', 
+    gpa10: '-', gpa11: '-', gpa12: '-',
+    dgnlScore: '-', satScore: '-', ielts: '-',
+    prizeLevel: 'none', hasPortfolio: false,
+    location: 'Toàn quốc',
+    tuitionLimit: 0, livingCost: 0,
+    workEnv: 'Chưa xác định'
+  });
 
-  // --- Cấu hình khối thi ---
-  const blockSubjectsMapping = {
-    "A00": ["toan", "ly", "hoa"], "A01": ["toan", "ly", "anh"], "B00": ["toan", "hoa", "sinh"],
-    "C00": ["van", "su", "dia"], "D01": ["toan", "van", "anh"], "D07": ["toan", "hoa", "anh"],
-    "V00": ["toan", "ly", "ve1"], "H00": ["van", "ve1", "ve2"],
-  };
-
-  const allSubjectKeys = ["toan", "ly", "hoa", "sinh", "van", "su", "dia", "gdcd", "anh", "ve1", "ve2"];
-  const subjectNames = {
-    toan: "Toán học", ly: "Vật lý", hoa: "Hóa học", sinh: "Sinh học", van: "Ngữ văn", su: "Lịch sử", 
-    dia: "Địa lý", gdcd: "Giáo dục công dân", anh: "Tiếng Anh", ve1: "Năng khiếu 1", ve2: "Năng khiếu 2"
-  };
-
-  // --- Xử lý thay đổi ---
-  const handlePersonalChange = (e) => {
-    setPersonal({ ...personal, [e.target.name]: e.target.value });
-    if (e.target.name === 'targetBlock') setShowAllSubjects(false); 
-  };
-  const handleScoreChange = (e) => {
-    const { name, value } = e.target;
-    if (value === '' || (Number(value) >= 0 && Number(value) <= 10)) setScores({ ...scores, [name]: value });
-  };
-  const handleStrengthChange = (e) => setStrengths({ ...strengths, [e.target.name]: Number(e.target.value) });
-
-  // --- Lưu hồ sơ ---
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-
+  useEffect(() => {
+    // 1. Lấy Tên, Lớp, Trường từ LocalStorage
     const savedUser = localStorage.getItem("user");
-    let currentUserId = null;
+    let currentUserId = 1; 
+    let personalInfo = {};
+    
     if (savedUser) {
-      const userObj = JSON.parse(savedUser);
-      currentUserId = userObj.id;
-    }
-
-    if (!currentUserId) {
-      alert("Bạn chưa đăng nhập! Vui lòng đăng nhập để lưu hồ sơ.");
-      setIsLoading(false);
-      return;
-    }
-
-    const dataToSend = {
-      userId: currentUserId,
-      personalInfo: personal,
-      scores: scores,
-      strengths: strengths
-    };
-
-    try {
-      const response = await fetch('http://localhost:8000/api/update-profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dataToSend)
-      });
-      if(response.ok) {
-         alert("🎉 Hồ sơ của bạn đã được cập nhật tự động!");
-      } else {
-         alert("Lỗi lưu dữ liệu!");
+      try { 
+        const userObj = JSON.parse(savedUser);
+        if (userObj && userObj.id) {
+          currentUserId = userObj.id; 
+        }
+        personalInfo = {
+          fullName: userObj.fullName || 'Học sinh ẩn danh',
+          className: userObj.className || '...',
+          schoolName: userObj.schoolName || '...'
+        };
+      } catch(e){
+        console.error("Lỗi đọc LocalStorage:", e);
       }
-    } catch (error) {
-      alert("Không kết nối được với Server!");
-    } finally {
-      setIsLoading(false);
+    }
+
+    // 2. Lấy dữ liệu học thuật từ Database
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`http://localhost:8000/api/orientation/${currentUserId}`);
+        
+        if (res.ok) {
+          const data = await res.json();
+          setHasData(true);
+          setProfileData({
+            ...personalInfo,
+            block: data.target_block || 'A00',
+            examScore: data.exam_score != null ? data.exam_score : '-',
+            gpa10: data.gpa_10 != null ? data.gpa_10 : '-', 
+            gpa11: data.gpa_11 != null ? data.gpa_11 : '-', 
+            gpa12: data.gpa_12 != null ? data.gpa_12 : '-',
+            dgnlScore: data.dgnl_score != null ? data.dgnl_score : '-', 
+            satScore: data.sat_score != null ? data.sat_score : '-',
+            ielts: (data.ielts_score && data.ielts_score !== '0') ? data.ielts_score : '-',
+            prizeLevel: data.prize_level || 'none', 
+            hasPortfolio: data.has_portfolio === true || data.has_portfolio === 'true',
+            location: data.study_location || 'Toàn quốc',
+            tuitionLimit: data.tuition_limit || 0, 
+            livingCost: data.living_cost_monthly || 0,
+            workEnv: data.work_environment || 'Chưa xác định'
+          });
+        } else {
+          // HIỆN THẲNG LỖI LÊN MÀN HÌNH ĐỂ DỄ FIX
+          setDebugMsg(`React đã gửi yêu cầu tìm ID = ${currentUserId}, nhưng Backend trả về mã lỗi: ${res.status}`);
+          setHasData(false);
+        }
+      } catch (error) {
+        setDebugMsg(`Mất kết nối tới Backend! Hãy kiểm tra xem Server Python đã chạy chưa.`);
+        setHasData(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchProfile();
+  }, []);
+
+  const formatMoney = (val) => {
+    if (!val || val === 0) return 'Chưa xác định';
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+  };
+
+  const g10 = parseFloat(profileData.gpa10) || 0;
+  const g11 = parseFloat(profileData.gpa11) || 0;
+  const g12 = parseFloat(profileData.gpa12) || 0;
+  let validY = 0, totalG = 0;
+  if(g10 > 0){ totalG += g10; validY++; }
+  if(g11 > 0){ totalG += g11; validY++; }
+  if(g12 > 0){ totalG += g12; validY++; }
+  const avgGpa = validY > 0 ? (totalG / validY).toFixed(1) : '-';
+
+  const getPrizeLabel = (level) => {
+    switch(level) {
+      case 'qg': return 'Cấp Quốc Gia';
+      case 'tinh': return 'Cấp Tỉnh/TP';
+      case 'truong': return 'Cấp Trường';
+      default: return 'Không có';
     }
   };
 
-  const currentSubjectsToDisplay = showAllSubjects || personal.targetBlock === "Khác" ? allSubjectKeys : (blockSubjectsMapping[personal.targetBlock] || []);
+  if (isLoading) {
+    return <div className="profile-loading"><i className="fas fa-circle-notch fa-spin"></i> Đang tải hồ sơ...</div>;
+  }
+
+  if (!hasData) {
+    return (
+      <div className="profile-empty-state fade-in">
+        <i className="fas fa-folder-open empty-icon"></i>
+        <h2>Bạn chưa có Hồ sơ học thuật</h2>
+        
+        {/* THANH BÁO LỖI TRỰC QUAN */}
+        {debugMsg && (
+          <div style={{background: '#fee2e2', color: '#b91c1c', padding: '10px', borderRadius: '8px', marginBottom: '15px', fontSize: '14px', fontWeight: 'bold'}}>
+            🛠 TRẠNG THÁI LỖI: {debugMsg}
+          </div>
+        )}
+
+        <p>Hãy hoàn thành 4 bước Định hướng để hệ thống lưu trữ hồ sơ và phân tích lộ trình tốt nhất cho bạn.</p>
+        <button onClick={() => navigate('/orientation')} className="btn-go-orientation">
+          Bắt đầu Định hướng ngay <i className="fas fa-arrow-right"></i>
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="profile-page-wrapper fade-in">
-      
-      {/* ======================= CỘT TRÁI: FORM NHẬP LIỆU ======================= */}
-      <div className="form-left-side">
-        <h2><i className="fas fa-id-card"></i> Cập Nhật Hồ Sơ Học Tập</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="form-section">
-            <h3><i className="fas fa-user-circle"></i> Thông tin & Mục tiêu</h3>
-            <div className="personal-grid">
-              <div className="input-group">
-                <label>Họ và Tên</label>
-                <input type="text" name="fullName" value={personal.fullName} onChange={handlePersonalChange} placeholder="VD: Trần Minh Quân" required />
-              </div>
-              <div className="school-class-grid">
-                <div className="input-group"><label>Lớp</label><input type="text" name="className" value={personal.className} onChange={handlePersonalChange} placeholder="VD: 12A1" required /></div>
-                <div className="input-group"><label>Trường THPT</label><input type="text" name="schoolName" value={personal.schoolName} onChange={handlePersonalChange} placeholder="VD: THPT Chuyên" required /></div>
-              </div>
-              <div className="input-group" style={{marginTop: '5px'}}>
-                <label style={{color: '#e63946'}}>Khối xét tuyển mục tiêu</label>
-                <select name="targetBlock" value={personal.targetBlock} onChange={handlePersonalChange}>
-                  <option value="A00">Khối A00 (Toán, Lý, Hóa)</option>
-                  <option value="A01">Khối A01 (Toán, Lý, Anh)</option>
-                  <option value="B00">Khối B00 (Toán, Hóa, Sinh)</option>
-                  <option value="C00">Khối C00 (Văn, Sử, Địa)</option>
-                  <option value="D01">Khối D01 (Toán, Văn, Anh)</option>
-                  <option value="D07">Khối D07 (Toán, Hóa, Anh)</option>
-                  <option value="V00">Khối V00 (Toán, Lý, Vẽ)</option>
-                  <option value="H00">Khối H00 (Văn, Vẽ 1, Vẽ 2)</option>
-                  <option value="Khác">Khối khác...</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div className="form-section">
-            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
-              <h3 style={{margin: 0}}><i className="fas fa-graduation-cap"></i> Điểm các môn xét tuyển</h3>
-              {personal.targetBlock !== "Khác" && (
-                <button type="button" onClick={() => setShowAllSubjects(!showAllSubjects)} style={{background: 'none', border: 'none', color: '#4338ca', cursor: 'pointer', fontSize: '13px', textDecoration: 'underline'}}>
-                  {showAllSubjects ? "Chỉ hiện môn của khối" : "+ Nhập thêm môn khác"}
-                </button>
-              )}
-            </div>
-            <div className="grid-inputs">
-              {currentSubjectsToDisplay.map((subjKey) => (
-                <div className="input-group fade-in" key={subjKey}>
-                  <label>{subjectNames[subjKey]}</label>
-                  <input type="number" step="0.1" name={subjKey} value={scores[subjKey]} onChange={handleScoreChange} placeholder={`Điểm ${subjectNames[subjKey]}`} />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="form-section">
-            <h3><i className="fas fa-chart-bar"></i> Đánh giá năng lực (%)</h3>
-            <div className="grid-inputs">
-              <div className="input-group slider-group"><label>Tư duy logic <span className="percent-value">{strengths.logic}%</span></label><input type="range" name="logic" min="0" max="100" value={strengths.logic} onChange={handleStrengthChange} /></div>
-              <div className="input-group slider-group"><label>Giải quyết vấn đề <span className="percent-value">{strengths.giai_quyet_van_de}%</span></label><input type="range" name="giai_quyet_van_de" min="0" max="100" value={strengths.giai_quyet_van_de} onChange={handleStrengthChange} /></div>
-              <div className="input-group slider-group"><label>Làm việc nhóm <span className="percent-value">{strengths.lam_viec_nhom}%</span></label><input type="range" name="lam_viec_nhom" min="0" max="100" value={strengths.lam_viec_nhom} onChange={handleStrengthChange} /></div>
-              <div className="input-group slider-group"><label>Giao tiếp <span className="percent-value">{strengths.giao_tiep}%</span></label><input type="range" name="giao_tiep" min="0" max="100" value={strengths.giao_tiep} onChange={handleStrengthChange} /></div>
-            </div>
-          </div>
-
-          <button type="submit" className="submit-btn" disabled={isLoading}>
-            {isLoading ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-save"></i>}
-            {isLoading ? ' Đang lưu dữ liệu...' : ' LƯU HỒ SƠ'}
-          </button>
-        </form>
+    <div className="profile-dashboard-wrapper fade-in">
+      <div className="profile-header-banner">
+        <div className="avatar-large"><img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" /></div>
+        <div className="user-titles">
+          <h1>{profileData.fullName}</h1>
+          <p><i className="fas fa-school"></i> Lớp {profileData.className} - {profileData.schoolName}</p>
+        </div>
+        <button onClick={() => navigate('/orientation')} className="btn-edit-profile">
+          <i className="fas fa-pencil-alt"></i> Cập nhật (Định hướng)
+        </button>
       </div>
 
-      {/* ======================= CỘT PHẢI: LIVE PREVIEW ======================= */}
-      <div className="preview-right-side">
-        <h3>Hồ sơ xem trước</h3>
-        
-        <div className="profile-header-card">
-          <div className="avatar"><img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" /></div>
+      <div className="dashboard-grid">
+        <div className="dashboard-card">
+          <div className="card-title"><i className="fas fa-graduation-cap" style={{color: '#4338ca'}}></i> Điểm số học thuật</div>
+          <div className="scores-showcase">
+            <div className="score-item highlight-score">
+              <span>Mục tiêu khối</span>
+              <strong>{profileData.block}</strong>
+            </div>
+            <div className="score-item highlight-score">
+              <span>Tổng THPT</span>
+              <strong>{profileData.examScore}</strong>
+            </div>
+            <div className="score-item">
+              <span>GPA Trung bình</span>
+              <strong>{avgGpa}</strong>
+            </div>
+            <div className="score-item">
+              <span>Thi ĐGNL</span>
+              <strong>{profileData.dgnlScore}</strong>
+            </div>
+            <div className="score-item">
+              <span>IELTS</span>
+              <strong>{profileData.ielts}</strong>
+            </div>
+            <div className="score-item">
+              <span>SAT</span>
+              <strong>{profileData.satScore}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div className="dashboard-card">
+          <div className="card-title"><i className="fas fa-compass" style={{color: '#059669'}}></i> Lộ trình & Nguồn lực</div>
+          <ul className="info-list">
+            <li>
+              <div className="info-label"><i className="fas fa-map-marker-alt"></i> Khu vực mục tiêu:</div>
+              <div className="info-value">{profileData.location}</div>
+            </li>
+            <li>
+              <div className="info-label"><i className="fas fa-wallet"></i> Ngân sách Học phí:</div>
+              <div className="info-value text-green">{formatMoney(profileData.tuitionLimit)} / Năm</div>
+            </li>
+            <li>
+              <div className="info-label"><i className="fas fa-hamburger"></i> Phí sinh hoạt:</div>
+              <div className="info-value">{formatMoney(profileData.livingCost)} / Tháng</div>
+            </li>
+            <li>
+              <div className="info-label"><i className="fas fa-medal"></i> Giải thưởng HSG:</div>
+              <div className="info-value">{getPrizeLabel(profileData.prizeLevel)}</div>
+            </li>
+            <li>
+              <div className="info-label"><i className="fas fa-palette"></i> Năng khiếu đặc thù:</div>
+              <div className="info-value">{profileData.hasPortfolio ? 'Có năng khiếu' : 'Không có'}</div>
+            </li>
+            <li>
+              <div className="info-label"><i className="fas fa-building"></i> MT Làm việc yêu thích:</div>
+              <div className="info-value">{profileData.workEnv}</div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="ai-call-to-action" onClick={() => navigate('/ai-suggestion')}>
+        <div className="ai-cta-content">
+          <i className="fas fa-robot ai-icon-large"></i>
           <div>
-            <h3>{personal.fullName || "Tên học sinh"}</h3>
-            <p>{personal.className || "Lớp"} - {personal.schoolName || "Trường THPT"}</p>
+            <h3>Kích hoạt AI Cố vấn Tuyển sinh</h3>
+            <p>Hệ thống đã nhận đủ dữ liệu. Nhấn vào đây để xem ngay danh sách trường Đại học khả thi nhất với bạn.</p>
           </div>
         </div>
-
-        <div className="score-grid">
-          {currentSubjectsToDisplay.map(key => (
-            <div className="score-box" key={key}>
-              <span>{subjectNames[key]}</span>
-              <strong>{scores[key] ? scores[key] : "-"}</strong>
-            </div>
-          ))}
-        </div>
-
-        <div className="chat-panel-section">
-          {/* Progress bars... */}
-          <div className="strength-item">
-            <span>Tư duy logic</span>
-            <div className="progress-wrapper"><div className="progress-fill" style={{width: `${strengths.logic}%`}}></div></div>
-          </div>
-          <div className="strength-item">
-            <span>Giải quyết vấn đề</span>
-            <div className="progress-wrapper"><div className="progress-fill" style={{width: `${strengths.giai_quyet_van_de}%`}}></div></div>
-          </div>
-        </div>
-
-        {/* 3. SỬA NÚT CHUYỂN SANG GỢI Ý Ở ĐÂY */}
-        <div 
-            className="ai-status-card" 
-            onClick={() => navigate('/ai-suggestion')} 
-            style={{ cursor: 'pointer', marginTop: '20px' }}
-        >
-          <div className="ai-label">
-            <i className="fas fa-robot"></i> 
-            <span>Trợ lý AI</span>
-          </div>
-          <h4 className="ai-message">
-            Sẵn sàng tư vấn khối {personal.targetBlock}
-          </h4>
-          <small style={{ color: '#15803d', fontStyle: 'italic', marginTop: '5px' }}>
-            (Nhấn để xem gợi ý ngay)
-          </small>
-        </div>
-
+        <button className="btn-ai-go">Xem Phân Tích <i className="fas fa-arrow-right"></i></button>
       </div>
+
     </div>
   );
 };

@@ -10,7 +10,7 @@ def create_app():
     app.config.from_object(Config)
 
     # 2. Mở cửa CORS để React (cổng 3000) có thể gọi vào
-    CORS(app, resources={r"/*": {"origins": "*"}})
+    CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
 
     # 3. Khởi tạo các extensions khác
     db.init_app(app)

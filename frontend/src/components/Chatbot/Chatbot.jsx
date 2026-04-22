@@ -27,15 +27,13 @@ const Chatbot = () => {
   const [searchTerm, setSearchTerm] = useState(""); 
   const [showSettings, setShowSettings] = useState(false); 
 
-  // 🚀 --- STATE CHO CÀI ĐẶT TƯ DUY AI VÀ GIAO DIỆN ---
-  const [aiStyle, setAiStyle] = useState('friendly'); // 'friendly' hoặc 'professional'
-  const [aiLength, setAiLength] = useState('detailed'); // 'detailed' hoặc 'concise'
-  const [theme, setTheme] = useState(localStorage.getItem('chat_theme') || 'light'); // Lưu Theme
+  // --- STATE CHO CÀI ĐẶT TƯ DUY AI VÀ GIAO DIỆN ---
+  const [aiStyle, setAiStyle] = useState('friendly'); 
+  const [aiLength, setAiLength] = useState('detailed'); 
+  const [theme, setTheme] = useState(localStorage.getItem('chat_theme') || 'light'); 
 
-  // Chống lỗi nếu localStorage trống
   const savedUser = JSON.parse(localStorage.getItem("user")) || {};
 
-  // 🚀 Tự động lưu Theme khi người dùng đổi
   useEffect(() => {
     localStorage.setItem('chat_theme', theme);
   }, [theme]);
@@ -46,43 +44,60 @@ const Chatbot = () => {
       if (savedUser && savedUser.id) {
         try {
           const profileRes = await fetch(`http://localhost:8000/api/get-full-profile/${savedUser.id}`);
-          const profileData = await profileRes.json();
+          let profileData = null;
+          
           if (profileRes.ok) {
-            setUserProfile(profileData);
+            profileData = await profileRes.json();
+          } else {
+            // Dự phòng nếu Backend lỗi thì vẫn hiện tên, lớp, trường từ localStorage
+            profileData = { 
+                name: savedUser.full_name || savedUser.name || "Bạn", 
+                class: savedUser.className || "Chưa cập nhật", 
+                school: savedUser.schoolName || "Chưa cập nhật",
+                scores: {}
+            };
+          }
+          
+          setUserProfile(profileData);
             
-            const sessionRes = await fetch(`http://localhost:8000/api/chat/sessions/${savedUser.id}`);
-            if (sessionRes.ok) {
-              const sessionData = await sessionRes.json();
-              setSessions(sessionData);
-              
-              if (sessionData.length === 0) {
-                let personalityText = "chưa làm test tính cách";
-                if (profileData.holland_personality && profileData.mbti_personality) {
-                    personalityText = `**${profileData.holland_personality}** (Holland) và **${profileData.mbti_personality}** (MBTI)`;
-                } else if (profileData.holland_personality) {
-                    personalityText = `**${profileData.holland_personality}** (Holland)`;
-                } else if (profileData.mbti_personality) {
-                    personalityText = `**${profileData.mbti_personality}** (MBTI)`;
-                }
-
-                setChatMessages([
-                  { sender: 'bot', content: "Xin chào! Hệ thống đang tiến hành đồng bộ hồ sơ của bạn..." },
-                  { sender: 'bot', type: 'card', content: (
-                      <div className="msg-card-purple">
-                        <strong><i className="fas fa-chart-bar" style={{marginRight: '10px'}}></i> PHÂN TÍCH DỮ LIỆU HỌC TẬP</strong>
-                        <p>Hồ sơ của bạn đang được AI đánh giá. Khả năng trúng tuyển vào các ngành Top đầu sẽ được tính toán ngay sau đây.</p>
-                      </div>
-                    )
-                  },
-                  { sender: 'bot', content: `Xin chào **${profileData.name}!** Hệ thống đã đồng bộ hồ sơ của bạn.\n\nMình thấy bạn có điểm mạnh khối **${profileData.target_block || 'chưa chọn'}** và bài trắc nghiệm cho thấy bạn thuộc nhóm ${personalityText}.\n\nBạn muốn mình gợi ý ngành học hay trường Đại học phù hợp với hồ sơ này?` }
-                ]);
-              } else {
-                handleSelectSession(sessionData[0].id);
+          const sessionRes = await fetch(`http://localhost:8000/api/chat/sessions/${savedUser.id}`);
+          if (sessionRes.ok) {
+            const sessionData = await sessionRes.json();
+            setSessions(sessionData);
+            
+            if (sessionData.length === 0) {
+              let personalityText = "chưa làm test tính cách";
+              if (profileData.holland_personality && profileData.mbti_personality) {
+                  personalityText = `**${profileData.holland_personality}** (Holland) và **${profileData.mbti_personality}** (MBTI)`;
+              } else if (profileData.holland_personality) {
+                  personalityText = `**${profileData.holland_personality}** (Holland)`;
+              } else if (profileData.mbti_personality) {
+                  personalityText = `**${profileData.mbti_personality}** (MBTI)`;
               }
+
+              setChatMessages([
+                { sender: 'bot', content: "Xin chào! Hệ thống đang tiến hành đồng bộ hồ sơ của bạn..." },
+                { sender: 'bot', type: 'card', content: (
+                    <div className="msg-card-purple">
+                      <strong><i className="fas fa-chart-bar" style={{marginRight: '10px'}}></i> PHÂN TÍCH DỮ LIỆU HỌC TẬP</strong>
+                      <p>Hồ sơ của bạn đang được AI đánh giá. Khả năng trúng tuyển vào các ngành Top đầu sẽ được tính toán ngay sau đây.</p>
+                    </div>
+                  )
+                },
+                { sender: 'bot', content: `Xin chào **${profileData.name}!** Hệ thống đã đồng bộ hồ sơ của bạn.\n\nMình thấy bạn có điểm mạnh khối **${profileData.target_block || 'chưa chọn'}** và bài trắc nghiệm cho thấy bạn thuộc nhóm ${personalityText}.\n\nBạn muốn mình gợi ý ngành học hay trường Đại học phù hợp với hồ sơ này?` }
+              ]);
+            } else {
+              handleSelectSession(sessionData[0].id);
             }
           }
         } catch (error) {
           console.error("Lỗi lấy dữ liệu ban đầu:", error);
+          setUserProfile({ 
+            name: savedUser.full_name || savedUser.name || "Bạn", 
+            class: savedUser.className || "Chưa cập nhật", 
+            school: savedUser.schoolName || "Chưa cập nhật",
+            scores: {}
+          });
         } finally {
           setIsLoadingHistory(false); 
         }
@@ -264,14 +279,24 @@ const Chatbot = () => {
     recognition.start();
   };
 
+  // 🚀 ĐÃ CẬP NHẬT TỪ ĐIỂN ĐỂ KHỚP VỚI LOẠI ĐIỂM (GPA, ĐGNL, IELTS...)
   const subjectNames = {
+    GPA: "Điểm trung bình (GPA)",
+    ĐGNL: "Điểm thi ĐGNL",
+    IELTS: "Chứng chỉ IELTS",
+    SAT: "Chứng chỉ SAT",
+    // Giữ lại tên môn cũ phòng hờ
     toan: "Toán học", ly: "Vật lý", hoa: "Hóa học", sinh: "Sinh học", 
     van: "Ngữ văn", su: "Lịch sử", dia: "Địa lý", gdcd: "GDCD", anh: "Tiếng Anh"
   };
 
   const filteredSessions = sessions.filter(s => s.title.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  // 🚀 Dòng thẻ quan trọng: Chèn class dark-mode dựa vào state theme
+  // 🚀 HÀM LỌC: Chỉ lấy ra những điểm có giá trị (khác null, rỗng)
+  const validScores = userProfile?.scores 
+    ? Object.entries(userProfile.scores).filter(([sub, val]) => val !== null && val !== "")
+    : [];
+
   return (
     <div className={`chat-view-container fade-in ${theme === 'dark' ? 'dark-mode' : ''}`}>
       
@@ -338,8 +363,8 @@ const Chatbot = () => {
         </div>
       </aside>
 
-      {/* 🚀 ==========================================
-          MODAL CÀI ĐẶT (ĐÃ THÊM CHỌN THEME)
+      {/* ==========================================
+          MODAL CÀI ĐẶT
           ========================================== */}
       {showSettings && (
         <div className="settings-modal-overlay">
@@ -413,18 +438,31 @@ const Chatbot = () => {
                     <ReactMarkdown>{msg.content}</ReactMarkdown>
                   </div>
                 )}
+                
                 {msg.recommendations && msg.recommendations.length > 0 && (
                   <div style={{display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px'}}>
                     {msg.recommendations.map((school, sIdx) => (
                       <div key={sIdx} style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: 'white', borderRadius: '10px', border: '1px solid #e2e8f0'}}>
                         <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                          <img src={school.logo} alt="logo" style={{width: '35px', height: '35px', objectFit: 'contain'}} onError={(e) => e.target.src="https://cdn-icons-png.flaticon.com/512/2941/2941658.png"} />
+                          <img 
+                            src={school.school_logo} 
+                            alt="logo" 
+                            style={{width: '35px', height: '35px', objectFit: 'contain'}} 
+                            onError={(e) => e.target.src="https://cdn-icons-png.flaticon.com/512/2941/2941658.png"} 
+                          />
                           <div>
-                            <strong style={{color: '#0f172a', fontSize: '14px'}}>{school.name}</strong>
-                            <p style={{margin: 0, fontSize: '12px', color: '#64748b'}}>{school.major}</p>
+                            <strong style={{color: '#0f172a', fontSize: '14px'}}>{school.school_name}</strong>
+                            <p style={{margin: 0, fontSize: '12px', color: '#64748b'}}>
+                              {school.major_name} {school.major_code ? `(${school.major_code})` : ''}
+                            </p>
                           </div>
                         </div>
-                        <strong style={{color: '#6366f1'}}>{school.score}đ</strong>
+                        <div style={{textAlign: 'right'}}>
+                          <strong style={{color: '#6366f1', display: 'block'}}>
+                            {school.score_thpt_last_year || school.base_score || 'N/A'}đ
+                          </strong>
+                          <span style={{fontSize: '11px', color: '#94a3b8'}}>{school.subject_block || 'Khối'}</span>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -465,7 +503,7 @@ const Chatbot = () => {
       </div>
 
       {/* ==========================================
-          SIDEBAR PROFILE BÊN PHẢI
+          SIDEBAR PROFILE BÊN PHẢI (ĐÃ NÂNG CẤP)
           ========================================== */}
       <aside className="chat-profile-panel">
         <div className="chat-panel-section">
@@ -473,13 +511,16 @@ const Chatbot = () => {
           <div className="profile-header-card">
             <div className="avatar"><img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" /></div>
             <div>
-              <h3>{userProfile ? userProfile.name : "Đang tải..."}</h3>
+              <h3 style={{ color: '#0f172a', fontWeight: '800', margin: '0 0 5px 0' }}>
+                {userProfile ? userProfile.name : "Đang tải..."}
+              </h3>
               <p>{userProfile ? `Lớp ${userProfile.class} - ${userProfile.school}` : "Đang đồng bộ..."}</p>
             </div>
           </div>
           
+          {/* Lọc điểm và hiển thị */}
           <div className="score-grid">
-            {userProfile?.scores && Object.keys(userProfile.scores).length > 0 ? Object.entries(userProfile.scores).map(([sub, val]) => (
+            {validScores.length > 0 ? validScores.map(([sub, val]) => (
               <div className="score-box" key={sub}>
                 <span>{subjectNames[sub] || sub.toUpperCase()}</span>
                 <strong>{val}</strong>
@@ -491,7 +532,9 @@ const Chatbot = () => {
         </div>
 
         <div className="chat-panel-section">
-          <h4>KẾT QUẢ TÍNH CÁCH</h4>
+          <h4>KẾT QUẢ ĐÁNH GIÁ NĂNG LỰC</h4>
+          
+          {/* 1. Nhóm Holland */}
           <div className="job-card match" style={{backgroundColor: '#eff6ff', borderColor: '#bfdbfe', padding: '12px', marginBottom: '10px'}}>
             <div className="job-header">
               <h5><i className="fas fa-brain" style={{color: '#3b82f6'}}></i> Nhóm Holland</h5>
@@ -502,7 +545,9 @@ const Chatbot = () => {
               <button onClick={() => window.location.href='/quiz'} style={{marginTop: '10px', padding: '5px 10px', fontSize: '12px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer'}}>Làm bài Test &rarr;</button>
             )}
           </div>
-          <div className="job-card match" style={{backgroundColor: '#faf5ff', borderColor: '#e9d5ff', padding: '12px'}}>
+
+          {/* 2. Nhóm MBTI */}
+          <div className="job-card match" style={{backgroundColor: '#faf5ff', borderColor: '#e9d5ff', padding: '12px', marginBottom: '10px'}}>
             <div className="job-header">
               <h5><i className="fas fa-fingerprint" style={{color: '#a855f7'}}></i> Nhóm MBTI</h5>
             </div>
@@ -512,23 +557,125 @@ const Chatbot = () => {
               <button onClick={() => window.location.href='/quiz'} style={{marginTop: '10px', padding: '5px 10px', fontSize: '12px', background: '#a855f7', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer'}}>Làm bài Test &rarr;</button>
             )}
           </div>
+
+          {/* 3. Đa trí thông minh (MI) */}
+          <div className="job-card match" style={{backgroundColor: '#ecfdf5', borderColor: '#a7f3d0', padding: '12px', marginBottom: '10px'}}>
+            <div className="job-header">
+              <h5><i className="fas fa-puzzle-piece" style={{color: '#10b981'}}></i> Đa trí thông minh (MI)</h5>
+            </div>
+            {userProfile?.mi_personality ? (
+              <p style={{fontSize: '13px', color: '#065f46', margin: '5px 0 0 0', fontWeight: 'bold'}}>{userProfile.mi_personality}</p>
+            ) : (
+              <button onClick={() => window.location.href='/quiz'} style={{marginTop: '10px', padding: '5px 10px', fontSize: '12px', background: '#10b981', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer'}}>Làm bài Test &rarr;</button>
+            )}
+          </div>
+
+          {/* 4. Chỉ số ý chí (Grit) */}
+          <div className="job-card match" style={{backgroundColor: '#fffbeb', borderColor: '#fde68a', padding: '12px', marginBottom: '10px'}}>
+            <div className="job-header">
+              <h5><i className="fas fa-fire" style={{color: '#f59e0b'}}></i> Chỉ số ý chí (Grit)</h5>
+            </div>
+            {userProfile?.grit_personality ? (
+              <p style={{fontSize: '13px', color: '#92400e', margin: '5px 0 0 0', fontWeight: 'bold'}}>{userProfile.grit_personality}</p>
+            ) : (
+              <button onClick={() => window.location.href='/quiz'} style={{marginTop: '10px', padding: '5px 10px', fontSize: '12px', background: '#f59e0b', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer'}}>Làm bài Test &rarr;</button>
+            )}
+          </div>
+
+          {/* 5. Tư duy phát triển (Mindset) */}
+          <div className="job-card match" style={{backgroundColor: '#eef2ff', borderColor: '#c7d2fe', padding: '12px'}}>
+            <div className="job-header">
+              <h5><i className="fas fa-seedling" style={{color: '#6366f1'}}></i> Tư duy (Mindset)</h5>
+            </div>
+            {userProfile?.mindset_personality ? (
+              <p style={{fontSize: '13px', color: '#3730a3', margin: '5px 0 0 0', fontWeight: 'bold'}}>{userProfile.mindset_personality}</p>
+            ) : (
+              <button onClick={() => window.location.href='/quiz'} style={{marginTop: '10px', padding: '5px 10px', fontSize: '12px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer'}}>Làm bài Test &rarr;</button>
+            )}
+          </div>
         </div>
 
-        <div className="chat-panel-section">
-          <h4>GỢI Ý NGHỀ NGHIỆP AI</h4>
+        {/* =========================================
+            HIỂN THỊ AI GỢI Ý NGHỀ NGHIỆP (GIAO DIỆN MỚI)
+            ========================================= */}
+        <div className="chat-panel-section" style={{ marginTop: '25px' }}>
+          <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#111827', textTransform: 'uppercase' }}>
+            <i className="fas fa-robot" style={{color: '#6366f1'}}></i> Gợi ý nghề nghiệp AI
+          </h4>
+          
           {userProfile?.careers && userProfile.careers.length > 0 ? (
-            userProfile.careers.map((job, idx) => (
-              <div key={idx} className={`job-card ${job.top ? 'match' : ''}`} onClick={() => handleSendChat(`Hãy tư vấn chi tiết cho mình về nghề ${job.title} dựa trên điểm số và tính cách của mình.`, false)} style={{ cursor: 'pointer' }}>
-                <div className="job-header">
-                  <h5><i className={job.icon}></i> {job.title}</h5>
-                  {job.top && <span className="badge-top">TOP MATCH</span>}
-                </div>
-                <p>{job.desc}</p>
-                <small style={{color: '#6366f1', fontSize: '11px'}}>Bấm để xem tư vấn &rarr;</small>
-              </div>
-            ))
+            <div className="careers-grid">
+              {userProfile.careers.map((career, idx) => {
+                // Kiểm tra xem nghề này có phải Top 1 không
+                const isTop = career.top === true || career.is_top === 1 || career.is_top === true;
+                
+                return (
+                  <div 
+                    key={idx} 
+                    className="job-card" 
+                    onClick={() => handleSendChat(`Hãy tư vấn chi tiết cho mình về nghề ${career.title} dựa trên điểm số và tính cách của mình.`, false)}
+                    style={{
+                      padding: '16px',
+                      marginBottom: '12px',
+                      backgroundColor: isTop ? '#fffbeb' : '#ffffff', // Nền vàng nhạt cho Top 1
+                      border: '1px solid',
+                      borderColor: isTop ? '#fde68a' : '#e5e7eb',
+                      borderLeft: isTop ? '4px solid #f59e0b' : '1px solid #e5e7eb', // Vạch cam nhấn mạnh
+                      borderRadius: '12px',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+                      cursor: 'pointer',
+                      transition: 'transform 0.2s, box-shadow 0.2s'
+                    }}
+                    onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.08)'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.02)'; }}
+                  >
+                    
+                    <div className="job-header" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                      {/* Icon của nghề */}
+                      <div style={{
+                        width: '42px', height: '42px', borderRadius: '50%', flexShrink: 0,
+                        backgroundColor: isTop ? '#fef3c7' : '#f3f4f6',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: isTop ? '#d97706' : '#6b7280',
+                        fontSize: '18px'
+                      }}>
+                        <i className={career.icon || 'fas fa-briefcase'}></i>
+                      </div>
+                      
+                      {/* Tên nghề */}
+                      <div>
+                        <h5 style={{ margin: 0, fontSize: '15px', color: '#1f2937', fontWeight: '800' }}>
+                          {career.title} 
+                          {isTop && (
+                            <span style={{
+                              fontSize: '10px', background: 'linear-gradient(135deg, #f59e0b, #ea580c)', 
+                              color: 'white', padding: '3px 8px', borderRadius: '12px', marginLeft: '8px', fontWeight: 'bold'
+                            }}>
+                              <i className="fas fa-star" style={{marginRight: '3px', fontSize: '8px'}}></i> Match
+                            </span>
+                          )}
+                        </h5>
+                      </div>
+                    </div>
+                    
+                    {/* Mô tả lý do phù hợp */}
+                    <p style={{ fontSize: '13px', color: '#4b5563', margin: '0 0 8px 54px', lineHeight: '1.5' }}>
+                      {career.desc || career.description}
+                    </p>
+
+                    {/* Nút bấm ảo để nhắc nhở có thể click */}
+                    <small style={{ color: '#6366f1', fontSize: '12px', marginLeft: '54px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <i className="fas fa-magic"></i> Bấm để AI tư vấn chi tiết
+                    </small>
+                    
+                  </div>
+                );
+              })}
+            </div>
           ) : (
-            <p style={{fontSize: '13px', color: '#64748b', fontStyle: 'italic'}}>AI cần bạn làm Trắc nghiệm để đưa ra gợi ý nghề nghiệp chính xác nhất!</p>
+            <p style={{fontSize: '13px', color: '#64748b', fontStyle: 'italic', padding: '15px', background: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1', textAlign: 'center'}}>
+              Vui lòng làm bài Trắc nghiệm để AI có cơ sở đưa ra những gợi ý nghề nghiệp chính xác nhất nhé!
+            </p>
           )}
         </div>
       </aside>

@@ -101,3 +101,83 @@
 .alert-item-uni .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* =======================================================
+   BỔ SUNG CSS CHO MODAL & BẢNG CUỘN NGANG (SCROLLABLE) 
+======================================================= */
+
+/* Làm mờ nền phía sau khi mở Modal */
+.cm-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.65) !important; /* Đổi màu nền mờ tối hơn 1 chút cho sang trọng */
+    backdrop-filter: blur(4px); /* Hiệu ứng làm mờ kính iOS */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeInModal 0.2s ease-out forwards;
+}
+
+/* Hiệu ứng nảy nhẹ khi Modal xuất hiện */
+@keyframes fadeInModal {
+    0% { opacity: 0; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+/* Tùy chỉnh thanh cuộn (Scrollbar) cho bảng ngang và dọc */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px; /* Độ rộng thanh cuộn dọc */
+    height: 8px; /* Độ cao thanh cuộn ngang */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f8fafc; /* Màu nền của rãnh cuộn */
+    border-radius: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1; /* Màu của thanh trượt */
+    border-radius: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8; /* Đậm hơn khi hover chuột vào */
+}
+
+/* Fix lỗi bảng bị lệch viền ở cột Đóng Băng (Sticky) */
+.uni-table th {
+    background-color: #f8fafc;
+}
+.uni-table th.sticky-col, 
+.uni-table td.sticky-col {
+    position: sticky;
+    right: 0;
+    background-color: white; /* Đảm bảo khi cuộn thì chữ không bị đè xuyên qua ô cố định */
+    box-shadow: -2px 0 5px rgba(0,0,0,0.05); /* Tạo bóng đổ nhẹ để phân cách cột cố định và cột cuộn */
+}
+.uni-table th.sticky-col {
+    background-color: #f8fafc; /* Header cột thao tác */
+    z-index: 12 !important; /* Phải cao hơn header bình thường */
+}
+
+/* Bo góc cho các input trong form Thêm/Sửa */
+input[type="text"], 
+input[type="number"], 
+select, 
+textarea {
+    font-family: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="text"]:focus, 
+input[type="number"]:focus, 
+select:focus, 
+textarea:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    outline: none;
+}

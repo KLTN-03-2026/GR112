@@ -8,9 +8,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   
-  // State ẩn/hiện mật khẩu
   const [showPassword, setShowPassword] = useState(false);
-  
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -25,34 +23,38 @@ export default function Login() {
       const res = await fetch("http://localhost:8000/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        // 🚀 Chỉ gửi Email và Password, không cần gửi Role nữa
         body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
-      console.log("Dữ liệu từ Server trả về:", data);
 
       if (!res.ok) {
         setError(data.error || data.message || "Đăng nhập thất bại");
         return;
       }
 
-      // ĐÃ SỬA VÀ THÊM LOGIC KIỂM TRA ADMIN Ở ĐÂY
       if (data.user) {
-        // Lưu toàn bộ thông tin user (bao gồm cả role) vào localStorage
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+        }
+
         localStorage.setItem("user", JSON.stringify(data.user));
         
-        // Hoặc bạn có thể lưu riêng userRole ra cho dễ gọi ở các component khác như Header
         if (data.user.role) {
             localStorage.setItem("userRole", data.user.role);
         }
 
-        alert("Đăng nhập thành công!");
-        
-        // Phân luồng điều hướng dựa trên role
+        // 🚀 Backend sẽ tự trả về role, React chỉ việc lấy ra dùng để chuyển trang
         if (data.user.role === 'admin') {
-            navigate("/admin"); // Nếu là admin thì vào thẳng Dashboard
+            alert("Đăng nhập thành công! Chào mừng Quản trị viên.");
+            navigate("/admin");
+        } else if (data.user.role === 'mentor') {
+            alert("Đăng nhập thành công! Chào mừng Cố vấn chuyên môn.");
+            navigate("/mentor");
         } else {
-            navigate("/"); // User thường thì về trang chủ
+            alert("Đăng nhập thành công!");
+            navigate("/");
         }
 
       } else {
@@ -70,7 +72,7 @@ export default function Login() {
         
         <div className="box-header">
           <div className="logo">
-            🎓 <span>ConsulTing</span>
+            <span>ConsulTing</span>
           </div>
           <p className="header-sub">
             Hệ thống tư vấn chọn trường Đại học

@@ -9,7 +9,7 @@ import {
 const ContentManagement = () => {
   // --- STATE CHO QUẢN LÝ CÂU HỎI ---
   const [showModal, setShowModal] = useState(false);
-  const [currentType, setCurrentType] = useState(''); // 'holland' hoặc 'mbti'
+  const [currentType, setCurrentType] = useState(''); 
   const [questions, setQuestions] = useState([]);
   const [editingQ, setEditingQ] = useState(null);
   
@@ -17,10 +17,10 @@ const ContentManagement = () => {
   const [qText, setQText] = useState('');
   const [qCategory, setQCategory] = useState('');
 
-  // ĐÃ THÊM: State lưu tổng số câu hỏi từ Database
+  // State lưu tổng số câu hỏi từ Database
   const [totalQuestions, setTotalQuestions] = useState(0);
 
-  // --- DỮ LIỆU REVIEW GIẢ LẬP CỦA BẠN ---
+  // --- DỮ LIỆU REVIEW GIẢ LẬP ---
   const reviews = [
     {
       id: 1, name: 'Nguyễn Minh Anh', role: 'SV NĂM 3', school: 'ĐH Bách Khoa TP.HCM',
@@ -38,7 +38,6 @@ const ContentManagement = () => {
   // CÁC HÀM XỬ LÝ API CHO CÂU HỎI
   // ==========================================
 
-  // Hàm đếm tổng số câu hỏi
   const fetchTotalQuestions = async () => {
     try {
       const res = await fetch('http://localhost:8000/api/admin/questions-count');
@@ -51,21 +50,19 @@ const ContentManagement = () => {
     }
   };
 
-  // Tự động đếm khi vừa load trang
   useEffect(() => {
     fetchTotalQuestions();
   }, []);
   
-  // Mở modal & Lấy danh sách câu hỏi
   const openManagement = async (type) => {
     setCurrentType(type);
-    setShowModal(true); // BẬT MODAL LÊN NGAY LẬP TỨC KHI CLICK
+    setShowModal(true); 
     
     try {
       const res = await fetch(`http://localhost:8000/api/admin/questions?type=${type}`);
       if (!res.ok) {
         console.error("API trả về lỗi:", res.status);
-        return; // Nếu lỗi API thì Modal vẫn hiện, chỉ là danh sách trống
+        return; 
       }
       const data = await res.json();
       setQuestions(data);
@@ -76,21 +73,18 @@ const ContentManagement = () => {
     }
   };
 
-  // Chọn câu hỏi để sửa
   const handleEditClick = (q) => {
     setEditingQ(q);
     setQText(q.text);
     setQCategory(q.category);
   };
 
-  // Reset form
   const resetForm = () => {
     setEditingQ(null);
     setQText('');
     setQCategory('');
   };
 
-  // Lưu (Thêm mới hoặc Cập nhật)
   const handleSave = async (e) => {
     e.preventDefault();
     const payload = {
@@ -107,31 +101,26 @@ const ContentManagement = () => {
         body: JSON.stringify(payload)
       });
       resetForm();
-      // Gọi lại hàm để load data mới, nhưng không tắt Modal
       const res = await fetch(`http://localhost:8000/api/admin/questions?type=${currentType}`);
       if (res.ok) {
           const data = await res.json();
           setQuestions(data);
       }
-      // Cập nhật lại tổng số câu hỏi ở bên ngoài
       fetchTotalQuestions();
     } catch (e) {
       console.error("Lỗi lưu câu hỏi:", e);
     }
   };
 
-  // Xóa câu hỏi
   const handleDelete = async (id) => {
     if(window.confirm("Bạn có chắc chắn muốn xóa câu hỏi này?")) {
       try {
         await fetch(`http://localhost:8000/api/admin/questions/${id}`, { method: 'DELETE' });
-        // Tải lại danh sách
         const res = await fetch(`http://localhost:8000/api/admin/questions?type=${currentType}`);
         if (res.ok) {
             const data = await res.json();
             setQuestions(data);
         }
-        // Cập nhật lại tổng số câu hỏi ở bên ngoài
         fetchTotalQuestions();
       } catch (e) {
         console.error("Lỗi xóa câu hỏi:", e);
@@ -139,34 +128,34 @@ const ContentManagement = () => {
     }
   };
 
-
   // ==========================================
   // RENDER GIAO DIỆN
   // ==========================================
   return (
-    <div className="cm-inner-content">
-      {/* SECTION 1: QUẢN LÝ CÂU HỎI (US-18) */}
+    <div className="cm-inner-content fade-in">
+      {/* SECTION 1: QUẢN LÝ CÂU HỎI */}
       <section className="cm-section">
         <div className="cm-section-header">
           <div className="cm-title-group">
             <div className="cm-icon-box"><BrainCircuit size={20} /></div>
             <div>
-              <h2>Quản lý Bộ câu hỏi & Review</h2>
-              <p>Phân loại hướng nghiệp theo mô hình Holland và MBTI.</p>
+              <h2>Quản lý Bộ câu hỏi Trắc nghiệm</h2>
+              <p>Quản lý toàn bộ ngân hàng câu hỏi định hướng nghề nghiệp và tâm lý.</p>
             </div>
           </div>
-          
         </div>
 
-        <div className="cm-q-grid">
+        {/* 🚀 LƯỚI DANH SÁCH CÁC BÀI TEST ĐÃ ĐƯỢC BỔ SUNG */}
+        <div className="cm-q-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px' }}>
+          
+          {/* Card Thống Kê Tổng */}
           <div className="cm-q-card stat">
             <span>TỔNG CÂU HỎI</span>
-            {/* ĐÃ SỬA: Hiển thị biến tổng số câu hỏi thực tế */}
             <h3>{totalQuestions} <small style={{color: '#64748b', fontSize: '14px', fontWeight: 'normal'}}>Câu</small></h3>
             <BarChart3 size={32} className="card-bg-icon" />
           </div>
 
-          {/* SỰ KIỆN CLICK VÀO THẺ HOLLAND */}
+          {/* 1. HOLLAND */}
           <div className="cm-q-card category" onClick={() => openManagement('holland')} style={{cursor: 'pointer'}}>
             <div className="cat-badge">HOLLAND</div>
             <h4>Nhóm Realistic</h4>
@@ -174,18 +163,44 @@ const ContentManagement = () => {
             <span className="cat-time" style={{color: '#4f46e5', fontWeight: 'bold'}}>Bấm để quản lý &rarr;</span>
           </div>
 
-          {/* SỰ KIỆN CLICK VÀO THẺ MBTI */}
+          {/* 2. MBTI */}
           <div className="cm-q-card category mbti" onClick={() => openManagement('mbti')} style={{cursor: 'pointer'}}>
             <div className="cat-badge mbti">MBTI</div>
             <h4>Nhóm Hướng nội (I)</h4>
-            <p>Câu hỏi trắc nghiệm tâm lý</p>
+            <p>Câu hỏi trắc nghiệm tính cách</p>
             <span className="cat-time" style={{color: '#a855f7', fontWeight: 'bold'}}>Bấm để quản lý &rarr;</span>
           </div>
+
+          {/* 🚀 3. BÀI TEST MINDSET MỚI */}
+          <div className="cm-q-card category" onClick={() => openManagement('mindset')} style={{cursor: 'pointer'}}>
+            <div className="cat-badge" style={{background: '#dcfce7', color: '#15803d'}}>MINDSET</div>
+            <h4>Growth Mindset</h4>
+            <p>Câu hỏi đánh giá tư duy phát triển</p>
+            <span className="cat-time" style={{color: '#15803d', fontWeight: 'bold'}}>Bấm để quản lý &rarr;</span>
+          </div>
+
+          {/* 🚀 4. BÀI TEST GRIT MỚI */}
+          <div className="cm-q-card category" onClick={() => openManagement('grit')} style={{cursor: 'pointer'}}>
+            <div className="cat-badge" style={{background: '#ffedd5', color: '#c2410c'}}>GRIT</div>
+            <h4>Chỉ số kiên trì</h4>
+            <p>Câu hỏi đo lường sự bền bỉ</p>
+            <span className="cat-time" style={{color: '#c2410c', fontWeight: 'bold'}}>Bấm để quản lý &rarr;</span>
+          </div>
+
+          {/* 🚀 5. BÀI TEST ĐA TRÍ TUỆ (MI) MỚI */}
+          <div className="cm-q-card category" onClick={() => openManagement('mi')} style={{cursor: 'pointer'}}>
+            <div className="cat-badge" style={{background: '#ffe4e6', color: '#be123c'}}>ĐA TRÍ TUỆ</div>
+            <h4>Multiple Intelligences</h4>
+            <p>Đánh giá 8 loại hình thông minh</p>
+            <span className="cat-time" style={{color: '#be123c', fontWeight: 'bold'}}>Bấm để quản lý &rarr;</span>
+          </div>
+
         </div>
       </section>
 
-      {/* SECTION 2: KIỂM DUYỆT REVIEW (US-22) */}
-      <section className="cm-section">
+      {/* SECTION 2: KIỂM DUYỆT REVIEW */}
+      {/* ... Phần review này giữ nguyên hoàn toàn ... */}
+      <section className="cm-section" style={{marginTop: '40px'}}>
         <div className="cm-section-header">
           <div className="cm-title-group">
             <div className="cm-icon-box review-bg"><MessageSquare size={20} /></div>
@@ -231,32 +246,25 @@ const ContentManagement = () => {
         <button className="btn-load-more">Tải thêm dữ liệu <ChevronDown size={14}/></button>
       </section>
 
-      <div className="cm-ai-banner">
-         <Sparkles size={20} />
-         <p><strong>AI Suggestion:</strong> Phát hiện 5 review có dấu hiệu spam từ cùng một dải IP. Bạn có muốn hàng loạt ẩn các nội dung này?</p>
-         <button className="btn-ai-quick">Xử lý ngay</button>
-      </div>
-
       {/* ==========================================
           MODAL QUẢN LÝ CÂU HỎI NỔI LÊN (OVERLAY) 
           ========================================== */}
       {showModal && (
         <div className="cm-modal-overlay">
-          <div className="cm-modal-content">
+          <div className="cm-modal-content" style={{maxWidth: '800px', width: '90%'}}>
             <div className="modal-header">
               <div className="cm-title-group">
                 <div className={`cm-icon-box ${currentType === 'mbti' ? 'review-bg' : ''}`}>
                   <BrainCircuit size={20} />
                 </div>
                 <div>
-                  <h2 style={{margin: 0}}>Quản lý câu hỏi {currentType.toUpperCase()}</h2>
+                  <h2 style={{margin: 0, textTransform: 'uppercase'}}>Quản lý câu hỏi {currentType}</h2>
                   <p style={{margin: 0, fontSize: '13px', color: '#64748b'}}>Thêm, sửa, xóa trực tiếp vào CSDL.</p>
                 </div>
               </div>
               <button className="btn-close-modal" onClick={() => {setShowModal(false); resetForm();}}><X size={24}/></button>
             </div>
 
-            {/* Form nhập liệu */}
             <form className="q-form" onSubmit={handleSave}>
               <input 
                 type="text" 
@@ -264,14 +272,15 @@ const ContentManagement = () => {
                 value={qText} 
                 onChange={(e) => setQText(e.target.value)} 
                 required 
+                style={{flex: 1}}
               />
               <input 
                 type="text" 
-                placeholder="Nhóm (R,I,E..)" 
+                placeholder="Phân loại (Ví dụ: POE, LING...)" 
                 value={qCategory} 
                 onChange={(e) => setQCategory(e.target.value)} 
                 required 
-                style={{width: '120px'}}
+                style={{width: '180px'}}
               />
               <button type="submit" className="btn-save-q">
                 <Save size={16}/> {editingQ ? 'Cập nhật' : 'Thêm mới'}
@@ -281,7 +290,6 @@ const ContentManagement = () => {
               )}
             </form>
 
-            {/* Danh sách câu hỏi */}
             <div className="q-list-scroll">
               <table className="cm-table">
                 <thead>
@@ -301,7 +309,7 @@ const ContentManagement = () => {
                         <td>#{q.id}</td>
                         <td>{q.text}</td>
                         <td>
-                          <span className={`badge-type ${currentType}`}>{q.category}</span>
+                          <span className={`badge-type ${currentType}`} style={{background: '#f1f5f9', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold'}}>{q.category}</span>
                         </td>
                         <td>
                           <div className="table-actions">
