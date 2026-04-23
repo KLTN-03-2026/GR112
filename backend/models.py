@@ -422,3 +422,23 @@ class UserReport(db.Model):
     reason = db.Column(db.Text)
     status = db.Column(db.String(50), default='Pending')
     created_at = db.Column(db.DateTime, default=db.func.now())
+
+class AITrainingLog(db.Model):
+    __tablename__ = 'ai_training_logs'
+    id = db.Column(db.Integer, primary_key=True)
+    task = db.Column(db.String(255), nullable=False)
+    source = db.Column(db.String(255))
+    time_str = db.Column(db.String(100))
+    status = db.Column(db.String(50))
+    size = db.Column(db.String(50))
+    is_running = db.Column(db.Boolean, default=False)
+
+class MentorReview(db.Model):
+    __tablename__ = 'mentor_reviews'
+    id = db.Column(db.Integer, primary_key=True)
+    booking_id = db.Column(db.Integer, db.ForeignKey('bookings.id'), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    mentor_id = db.Column(db.Integer, db.ForeignKey('mentors.id'), nullable=False)
+    rating = db.Column(db.Float, nullable=False) # Số sao: 1.0 đến 5.0
+    comment = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=db.func.now())

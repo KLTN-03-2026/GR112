@@ -21,7 +21,7 @@ const UserManagement = () => {
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({ id: null, name: '', email: '', role: '', verified: false });
 
-  // 🚀 STATE MODAL BÁO CÁO VI PHẠM
+  // STATE MODAL BÁO CÁO VI PHẠM
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportDetails, setReportDetails] = useState([]);
 
@@ -46,7 +46,7 @@ const UserManagement = () => {
 
   useEffect(() => { fetchUsers(); }, []);
 
-  // 🚀 2. LẤY CHI TIẾT BÁO CÁO VI PHẠM KHI CLICK
+  // 2. LẤY CHI TIẾT BÁO CÁO VI PHẠM
   const fetchReportDetails = () => {
     fetch('http://localhost:8000/api/admin/reports', {
       headers: { 'Authorization': `Bearer ${token}` }
@@ -65,7 +65,7 @@ const UserManagement = () => {
   const filteredUsers = users.filter(user => {
     const matchSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchRole = roleFilter === 'Tất cả' || user.role === roleFilter;
+    const matchRole = roleFilter === 'Tất cả' || user.role.toUpperCase() === roleFilter.toUpperCase();
     const matchStatus = statusFilter === 'Tất cả' || user.status === statusFilter;
     return matchSearch && matchRole && matchStatus;
   });
@@ -77,7 +77,7 @@ const UserManagement = () => {
 
   // 4. MỞ MODAL SỬA
   const openEditModal = (user) => {
-    setFormData({ id: user.id, name: user.name, email: user.email, role: user.role, verified: user.verified });
+    setFormData({ id: user.id, name: user.name, email: user.email, role: user.role.toUpperCase(), verified: user.verified });
     setShowModal(true);
   };
 
@@ -107,7 +107,53 @@ const UserManagement = () => {
     }
   };
 
-  // 7. XUẤT FILE EXCEL
+  // 🚀 7. THÊM NGƯỜI DÙNG NHANH
+  const handleAddUser = () => {
+    const name = window.prompt("Nhập Họ và Tên người dùng mới:");
+    if (!name) return;
+    const email = window.prompt("Nhập Email đăng nhập:");
+    if (!email) return;
+    const password = window.prompt("Nhập Mật khẩu (Mặc định: 123456):") || "123456";
+    const role = window.prompt("Nhập Vai trò (admin, mentor, user) - Mặc định: user:") || "user";
+
+    fetch('http://localhost:8000/api/admin/users', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ name, email, password, role })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if(data.error) alert("❌ Lỗi: " + data.error);
+      else {
+        alert("✅ Đã tạo tài khoản thành công!");
+        fetchUsers(); 
+      }
+    });
+  };
+
+  // 🚀 8. KHÓA / MỞ KHÓA TÀI KHOẢN
+  const handleToggleBan = (userId, currentRole) => {
+    const action = currentRole === 'banned' ? 'MỞ KHÓA' : 'KHÓA';
+    if (window.confirm(`Bạn có chắc chắn muốn ${action} tài khoản này không?`)) {
+      fetch(`http://localhost:8000/api/admin/users/${userId}/toggle-ban`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if(data.error) alert("❌ Lỗi: " + data.error);
+        else {
+          alert("✅ " + data.message);
+          fetchUsers(); 
+        }
+      });
+    }
+  };
+
+  // 9. XUẤT FILE EXCEL
   const handleExport = async () => {
     try {
       alert("⏳ Đang tạo file Excel, vui lòng đợi...");
@@ -129,6 +175,13 @@ const UserManagement = () => {
     }
   };
 
+  // HÀM CHỌN MÀU CHO VAI TRÒ
+  const getRoleStyle = (role) => {
+    if (role === 'ADMIN') return { bg: '#fee2e2', color: '#9f1239' };
+    if (role === 'banned') return { bg: '#1e293b', color: '#f8fafc' }; // Màu đen tội phạm
+    return { bg: '#e0f2fe', color: '#0369a1' }; // Mặc định là USER/MENTOR
+  };
+
   return (
     <div className="user-mgmt-content fade-in">
       {/* PAGE TITLE & ACTIONS */}
@@ -137,8 +190,13 @@ const UserManagement = () => {
           <h2>Quản lý Người dùng</h2>
           <p>Giám sát, phân quyền và quản lý hồ sơ người dùng trong hệ sinh thái.</p>
         </div>
-        <div className="header-actions-um">
-          <button className="btn-export-um" onClick={handleExport}><FileText size={16}/> Xuất báo cáo</button>
+        <div className="header-actions-um" style={{display: 'flex', gap: '10px'}}>
+          <button className="btn-export-um" onClick={handleAddUser} style={{background: '#0f172a', color: 'white', border: 'none'}}>
+            <UserPlus size={16}/> Thêm User
+          </button>
+          <button className="btn-export-um" onClick={handleExport}>
+            <FileText size={16}/> Xuất Excel
+          </button>
         </div>
       </div>
 
@@ -156,7 +214,6 @@ const UserManagement = () => {
           <span>CHƯA XÁC THỰC</span>
           <h3>{stats.pending} <small className="action">Cần xử lý</small></h3>
         </div>
-        {/* 🚀 CLICK VÀO ĐÂY ĐỂ MỞ DANH SÁCH BÁO CÁO */}
         <div className="um-card danger-card" onClick={fetchReportDetails} style={{cursor: 'pointer'}} title="Click để xem chi tiết báo cáo">
           <span className="danger-text">BÁO CÁO VI PHẠM</span>
           <h3 className="danger-text">{stats.reported} <small>Khẩn cấp</small></h3>
@@ -174,6 +231,7 @@ const UserManagement = () => {
             <option value="Tất cả">Vai trò: Tất cả</option>
             <option value="USER">USER</option>
             <option value="ADMIN">ADMIN</option>
+            <option value="BANNED">BANNED (Bị khóa)</option>
           </select>
           <select className="filter-select" value={statusFilter} onChange={e => {setStatusFilter(e.target.value); setCurrentPage(1);}}>
             <option value="Tất cả">Trạng thái: Tất cả</option>
@@ -200,44 +258,61 @@ const UserManagement = () => {
               </thead>
               <tbody>
                 {currentUsers.length === 0 ? <tr><td colSpan="6" style={{textAlign: 'center', padding: '20px'}}>Không tìm thấy dữ liệu</td></tr> : 
-                  currentUsers.map(user => (
-                  <tr key={user.id}>
-                    <td>
-                      <div className="user-info-cell">
-                        <div className="avatar-small">{user.name.charAt(0).toUpperCase()}</div>
-                        <div>
-                          <p className="user-name">{user.name}</p>
-                          <span className="user-email">{user.email}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="badge-role" style={{
-                        background: user.role === 'ADMIN' ? '#fee2e2' : '#e0f2fe',
-                        color: user.role === 'ADMIN' ? '#9f1239' : '#0369a1',
-                        padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 'bold'
-                      }}>{user.role}</span>
-                    </td>
-                    <td><span className="text-date">{user.joined}</span></td>
-                    <td>
-                      <div className="activity-cell">
-                        {user.online && <span className="dot-online" style={{width: '8px', height: '8px', background: '#10b981', borderRadius: '50%', display: 'inline-block'}}></span>}
-                        <span className={user.online ? 'text-online' : ''} style={{color: user.online ? '#10b981' : '#64748b', fontSize: '13px', fontWeight: user.online ? 'bold' : 'normal'}}>{user.lastActive}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="status-pill" style={{
-                        background: user.status === 'Active' ? '#dcfce7' : '#fef08a',
-                        color: user.status === 'Active' ? '#166534' : '#9a3412',
-                        padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold'
-                      }}>{user.status}</span>
-                    </td>
-                    <td style={{textAlign: 'center', position: 'sticky', right: 0, background: '#fff', borderLeft: '1px solid #f1f5f9'}}>
-                      <button onClick={() => openEditModal(user)} style={{background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', marginRight: '10px'}} title="Sửa quyền"><Edit3 size={18} /></button>
-                      <button onClick={() => handleDelete(user.id)} style={{background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer'}} title="Xóa người dùng"><Trash2 size={18} /></button>
-                    </td>
-                  </tr>
-                ))}
+                  currentUsers.map(user => {
+                    const roleStyle = getRoleStyle(user.role);
+                    return (
+                      <tr key={user.id}>
+                        <td>
+                          <div className="user-info-cell">
+                            <div className="avatar-small">{user.name.charAt(0).toUpperCase()}</div>
+                            <div>
+                              <p className="user-name" style={{ textDecoration: user.role === 'banned' ? 'line-through' : 'none' }}>{user.name}</p>
+                              <span className="user-email">{user.email}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="badge-role" style={{
+                            background: roleStyle.bg, color: roleStyle.color,
+                            padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 'bold'
+                          }}>{user.role.toUpperCase()}</span>
+                        </td>
+                        <td><span className="text-date">{user.joined}</span></td>
+                        <td>
+                          <div className="activity-cell">
+                            {user.online && <span className="dot-online" style={{width: '8px', height: '8px', background: '#10b981', borderRadius: '50%', display: 'inline-block'}}></span>}
+                            <span className={user.online ? 'text-online' : ''} style={{color: user.online ? '#10b981' : '#64748b', fontSize: '13px', fontWeight: user.online ? 'bold' : 'normal'}}>{user.lastActive}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="status-pill" style={{
+                            background: user.status === 'Active' ? '#dcfce7' : '#fef08a',
+                            color: user.status === 'Active' ? '#166534' : '#9a3412',
+                            padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold'
+                          }}>{user.status}</span>
+                        </td>
+                        <td style={{textAlign: 'center', position: 'sticky', right: 0, background: '#fff', borderLeft: '1px solid #f1f5f9'}}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                            <button onClick={() => openEditModal(user)} style={{background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer'}} title="Sửa quyền"><Edit3 size={18} /></button>
+                            <button onClick={() => handleDelete(user.id)} style={{background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer'}} title="Xóa người dùng"><Trash2 size={18} /></button>
+                            
+                            {/* 🚀 NÚT KHÓA / MỞ KHÓA MỚI */}
+                            <button 
+                              onClick={() => handleToggleBan(user.id, user.role)}
+                              style={{
+                                background: user.role === 'banned' ? '#10b981' : '#475569', 
+                                color: 'white', border: 'none', padding: '4px 8px', 
+                                borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold'
+                              }}
+                              title={user.role === 'banned' ? 'Mở khóa tài khoản' : 'Khóa tài khoản'}
+                            >
+                              {user.role === 'banned' ? '🔓 Mở' : '🔒 Khóa'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
               </tbody>
             </table>
             
@@ -312,7 +387,7 @@ const UserManagement = () => {
         </div>
       )}
 
-      {/* 🚀 MODAL XEM CHI TIẾT BÁO CÁO VI PHẠM */}
+      {/* MODAL XEM CHI TIẾT BÁO CÁO VI PHẠM */}
       {showReportModal && (
         <div className="cm-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000 }}>
           <div className="cm-modal-content custom-scrollbar" style={{ background: '#fff', width: '800px', maxHeight: '80vh', overflowY: 'auto', borderRadius: '12px', padding: '24px' }}>
