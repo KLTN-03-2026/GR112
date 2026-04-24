@@ -1,18 +1,18 @@
 // src/pages/Mentor/MentorSchedule.jsx
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, CheckCircle, XCircle, Plus, Trash2 } from 'lucide-react';
+// 🚀 1. ĐÃ THÊM IMPORT ICON "Video" Ở ĐÂY
+import { Calendar, Clock, CheckCircle, XCircle, Plus, Trash2, Video } from 'lucide-react';
 import './MentorSchedule.css';
 
 const MentorSchedule = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
   
   const [slots, setSlots] = useState([]);
-  const [bookings, setBookings] = useState([]); // 🚀 Thêm state chứa lịch hẹn
+  const [bookings, setBookings] = useState([]); 
   
   const [newDate, setNewDate] = useState('');
   const [newTime, setNewTime] = useState('');
 
-  // 1. TẢI DỮ LIỆU KHI MỞ TRANG (Tải cả giờ rảnh lẫn lịch hẹn)
   useEffect(() => {
     fetchSlots();
     fetchBookings();
@@ -31,7 +31,6 @@ const MentorSchedule = () => {
     }
   };
 
-  // 🚀 KÉO DANH SÁCH LỊCH HẸN TỪ BACKEND
   const fetchBookings = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -45,7 +44,6 @@ const MentorSchedule = () => {
     }
   };
 
-  // 2. HÀM THÊM GIỜ RẢNH
   const handleAddSlot = async () => {
     if (!newDate || !newTime) return alert("Vui lòng chọn đầy đủ ngày và giờ!");
 
@@ -74,7 +72,6 @@ const MentorSchedule = () => {
     }
   };
 
-  // 3. HÀM XÓA GIỜ RẢNH
   const handleDeleteSlot = async (slotId) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa khung giờ này?")) return;
 
@@ -96,7 +93,6 @@ const MentorSchedule = () => {
     }
   };
 
-  // 🚀 4. HÀM XỬ LÝ CHẤP NHẬN / TỪ CHỐI LỊCH HẸN
   const handleUpdateBooking = async (bookingId, status) => {
     const actionName = status === 'confirmed' ? "chấp nhận" : "từ chối";
     if (!window.confirm(`Bạn có chắc chắn muốn ${actionName} lịch hẹn này?`)) return;
@@ -115,8 +111,8 @@ const MentorSchedule = () => {
 
       if (res.ok) {
         alert(data.message);
-        fetchBookings(); // Cập nhật lại danh sách booking
-        fetchSlots();    // Cập nhật lại danh sách slot (để đổi màu viên thuốc sang Xanh lá nếu accept)
+        fetchBookings(); 
+        fetchSlots();    
       } else {
         alert(data.error || "Có lỗi xảy ra!");
       }
@@ -170,7 +166,6 @@ const MentorSchedule = () => {
                     </div>
                   </div>
                   <div className="ms-b-actions">
-                    {/* 🚀 GẮN SỰ KIỆN CHO 2 NÚT NÀY */}
                     {item.status === 'pending' ? (
                       <>
                         <button className="ms-btn-confirm" onClick={() => handleUpdateBooking(item.id, 'confirmed')}>
@@ -180,8 +175,51 @@ const MentorSchedule = () => {
                           <XCircle size={16}/> Từ chối
                         </button>
                       </>
+                    ) : item.status === 'confirmed' ? (
+                      /* 🚀 2. GIAO DIỆN MỚI KHI ĐÃ CHỐT LỊCH (CÓ NÚT VÀO PHÒNG) */
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+                        <span className="ms-status-confirmed" style={{ color: '#10b981', fontWeight: 'bold', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <CheckCircle size={14}/> Đã chốt lịch
+                        </span>
+                        
+                        <button 
+  className="ms-btn-enter-room"
+  /* 🚀 THAY ĐỔI ONCLICK Ở ĐÂY */
+  onClick={() => {
+    // Tạo tên phòng duy nhất dựa vào ID của lịch hẹn
+    // Thay vì tự gõ tay, hãy dùng chuẩn công thức này cho cả 2 bên:
+const roomName = `MindConnect_Room_${item.id}`;
+const url = `https://meet.jit.si/${roomName}`;
+window.open(url, '_blank');
+    
+    // Mở phòng Jitsi sang một tab mới
+    window.open(url, '_blank');
+  }}
+  style={{ 
+    background: '#3b82f6', 
+    color: 'white', 
+    border: 'none', 
+    padding: '8px 16px', 
+    borderRadius: '6px', 
+    display: 'flex', 
+    alignItems: 'center', 
+    gap: '6px', 
+    cursor: 'pointer', 
+    fontWeight: 'bold',
+    boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)',
+    transition: 'all 0.2s'
+  }}
+  onMouseOver={(e) => e.currentTarget.style.opacity = '0.9'}
+  onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+>
+  <Video size={16}/> Vào phòng tư vấn
+</button>
+                      </div>
                     ) : (
-                      <span className="ms-status-confirmed"><CheckCircle size={14}/> Đã xác nhận</span>
+                      /* 🚀 Xử lý thêm trường hợp nếu từ chối */
+                      <span className="ms-status-rejected" style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <XCircle size={14}/> Đã từ chối
+                      </span>
                     )}
                   </div>
                 </div>

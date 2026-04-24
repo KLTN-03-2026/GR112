@@ -26,9 +26,7 @@ export default function BookingHistory() {
       });
   }, []);
 
-  // 🚀 HÀM XỬ LÝ BÁO CÁO VI PHẠM (ĐÃ SỬA LỖI TÀNG HÌNH ID)
   const handleReportUser = (mentorId, mentorName) => {
-    // Ép buộc phải có ID thật của Cố vấn mới cho báo cáo
     if (!mentorId) {
       alert("❌ Lỗi hệ thống: Không xác định được ID của Cố vấn này để báo cáo.");
       return;
@@ -45,7 +43,7 @@ export default function BookingHistory() {
           'Authorization': `Bearer ${token}` 
         },
         body: JSON.stringify({
-          reported_user_id: mentorId, // Truyền đúng ID thật xuống Database
+          reported_user_id: mentorId, 
           reason: userReason
         })
       })
@@ -97,14 +95,12 @@ export default function BookingHistory() {
           </thead>
           <tbody>
             {history.map(item => {
-              // TỰ ĐỘNG TẠO LINK NẾU DB BỊ NULL
-              const userName = localStorage.getItem("userName") || "Người dùng";
-              const baseUrl = item.meeting_link || `https://meet.jit.si/MindConnect_Consulting_Private_Room_${item.id}_Secure2026`;
-              const finalLink = `${baseUrl}#userInfo.displayName="${userName}"`;
+              // 🚀 1. TẠO URL CHUẨN XÁC ĐỂ TRUYỀN VÀO NÚT BẤM (KHÔNG DÙNG WINDOW.OPEN Ở ĐÂY)
+              const roomName = `MindConnect_Room_${item.id}`;
+              const url = `https://meet.jit.si/${roomName}`;              
               
-              // 🚀 Lấy ID cố vấn (phòng hờ API trả về tên biến khác nhau)
-              // Cố tình nhét số 2 vào cuối để làm ID dự phòng nếu API quên gửi
-const realMentorId = item.mentorId || item.mentor_id || item.consultant_id || 2;
+              // Lấy ID cố vấn (phòng hờ API trả về tên biến khác nhau)
+              const realMentorId = item.mentorId || item.mentor_id || item.consultant_id || 2;
 
               return (
                 <tr key={item.id}>
@@ -121,7 +117,7 @@ const realMentorId = item.mentorId || item.mentor_id || item.consultant_id || 2;
                       {/* CHỈ HIỆN NÚT VÀO PHÒNG KHI ĐÃ CONFIRMED */}
                       {item.status === 'confirmed' && (
                         <a 
-                          href={finalLink} 
+                          href={url} /* 🚀 2. GẮN ĐÚNG CÁI LINK VỪA TẠO VÀO ĐÂY */
                           target="_blank" 
                           rel="noopener noreferrer" 
                           className="join-meet-btn"
@@ -131,7 +127,7 @@ const realMentorId = item.mentorId || item.mentor_id || item.consultant_id || 2;
                         </a>
                       )}
 
-                      {/* 🚀 NÚT BÁO CÁO VI PHẠM */}
+                      {/* NÚT BÁO CÁO VI PHẠM */}
                       <button 
                         onClick={() => handleReportUser(realMentorId, item.mentorName)}
                         style={{ 
