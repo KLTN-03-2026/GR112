@@ -1237,29 +1237,7 @@ def calculate_roi():
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
     
-from flask import request, jsonify
-import json
 
-
-
-@chat_bp.route('/api/orientation/<int:user_id>', methods=['GET'])
-# LƯU Ý: Nếu file của bạn dùng app.route thì đổi @chat_bp thành @app nhé!
-def get_orientation(user_id):
-    try:
-        # Tìm hồ sơ của user trong Database
-        profile = OrientationProfile.query.filter_by(user_id=user_id).first()
-        
-        if profile:
-            # Nếu có, dùng hàm to_dict() hôm trước để trả về cục JSON cho React
-            return jsonify(profile.to_dict()), 200
-        else:
-            # Nếu chưa có, trả về mã 404 để React hiện bảng "Bạn chưa có hồ sơ"
-            return jsonify({"message": "Chưa có hồ sơ định hướng"}), 404
-
-    except Exception as e:
-        import traceback
-        print("Lỗi API lấy hồ sơ:", traceback.format_exc())
-        return jsonify({"error": str(e)}), 500
 
 # =====================================================================
 # API 3: LẤY TOÀN BỘ TRƯỜNG TỪ MYSQL (GET)
@@ -1349,10 +1327,39 @@ def toggle_favorite():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     
-@api_bp.route('/api/orientation', methods=['POST'])
-def save_orientation():
+ 
+from flask import request, jsonify
+import json
+
+# 🚀 ĐÃ SỬA: Đổi @chat_bp thành @api_bp và thêm 'OPTIONS'
+@api_bp.route('/api/orientation/<int:user_id>', methods=['GET', 'OPTIONS'])
+def get_orientation(user_id):
+    if request.method == 'OPTIONS': 
+        return jsonify({}), 200
     try:
-        data = request.json
+        # Tìm hồ sơ của user trong Database
+        profile = OrientationProfile.query.filter_by(user_id=user_id).first()
+        
+        if profile:
+            return jsonify(profile.to_dict()), 200
+        else:
+            return jsonify({"message": "Chưa có hồ sơ định hướng"}), 404
+
+    except Exception as e:
+        import traceback
+        print("Lỗi API lấy hồ sơ:", traceback.format_exc())
+        return jsonify({"error": str(e)}), 500
+  
+import flask # Chắc chắn import flask ở dạng gốc để gọi trực tiếp
+
+@api_bp.route('/api/orientation', methods=['POST', 'OPTIONS'])
+def save_orientation():
+    # 🚀 GỌI ĐÍCH DANH `flask.request` ĐỂ KHÔNG BAO GIỜ BỊ LỖI
+    if flask.request.method == 'OPTIONS': 
+        return flask.jsonify({}), 200
+        
+    try:
+        data = flask.request.json
         user_id = data.get('userId', 1) # Mặc định là 1 nếu chưa làm phần đăng nhập
 
         # Kiểm tra xem User đã có hồ sơ chưa, nếu có thì cập nhật, chưa thì tạo mới
@@ -1379,11 +1386,12 @@ def save_orientation():
         profile.living_cost_monthly = data.get('livingCost')
 
         db.session.commit()
-        return jsonify({"message": "Lộ trình định hướng đã được lưu trữ thành công!"}), 200
+        return flask.jsonify({"message": "Lộ trình định hướng đã được lưu trữ thành công!"}), 200
 
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        print("Lỗi lưu hồ sơ:", str(e))
+        return flask.jsonify({"error": str(e)}), 500
     
     from flask import request, jsonify
 from models import db, User # Nhớ kiểm tra dòng này ở đầu file nha
