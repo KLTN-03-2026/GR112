@@ -152,7 +152,7 @@ const Header = () => {
                    <span style={{ fontSize: '12px', color: '#7f8c8d' }}>
                       {user.role === 'mentor' 
                         ? (user.specialty ? `Chuyên gia ${user.specialty}` : "Cố vấn học thuật")
-                        : (user.className && user.schoolName ? `${user.className} - ${user.schoolName}` : "Học sinh")}
+                        : (user.className && user.schoolName ? `${user.className} - ${user.schoolName}` : "")}
                    </span>
                 </div>
 

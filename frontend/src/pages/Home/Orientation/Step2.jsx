@@ -69,12 +69,27 @@ const Step2 = ({ formData, setFormData }) => {
     }));
   };
 
+  const handleReset = () => {
+    setFormData(prev => ({
+      ...prev,
+      gpa10: '', gpa11: '', gpa12: '',
+      examScore: '', dgnlScore: '', ielts: '0', satScore: '',
+      prizeLevel: 'none', hasPortfolio: false, block: '', admissionMethod: ''
+    }));
+  };
+
   const isAptitudeBlock = formData.block && ['V', 'H', 'M', 'N', 'T'].some(char => formData.block.startsWith(char));
 
+  // 🚀 HÀM HỖ TRỢ: Nhận cả dấu phẩy và chấm, biến thành số thập phân chuẩn cho AI tính toán
+  const parseVNScore = (value) => {
+    if (!value) return 0;
+    return parseFloat(String(value).replace(',', '.')) || 0;
+  };
+
   const calculateEstimatedScore = () => {
-    const g10 = parseFloat(formData.gpa10) || 0;
-    const g11 = parseFloat(formData.gpa11) || 0;
-    const g12 = parseFloat(formData.gpa12) || 0;
+    const g10 = parseVNScore(formData.gpa10);
+    const g11 = parseVNScore(formData.gpa11);
+    const g12 = parseVNScore(formData.gpa12);
     let validYears = 0, totalScore = 0;
     
     if (g10 > 0) { totalScore += g10; validYears++; }
@@ -82,14 +97,15 @@ const Step2 = ({ formData, setFormData }) => {
     if (g12 > 0) { totalScore += g12; validYears++; }
     
     const avgGpa = validYears > 0 ? (totalScore / validYears) * 3 : 0;
-    const thptScore = parseFloat(formData.examScore) || 0;
+    const thptScore = parseVNScore(formData.examScore);
 
-    const ieltsVal = parseFloat(formData.ielts) || 0;
+    const ieltsVal = parseVNScore(formData.ielts);
     const bonus = ieltsVal >= 6.5 ? 1.5 : (ieltsVal >= 5.5 ? 0.5 : 0);
     
+    // 🚀 ĐÃ SỬA: Đổi dấu chấm thành phẩy ở kết quả hiển thị
     return {
-      hocBa: (avgGpa > 0 ? avgGpa + bonus : 0).toFixed(2),
-      thpt: (thptScore > 0 ? thptScore + bonus : 0).toFixed(2),
+      hocBa: (avgGpa > 0 ? avgGpa + bonus : 0).toFixed(2).replace('.', ','),
+      thpt: (thptScore > 0 ? thptScore + bonus : 0).toFixed(2).replace('.', ','),
       hasHocBa: avgGpa > 0,
       hasTHPT: thptScore > 0,
       hasData: avgGpa > 0 || thptScore > 0 || parseInt(formData.dgnlScore) > 0 || (formData.prizeLevel && formData.prizeLevel !== 'none') || parseInt(formData.satScore) > 0 || parseFloat(formData.ielts) > 0 || formData.hasPortfolio
@@ -98,32 +114,29 @@ const Step2 = ({ formData, setFormData }) => {
 
   const scoreData = calculateEstimatedScore();
 
-  // --- HÀM GỢI Ý ĐÃ ĐƯỢC CHUẨN HOÁ THEO DATABASE MỚI ---
   const getQuickSuggestions = () => {
     if (!scoreData.hasData || allUnis.length === 0 || !formData.block) return [];
     
-    const userHocBa = parseFloat(scoreData.hocBa);
-    const userTHPT = parseFloat(scoreData.thpt);
+    // Khi so sánh với DB thì phải dùng dấu chấm lại để tính toán
+    const userHocBa = parseFloat(scoreData.hocBa.replace(',', '.'));
+    const userTHPT = parseFloat(scoreData.thpt.replace(',', '.'));
+    
     const userDgnl = parseInt(formData.dgnlScore) || 0;
     const userSat = parseInt(formData.satScore) || 0;
-    const userIelts = parseFloat(formData.ielts) || 0;
+    const userIelts = parseVNScore(formData.ielts);
     const hasDirectAdmission = formData.prizeLevel && formData.prizeLevel !== 'none';
     const hasAptitude = formData.hasPortfolio;
 
     let suitableUnis = allUnis.map(uni => {
-      // 1. So khớp khối thi
       const uBlock = (uni.subject_block || uni.block || "").toUpperCase();
       if (!uBlock.includes(formData.block.toUpperCase())) return null;
       if (isAptitudeBlock && !hasAptitude) return null;
 
-      // 2. Lấy dữ liệu (Hiển thị cả Mã Ngành nếu có)
       const uName = uni.school_name || uni.name;
       const uMajor = uni.major_code ? `${uni.major_name} (${uni.major_code})` : (uni.major_name || "");
       
-      // Map đúng 2 biến điểm chuẩn từ DB
       const uHocBaReq = parseFloat(uni.base_score) || 0; 
       const uThptReq = parseFloat(uni.score_thpt_last_year) || 0; 
-      
       const uDgnlReq = parseInt(uni.score_dgnl) || 0;
       const uCombo = uni.combo_cert || "";
 
@@ -136,9 +149,8 @@ const Step2 = ({ formData, setFormData }) => {
       if (matchSat) reqSat = parseInt(matchSat[1]);
 
       let passedMethod = null;
-      let displayScore = 0; // Điểm hiển thị trên thẻ (Tuỳ phương thức trúng tuyển)
+      let displayScore = 0;
 
-      // 3. Logic xét duyệt từng cửa
       if (hasDirectAdmission) {
         passedMethod = "🏅 Đủ đk Tuyển thẳng";
         displayScore = "TT";
@@ -154,31 +166,42 @@ const Step2 = ({ formData, setFormData }) => {
       } else if (hasAptitude && isAptitudeBlock) {
         if ((uThptReq > 0 && userTHPT >= uThptReq) || (uHocBaReq > 0 && userHocBa >= uHocBaReq)) {
           passedMethod = "🎨 Đậu Năng khiếu + Văn hóa";
-          displayScore = Math.max(uThptReq, uHocBaReq);
+          displayScore = String(Math.max(uThptReq, uHocBaReq)).replace('.', ',');
         } else {
           passedMethod = "🎨 Đạt Năng khiếu (Cần bổ sung Văn hóa)";
-          displayScore = Math.max(uThptReq, uHocBaReq);
+          displayScore = String(Math.max(uThptReq, uHocBaReq)).replace('.', ',');
         }
       } 
-      // Phân tách rõ ràng THPT và Học bạ
       else if (uThptReq > 0 && userTHPT >= uThptReq) {
         passedMethod = "📚 Đậu bằng điểm THPT";
-        displayScore = uThptReq;
+        displayScore = String(uThptReq).replace('.', ',');
       } else if (uHocBaReq > 0 && userHocBa >= uHocBaReq) {
         passedMethod = "📘 Đậu bằng điểm Học bạ";
-        displayScore = uHocBaReq;
+        displayScore = String(uHocBaReq).replace('.', ',');
       }
 
       if (passedMethod) return { ...uni, uName, uMajor, passedMethod, displayScore, uThptReq, uHocBaReq };
       return null;
     }).filter(item => item !== null);
     
-    // Ưu tiên hiển thị các trường có điểm chuẩn cao
     suitableUnis.sort((a, b) => Math.max(b.uThptReq, b.uHocBaReq) - Math.max(a.uThptReq, a.uHocBaReq));
     return suitableUnis.slice(0, 3);
   };
 
   const quickSuggestions = getQuickSuggestions();
+
+  const inputStyle = {
+    width: '100%', 
+    padding: '12px 15px', 
+    border: '1.5px solid #cbd5e1', 
+    borderRadius: '8px', 
+    outline: 'none', 
+    fontSize: '1rem', 
+    marginTop: '6px', 
+    boxSizing: 'border-box', 
+    transition: 'border-color 0.2s',
+    backgroundColor: '#fff'
+  };
 
   return (
     <div className="fade-step">
@@ -191,38 +214,65 @@ const Step2 = ({ formData, setFormData }) => {
 
       <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap' }}>
         
-        {/* CỘT TRÁI: 6 PHƯƠNG THỨC ĐƯỢC TÁCH RỜI NHƯ CŨ */}
         <div style={{ flex: 1.5, minWidth: '400px' }}>
           
-          <div className="ori-card" style={{ marginBottom: '20px', borderLeft: '4px solid #10b981' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+            <h3 style={{ margin: 0, color: '#1e293b', fontSize: '1.2rem' }}>Nhập điểm hiện tại của bạn</h3>
+            <button 
+              onClick={handleReset} 
+              style={{
+                background: '#fee2e2', color: '#ef4444', border: '1px solid #fecaca', 
+                padding: '8px 16px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '5px', transition: '0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#fecaca'}
+              onMouseOut={(e) => e.currentTarget.style.background = '#fee2e2'}
+            >
+              <i className="fas fa-undo-alt"></i> Làm mới
+            </button>
+          </div>
+
+          <div className="ori-card" style={{ marginBottom: '20px', borderLeft: '4px solid #10b981', padding: '20px' }}>
             <h3 style={{fontSize: '1.1rem', margin: '0 0 15px 0'}}><i className="fas fa-book-open"></i> 1. Xét Học bạ (GPA)</h3>
-            <div className="gpa-grid" style={{ display: 'flex', gap: '10px' }}>
-              <div style={{flex: 1}}><span className="ori-input-label">LỚP 10</span><input type="number" step="0.1" max="10" min="0" className="ori-input" placeholder="0.0" value={formData.gpa10 || ''} onChange={e => updateFieldAndMethod('gpa10', e.target.value, 'Học bạ')} /></div>
-              <div style={{flex: 1}}><span className="ori-input-label">LỚP 11</span><input type="number" step="0.1" max="10" min="0" className="ori-input" placeholder="0.0" value={formData.gpa11 || ''} onChange={e => updateFieldAndMethod('gpa11', e.target.value, 'Học bạ')} /></div>
-              <div style={{flex: 1}}><span className="ori-input-label">LỚP 12 (DỰ KIẾN)</span><input type="number" step="0.1" max="10" min="0" className="ori-input" placeholder="0.0" value={formData.gpa12 || ''} onChange={e => updateFieldAndMethod('gpa12', e.target.value, 'Học bạ')} /></div>
+            
+            <div className="gpa-grid" style={{ display: 'flex', gap: '15px' }}>
+              <div style={{flex: 1}}>
+                <span className="ori-input-label" style={{fontSize: '0.8rem', fontWeight: 600}}>LỚP 10</span>
+                {/* 🚀 ĐÃ SỬA: Đổi input type sang text và inputMode decimal để cho gõ dấu phẩy */}
+                <input type="text" inputMode="decimal" placeholder="VD: 8,5" style={inputStyle} value={formData.gpa10 || ''} onChange={e => updateFieldAndMethod('gpa10', e.target.value, 'Học bạ')} />
+              </div>
+              <div style={{flex: 1}}>
+                <span className="ori-input-label" style={{fontSize: '0.8rem', fontWeight: 600}}>LỚP 11</span>
+                <input type="text" inputMode="decimal" placeholder="VD: 8,5" style={inputStyle} value={formData.gpa11 || ''} onChange={e => updateFieldAndMethod('gpa11', e.target.value, 'Học bạ')} />
+              </div>
+              <div style={{flex: 1}}>
+                <span className="ori-input-label" style={{fontSize: '0.8rem', fontWeight: 600}}>LỚP 12 (DỰ KIẾN)</span>
+                <input type="text" inputMode="decimal" placeholder="VD: 8,5" style={inputStyle} value={formData.gpa12 || ''} onChange={e => updateFieldAndMethod('gpa12', e.target.value, 'Học bạ')} />
+              </div>
             </div>
           </div>
 
           <div style={{display: 'flex', gap: '20px', marginBottom: '20px'}}>
-            <div className="ori-card" style={{ flex: 1, borderLeft: '4px solid #f59e0b' }}>
+            <div className="ori-card" style={{ flex: 1, borderLeft: '4px solid #f59e0b', padding: '20px' }}>
               <h3 style={{fontSize: '1.1rem', margin: '0 0 10px 0'}}><i className="fas fa-pencil-alt"></i> 2. Thi THPT</h3>
-              <span className="ori-input-label">TỔNG 3 MÔN</span>
-              <input type="number" min="0" max="30" step="0.25" className="ori-input" placeholder="VD: 25.5" value={formData.examScore || ''} onChange={e => updateFieldAndMethod('examScore', e.target.value, 'THPT')} />
+              <span className="ori-input-label" style={{fontSize: '0.8rem', fontWeight: 600}}>TỔNG 3 MÔN</span>
+              {/* 🚀 ĐÃ SỬA: Cho phép gõ 25,5 */}
+              <input type="text" inputMode="decimal" placeholder="VD: 25,5" style={inputStyle} value={formData.examScore || ''} onChange={e => updateFieldAndMethod('examScore', e.target.value, 'THPT')} />
             </div>
 
-            <div className="ori-card" style={{ flex: 1, borderLeft: '4px solid #3b82f6' }}>
+            <div className="ori-card" style={{ flex: 1, borderLeft: '4px solid #3b82f6', padding: '20px' }}>
               <h3 style={{fontSize: '1.1rem', margin: '0 0 10px 0'}}><i className="fas fa-brain"></i> 3. Điểm ĐGNL</h3>
-              <span className="ori-input-label">ĐIỂM (VNU / HUST)</span>
-              <input type="number" min="0" max="1200" className="ori-input" placeholder="VD: 850" value={formData.dgnlScore || ''} onChange={e => updateFieldAndMethod('dgnlScore', e.target.value, 'ĐGNL')} />
+              <span className="ori-input-label" style={{fontSize: '0.8rem', fontWeight: 600}}>ĐIỂM (VNU / HUST)</span>
+              <input type="number" min="0" max="1200" placeholder="VD: 850" style={inputStyle} value={formData.dgnlScore || ''} onChange={e => updateFieldAndMethod('dgnlScore', e.target.value, 'ĐGNL')} />
             </div>
           </div>
 
-          <div className="ori-card" style={{ marginBottom: '20px', borderLeft: '4px solid #8b5cf6' }}>
+          <div className="ori-card" style={{ marginBottom: '20px', borderLeft: '4px solid #8b5cf6', padding: '20px' }}>
             <h3 style={{fontSize: '1.1rem', margin: '0 0 15px 0'}}><i className="fas fa-globe"></i> 4. Chứng chỉ Quốc tế</h3>
             <div style={{display: 'flex', gap: '20px'}}>
               <div style={{flex: 1}}>
-                <span className="ori-input-label">IELTS BAND</span>
-                <select className="ori-input" style={{width: '100%'}} value={formData.ielts || '0'} onChange={e => updateFieldAndMethod('ielts', e.target.value, 'Chứng chỉ')}>
+                <span className="ori-input-label" style={{fontSize: '0.8rem', fontWeight: 600}}>IELTS BAND</span>
+                <select style={inputStyle} value={formData.ielts || '0'} onChange={e => updateFieldAndMethod('ielts', e.target.value, 'Chứng chỉ')}>
                   <option value="0">Không có</option>
                   <option value="5.5">5.5 IELTS</option>
                   <option value="6.0">6.0 IELTS</option>
@@ -231,27 +281,27 @@ const Step2 = ({ formData, setFormData }) => {
                 </select>
               </div>
               <div style={{flex: 1}}>
-                <span className="ori-input-label">ĐIỂM SAT (NẾU CÓ)</span>
-                <input type="number" min="0" max="1600" className="ori-input" placeholder="VD: 1400" value={formData.satScore || ''} onChange={e => updateFieldAndMethod('satScore', e.target.value, 'Chứng chỉ')} />
+                <span className="ori-input-label" style={{fontSize: '0.8rem', fontWeight: 600}}>ĐIỂM SAT (NẾU CÓ)</span>
+                <input type="number" min="0" max="1600" placeholder="VD: 1400" style={inputStyle} value={formData.satScore || ''} onChange={e => updateFieldAndMethod('satScore', e.target.value, 'Chứng chỉ')} />
               </div>
             </div>
           </div>
 
           <div style={{display: 'flex', gap: '20px', marginBottom: '30px'}}>
-            <div className="ori-card" style={{ flex: 1, borderLeft: '4px solid #ef4444' }}>
+            <div className="ori-card" style={{ flex: 1, borderLeft: '4px solid #ef4444', padding: '20px' }}>
               <h3 style={{fontSize: '1.1rem', margin: '0 0 10px 0'}}><i className="fas fa-medal"></i> 5. Tuyển thẳng</h3>
-              <select className="ori-input" style={{width: '100%'}} value={formData.prizeLevel || 'none'} onChange={e => updateFieldAndMethod('prizeLevel', e.target.value, 'Tuyển thẳng')}>
+              <select style={inputStyle} value={formData.prizeLevel || 'none'} onChange={e => updateFieldAndMethod('prizeLevel', e.target.value, 'Tuyển thẳng')}>
                 <option value="none">Không có giải thưởng</option>
                 <option value="qg">Giải HSG Quốc Gia</option>
                 <option value="tinh">Giải HSG Tỉnh/TP</option>
               </select>
             </div>
             
-            <div className="ori-card" style={{ flex: 1, borderLeft: '4px solid #ec4899' }}>
+            <div className="ori-card" style={{ flex: 1, borderLeft: '4px solid #ec4899', padding: '20px' }}>
               <h3 style={{fontSize: '1.1rem', margin: '0 0 10px 0'}}><i className="fas fa-palette"></i> 6. Năng khiếu</h3>
-              <label style={{display: 'flex', alignItems: 'center', cursor: 'pointer', background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0'}}>
+              <label style={{display: 'flex', alignItems: 'center', cursor: 'pointer', background: '#f8fafc', padding: '12px 15px', borderRadius: '8px', border: '1.5px solid #e2e8f0', marginTop: '6px', boxSizing: 'border-box'}}>
                 <input type="checkbox" checked={formData.hasPortfolio || false} onChange={e => updateFieldAndMethod('hasPortfolio', e.target.checked, 'Năng khiếu')} style={{width: '18px', height: '18px', marginRight: '10px'}} />
-                <span style={{fontSize: '0.85rem', fontWeight: 600}}>Điểm NK đạt {">="} 5.0</span>
+                <span style={{fontSize: '0.9rem', fontWeight: 600, color: '#334155'}}>Điểm NK đạt {">="} 5,0</span>
               </label>
             </div>
           </div>
@@ -280,24 +330,24 @@ const Step2 = ({ formData, setFormData }) => {
           <div className="ori-dark-card" style={{position: 'sticky', top: '20px'}}>
             <h3 style={{fontSize: '1.3rem', margin: '0 0 20px 0'}}><i className="fas fa-sparkles" style={{color: '#a7f3d0'}}></i> AI Phân tích Tổng hợp</h3>
             
-            {/* ĐÃ TÁCH RIÊNG ĐIỂM HỌC BẠ VÀ THPT RA 2 CỘT */}
             <div style={{background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: '15px'}}>
               <div style={{flex: 1, borderRight: '1px dashed rgba(255,255,255,0.2)'}}>
                 <p style={{margin: '0 0 5px 0', fontSize: '0.7rem', color: '#94a3b8'}}>HỌC BẠ (Hệ 30)</p>
+                {/* Dữ liệu nhả ra sẽ là 25,50 thay vì 25.50 */}
                 <h2 style={{fontSize: '2rem', margin: 0, color: scoreData.hasHocBa ? '#10b981' : '#64748b'}}>{scoreData.hasHocBa ? scoreData.hocBa : '- -'}</h2>
               </div>
               <div style={{flex: 1}}>
                 <p style={{margin: '0 0 5px 0', fontSize: '0.7rem', color: '#94a3b8'}}>THI THPT</p>
+                {/* Dữ liệu nhả ra sẽ là 25,50 thay vì 25.50 */}
                 <h2 style={{fontSize: '2rem', margin: 0, color: scoreData.hasTHPT ? '#f59e0b' : '#64748b'}}>{scoreData.hasTHPT ? scoreData.thpt : '- -'}</h2>
               </div>
             </div>
             {parseFloat(formData.ielts) >= 5.5 && (
               <div style={{fontSize: '0.75rem', color: '#a7f3d0', marginTop: '10px', textAlign: 'center'}}>
-                <i className="fas fa-info-circle"></i> Điểm trên đã được cộng ưu tiên IELTS ({formData.ielts})
+                <i className="fas fa-info-circle"></i> Điểm trên đã được cộng ưu tiên IELTS ({String(formData.ielts).replace('.', ',')})
               </div>
             )}
             
-            {/* DANH SÁCH GỢI Ý CỦA AI */}
             <div style={{marginTop: '25px', padding: '20px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.2)'}}>
                <h4 style={{fontSize: '1.1rem', color: '#a7f3d0', margin: '0 0 15px 0'}}><i className="fas fa-bolt" style={{color: '#f59e0b', marginRight: '5px'}}></i> AI Gợi ý xét tuyển:</h4>
                

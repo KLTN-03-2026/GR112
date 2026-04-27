@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, School, Database, 
   MessageSquare, BrainCircuit, Layers, Cpu, 
   Settings, Bell, Search, Menu, LogOut, ChevronRight, Sparkles,
-  UserCheck, Calendar // <-- Import thêm 2 icon mới ở đây
+  UserCheck, Calendar ,Building2// <-- Import thêm 2 icon mới ở đây
 } from 'lucide-react';
 import './AdminLayout.css';
 
@@ -23,10 +23,13 @@ const AdminLayout = () => {
       { path: '/admin/admission', icon: <Database size={18}/>, label: 'Tuyển sinh' },
       { path: '/admin/exam-block', icon: <Layers size={18}/>, label: 'Khối thi' }, 
     ]},
-    { group: "NỘI DUNG", items: [
-      { path: '/admin/content', icon: <BrainCircuit size={18}/>, label: 'Trắc nghiệm & Review' },
-      { path: '/admin/consultation-history', icon: <MessageSquare size={18}/>, label: 'Lịch sử Chat AI' },
-    ]},
+    
+      { group: "NỘI DUNG", items: [
+    { path: '/admin/admincontent', icon: <Building2 size={18}/>, label: 'Quản lí nội dung' },
+    { path: '/admin/content', icon: <BrainCircuit size={18}/>, label: 'Trắc nghiệm & Review' },
+    { path: '/admin/consultation-history', icon: <MessageSquare size={18}/>, label: 'Lịch sử Chat AI' },
+  ]},
+    
     // --- THÊM NHÓM QUẢN LÝ MỚI VÀO ĐÂY ---
     { group: "TƯ VẤN 1-1 (PREMIUM)", items: [
       { path: '/admin/mentors', icon: <UserCheck size={18}/>, label: 'Quản lý Cố vấn' },

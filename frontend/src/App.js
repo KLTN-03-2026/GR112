@@ -45,7 +45,7 @@ import UniversityManagement from './pages/Admin/UniversityManagement';
 import UserManagement from './pages/Admin/UserManagement';
 import BookingManagement from './pages/Admin/BookingManagement';
 import MentorManagement from './pages/Admin/MentorManagement';
-
+import AdminContent from './pages/Admin/AdminContent';
 // Import các trang Mentor (Đã chuyển sang thư mục Mentor)
 import MentorLayout from './pages/Mentor/MentorLayout';
 import MentorSchedule from './pages/Mentor/MentorSchedule';
@@ -141,6 +141,8 @@ const AppContent = () => {
             <Route path="users" element={<UserManagement />} /> 
             <Route path="bookings" element={<BookingManagement />} /> 
             <Route path="mentors" element={<MentorManagement />} /> 
+            <Route path="admincontent" element={<AdminContent/>}/>
+
           </Route>
           
         </Routes>

@@ -123,12 +123,15 @@ const Home = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // 1. Kiểm tra User thiếu thông tin
+    // 1. Kiểm tra User thiếu thông tin (CHỈ ÁP DỤNG CHO HỌC SINH)
     const savedUser = localStorage.getItem("user");
     if (savedUser && savedUser !== "undefined") {
       try {
         const user = JSON.parse(savedUser);
-        if (!user.className || !user.schoolName) {
+        
+        // 🚀 ĐÃ SỬA: Thêm điều kiện user.role === 'user'
+        // Chỉ những tài khoản là học sinh (user) VÀ thiếu trường/lớp mới bị nhắc nhở
+        if (user.role === 'user' && (!user.className || !user.schoolName)) {
           setNeedUpdate(true);
         }
       } catch (e) {
@@ -155,7 +158,7 @@ const Home = () => {
     };
 
     fetchUniversities();
-  }, []); 
+  }, []);
 
   const getRegionFromProvince = (uni) => {
     if (uni.region) {

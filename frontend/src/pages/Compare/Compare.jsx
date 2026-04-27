@@ -11,24 +11,24 @@ export default function Compare() {
   const [allUniversities, setAllUniversities] = useState([]); 
 
   const [tempSelectedSchools, setTempSelectedSchools] = useState([]);
+  
+  // 🚀 STATE MỚI: Lưu trữ điểm đánh giá thực tế của các trường đang được so sánh
+  const [reviewStats, setReviewStats] = useState({});
 
   useEffect(() => {
-    // Gọi API lấy TẤT CẢ dữ liệu trường 1 lần duy nhất
     const fetchAllUniversities = async () => {
       try {
         const response = await axios.get('http://localhost:8000/api/universities');
         const dbData = response.data;
         setAllUniversities(dbData);
 
-        // Lấy danh sách ID các trường đã thả tim
         const savedFavs = JSON.parse(localStorage.getItem('favSchools')) || [];
         const favIds = savedFavs.map(s => s.id);
 
-        // Lọc ra các trường có trong yêu thích (Tối đa 3 trường)
         const initialSchools = dbData
           .filter(uni => favIds.includes(uni.id))
           .slice(0, 3)
-          .map(uni => formatSchoolData(uni)); // Map đúng chuẩn hiển thị
+          .map(uni => formatSchoolData(uni));
 
         setSchools(initialSchools);
 
@@ -39,7 +39,41 @@ export default function Compare() {
     fetchAllUniversities();
   }, []);
 
-  // Hàm Format dữ liệu chuẩn để bảng Compare không bao giờ bị lỗi 'undefined'
+  // 🚀 EFFECT MỚI: Tự động tải Đánh giá thật khi danh sách trường so sánh thay đổi
+  useEffect(() => {
+    const fetchReviewsForSelectedSchools = async () => {
+      const newStats = {};
+      
+      for (const school of schools) {
+        try {
+          // Gọi API lấy đánh giá của từng trường
+          const res = await axios.get(`http://localhost:8000/api/universities/${school.id}/reviews`);
+          const reviewsData = res.data.reviews || [];
+          
+          const totalReviews = reviewsData.length;
+          // Tính điểm trung bình cộng
+          const avgRating = totalReviews > 0 
+            ? (reviewsData.reduce((sum, rev) => sum + rev.rating, 0) / totalReviews).toFixed(1) 
+            : 0;
+            
+          newStats[school.id] = {
+            avg: avgRating,
+            count: totalReviews
+          };
+        } catch (error) {
+          console.error(`Lỗi lấy đánh giá trường ${school.id}:`, error);
+          newStats[school.id] = { avg: 0, count: 0 };
+        }
+      }
+      
+      setReviewStats(newStats);
+    };
+
+    if (schools.length > 0) {
+      fetchReviewsForSelectedSchools();
+    }
+  }, [schools]);
+
   const formatSchoolData = (uni) => {
     return {
       id: uni.id,
@@ -53,8 +87,8 @@ export default function Compare() {
       dgnl: parseInt(uni.score_dgnl) > 0 ? uni.score_dgnl : 'Không xét',
       cert: uni.combo_cert || 'Không yêu cầu',
       direct: uni.direct_admission || 'Không xét',
-      aptitude: uni.aptitude_test || 'Không yêu cầu',
-      rate: "4.8"
+      aptitude: uni.aptitude_test || 'Không yêu cầu'
+      // Đã xóa rate fix cứng 4.8 ở đây vì sẽ dùng dữ liệu thật từ reviewStats
     };
   };
 
@@ -301,14 +335,25 @@ export default function Compare() {
 
           <div className="section-title">ĐÁNH GIÁ CỘNG ĐỒNG</div>
 
+          {/* 🚀 ĐÃ SỬA: Đổ dữ liệu thật từ reviewStats vào UI */}
           <div className="compare-row">
             <div className="compare-col label-col">Xếp hạng sinh viên</div>
-            {schools.map(school => (
-              <div className="compare-col data-col rating-col" key={`rating-${school.id}`}>
-                 <span className="rating-score">4.8 <Star size={16} fill="#f59e0b" color="#f59e0b"/></span>
-                 <span className="rating-count">(Hơn 1000 đánh giá)</span>
-              </div>
-            ))}
+            {schools.map(school => {
+              const stat = reviewStats[school.id] || { avg: 0, count: 0 };
+              const hasReviews = stat.count > 0;
+              
+              return (
+                <div className="compare-col data-col rating-col" key={`rating-${school.id}`}>
+                   <span className="rating-score">
+                     {hasReviews ? stat.avg : 'Chưa có'} 
+                     <Star size={16} fill={hasReviews ? "#f59e0b" : "#cbd5e1"} color={hasReviews ? "#f59e0b" : "#cbd5e1"}/>
+                   </span>
+                   <span className="rating-count">
+                     ({hasReviews ? `${stat.count} đánh giá` : '0 đánh giá'})
+                   </span>
+                </div>
+              );
+            })}
             {Array.from({ length: 3 - schools.length }).map((_, idx) => (
               <div className="compare-col" key={`empty-rating-${idx}`}></div>
             ))}

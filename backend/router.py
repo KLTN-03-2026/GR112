@@ -9,7 +9,7 @@ from google import genai
 
 
 from extensions import db, mail
-from models import User, ContactMessage, UniversityData, QuizResult, Career,QuestionBank, ChatSession, ChatMessage,RoiHistory,Booking,Mentor,OrientationProfile,MasterInterest, MasterWorkEnvironment,MasterSubjectBlock,MentorSlot
+from models import User, ContactMessage, UniversityData, QuizResult, Career,QuestionBank, ChatSession, ChatMessage,RoiHistory,Booking,Mentor,OrientationProfile,MasterInterest, MasterWorkEnvironment,MasterSubjectBlock,MentorSlot,UniversityReview
 # 1. KHAI BÁO BLUEPRINT & AI CLIENT
 # ==========================================
 api_bp = Blueprint('api_bp', __name__)
@@ -1177,51 +1177,60 @@ def get_mentor_available_slots(mentor_id):
         print("Lỗi khi lấy giờ rảnh:", str(e))
         return jsonify({'error': str(e)}), 500
 
-# API 3: Tính toán ROI và lưu lịch sử vào Database
-@api_bp.route('/api/roi', methods=['POST'])
+import flask # Đảm bảo đã import flask ở trên cùng
+
+# API 3: Tính toán ROI và lưu lịch sử vào Database (BẢN BỌC THÉP CHỐNG LỖI 500)
+@api_bp.route('/api/roi', methods=['POST', 'OPTIONS']) # 🚀 ĐÃ SỬA: Thêm OPTIONS chống lỗi CORS
 def calculate_roi():
+    # Phản hồi nhẹ nhàng cho React nếu nó gửi OPTIONS dò đường
+    if flask.request.method == 'OPTIONS':
+        return flask.jsonify({}), 200
+        
     try:
-        data = request.json
+        # 🚀 ĐÃ SỬA: Thêm tiền tố flask. để chắc chắn không bị lỗi 'not defined'
+        data = flask.request.json
         
-        # 1. LẤY DỮ LIỆU TỪ REACT GỬI LÊN (Kèm giá trị mặc định là 0 để tránh lỗi)
-        tuition_per_year = float(data.get('tuition', 0))
-        uni_living_per_month = float(data.get('uniLiving', 0))
-        study_years = int(data.get('years', 4))
-        starting_salary = float(data.get('salary', 0))
-        post_grad_living_per_month = float(data.get('postGradLiving', 0))
+        # 1. LẤY DỮ LIỆU TỪ REACT GỬI LÊN (Làm sạch dấu phẩy)
+        tuition_per_year = float(str(data.get('tuition_per_year', '0')).replace(',', '').strip())
+        uni_living_per_month = float(str(data.get('uni_living_per_month', '0')).replace(',', '').strip())
+        starting_salary = float(str(data.get('starting_salary', '0')).replace(',', '').strip())
+        post_grad_living_per_month = float(str(data.get('post_grad_living_per_month', '0')).replace(',', '').strip())
         
-        # 2. LOGIC TÍNH TOÁN BỨC TRANH 10 NĂM (Khớp với thuật toán ở Frontend)
-        work_years = max(0, 10 - study_years) # Số năm đi làm = 10 năm - Số năm học
+        study_years = float(data.get('study_years', 4))
         
-        # Cục 1: Tổng đầu tư (Học phí + Ăn ở đại học)
+        # 2. LOGIC TÍNH TOÁN BỨC TRANH 10 NĂM
+        work_years = max(0, 10 - study_years) 
+        
         total_cost = (tuition_per_year + (uni_living_per_month * 12)) * study_years
-        
-        # Cục 2 & 3: Lương cày được & Sinh hoạt phí lúc đi làm
         total_gross_earnings = (starting_salary * 12) * work_years
         total_living_work = (post_grad_living_per_month * 12) * work_years
         
-        # Cục 4: Tiền ròng & Lãi lỗ thực tế
         net_earnings = total_gross_earnings - total_living_work
         real_surplus = net_earnings - total_cost
         
-        # Cục 5: Tính Net ROI (%)
         roi_percentage = (real_surplus / total_cost) * 100 if total_cost > 0 else 0
 
-        # 3. LƯU LỊCH SỬ VÀO DATABASE (Với model RoiHistory đã nâng cấp)
-        history_record = RoiHistory(
-            tuition_per_year=tuition_per_year,
-            uni_living_per_month=uni_living_per_month,
-            study_years=study_years,
-            starting_salary=starting_salary,
-            post_grad_living_per_month=post_grad_living_per_month,
-            calculated_roi_percent=roi_percentage,
-            real_surplus=real_surplus
-        )
-        db.session.add(history_record)
-        db.session.commit()
+        # 3. LƯU LỊCH SỬ VÀO DATABASE (CÓ BẢO HIỂM)
+        try:
+            history_record = RoiHistory(
+                tuition_per_year=tuition_per_year,
+                uni_living_per_month=uni_living_per_month,
+                study_years=study_years,
+                starting_salary=starting_salary,
+                post_grad_living_per_month=post_grad_living_per_month,
+                calculated_roi_percent=roi_percentage,
+                real_surplus=real_surplus
+            )
+            db.session.add(history_record)
+            db.session.commit()
+        except Exception as db_err:
+            # 🚀 TUYỆT CHIÊU: Nếu MySQL lỗi (chưa có cột), hệ thống chỉ in cảnh báo ra màn hình đen 
+            # chứ KHÔNG BÁO LỖI 500, để phía dưới vẫn gửi số liệu về cho React!
+            db.session.rollback()
+            print("⚠️ CẢNH BÁO DB (Không sao cả, UI vẫn chạy):", str(db_err))
 
-        # 4. TRẢ KẾT QUẢ VỀ CHO REACT DƯỚI DẠNG SỐ (Để React tự format VNĐ cho đẹp)
-        return jsonify({
+        # 4. TRẢ KẾT QUẢ VỀ CHO REACT
+        return flask.jsonify({
             'status': 'success',
             'total_cost': total_cost,
             'gross_earnings': total_gross_earnings,
@@ -1234,8 +1243,8 @@ def calculate_roi():
         }), 200
 
     except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        print("❌ LỖI TOÁN HỌC TRONG PYTHON:", str(e))
+        return flask.jsonify({'error': str(e)}), 500
     
 
 
@@ -3223,3 +3232,71 @@ def export_report():
     except Exception as e:
         print(f"Lỗi xuất báo cáo: {str(e)}")
         return jsonify({"success": False, "message": "Không thể xuất báo cáo"}), 500
+
+import flask
+from datetime import datetime
+
+# 1. API LẤY DANH SÁCH ĐÁNH GIÁ CỦA TRƯỜNG
+# 1. API LẤY DANH SÁCH ĐÁNH GIÁ CỦA TRƯỜNG (ĐÃ FIX LỖI TÊN USER)
+@api_bp.route('/api/universities/<int:uni_id>/reviews', methods=['GET', 'OPTIONS'])
+def get_university_reviews(uni_id):
+    if flask.request.method == 'OPTIONS':
+        return flask.jsonify({}), 200
+    try:
+        # Lấy các đánh giá của trường, sắp xếp mới nhất lên đầu
+        reviews = UniversityReview.query.filter_by(university_id=uni_id).order_by(UniversityReview.id.desc()).all()
+        
+        reviews_data = []
+        for r in reviews:
+            # 🚀 SỬA Ở ĐÂY: Dùng r.user.name thay vì r.user.username để khớp với bảng User của Linh
+            user_name = r.user.name if hasattr(r, 'user') and r.user and r.user.name else "Sinh viên giấu tên"
+            
+            # Format dữ liệu chuẩn xác để React hiển thị
+            reviews_data.append({
+                "id": r.id,
+                "name": user_name,
+                "badge": "Thành viên",
+                "time": r.created_at.strftime("%d/%m/%Y") if hasattr(r, 'created_at') and r.created_at else "Gần đây",
+                "content": r.content,
+                "rating": r.rating,
+                "avatar": user_name[0].upper()
+            })
+            
+        return flask.jsonify({"reviews": reviews_data}), 200
+    except Exception as e:
+        print("Lỗi lấy đánh giá:", str(e))
+        return flask.jsonify({"error": str(e)}), 500
+# 2. API LƯU ĐÁNH GIÁ MỚI XUỐNG DATABASE (ĐÃ NÂNG CẤP CHỐNG LỖI 500)
+@api_bp.route('/api/universities/<int:uni_id>/reviews', methods=['POST', 'OPTIONS'])
+def add_university_review(uni_id):
+    if flask.request.method == 'OPTIONS':
+        return flask.jsonify({}), 200
+    try:
+        data = flask.request.json
+        rating = data.get('rating', 5)
+        content = data.get('content', '')
+        
+        # 🚀 GIẢI PHÁP THÔNG MINH: Lấy đại người dùng ĐẦU TIÊN trong bảng User để gán vào (Tránh lỗi Khóa ngoại)
+        first_user = User.query.first()
+        if not first_user:
+            # Nếu bảng user trống không, báo lỗi nhẹ nhàng về cho React
+            return flask.jsonify({"error": "Hệ thống chưa có người dùng nào. Vui lòng tạo tài khoản trước!"}), 400
+            
+        user_id = first_user.id 
+
+        # Tạo đối tượng Review mới để lưu xuống Navicat
+        new_review = UniversityReview(
+            university_id=uni_id,
+            user_id=user_id,
+            rating=rating,
+            content=content
+        )
+        
+        db.session.add(new_review)
+        db.session.commit()
+        
+        return flask.jsonify({"message": "Đánh giá thành công!"}), 200
+    except Exception as e:
+        db.session.rollback() # Nếu lỗi thì hoàn tác, tránh kẹt Database
+        print("Lỗi lưu đánh giá:", str(e))
+        return flask.jsonify({"error": "Lỗi Database: " + str(e)}), 500

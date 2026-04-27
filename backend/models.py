@@ -442,3 +442,19 @@ class MentorReview(db.Model):
     rating = db.Column(db.Float, nullable=False) # Số sao: 1.0 đến 5.0
     comment = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=db.func.now())
+
+# ==========================================
+# 🚀 4. BẢNG ĐÁNH GIÁ TRƯỜNG ĐẠI HỌC
+# ==========================================
+class UniversityReview(db.Model):
+    __tablename__ = 'university_reviews'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    university_id = db.Column(db.Integer, db.ForeignKey('university_data.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=False, default=5) # Số sao từ 1 đến 5
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.now())
+
+    # Thiết lập mối quan hệ để API get_university_reviews có thể lấy được tên User
+    user = db.relationship('User', backref='university_reviews_list')

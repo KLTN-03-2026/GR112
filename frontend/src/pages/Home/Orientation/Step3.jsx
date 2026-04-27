@@ -70,9 +70,7 @@ const Step3 = ({ formData, setFormData }) => {
     });
   };
 
-  // --- HÀM XỬ LÝ NHẬP TIỀN ĐỊNH DẠNG DẤU CHẤM ---
   const handleBudgetChange = (e) => {
-    // Xoá tất cả ký tự không phải là số
     const rawValue = e.target.value.replace(/\D/g, '');
     setFormData({ ...formData, familyBudget: parseInt(rawValue) || 0 });
   };
@@ -82,13 +80,12 @@ const Step3 = ({ formData, setFormData }) => {
     setFormData({ ...formData, livingCost: parseInt(rawValue) || 0 });
   };
 
-  // Hàm hiển thị format số có dấu chấm (VD: 15.000.000)
+  // 🚀 ĐÃ SỬA: Hàm Format tiền DÙNG DẤU PHẨY MỚI (150,000,000 thay vì 150.000.000)
   const formatMoney = (number) => {
     if (!number) return '';
-    return number.toLocaleString('vi-VN');
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
-  // Tính toán Tài chính
   const familyBudget = parseInt(formData.familyBudget) || 0;
   const tuitionLimit = parseInt(formData.tuitionLimit) || 30000000;
   const livingCost = parseInt(formData.livingCost) || activeRegion.defaultCost;
@@ -126,14 +123,14 @@ const Step3 = ({ formData, setFormData }) => {
                 placeholder="Tìm kiếm tỉnh..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                style={{ width: '100%', padding: '8px 10px 8px 35px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', outline: 'none', transition: 'border-color 0.2s' }}
+                style={{ width: '100%', padding: '8px 10px 8px 35px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box' }}
               />
             </div>
           </div>
           
           <div style={{ maxHeight: '180px', overflowY: 'auto', paddingRight: '5px', marginBottom: '20px', borderBottom: '1px solid #e2e8f0', paddingBottom: '15px' }}>
             {filteredRegions.length > 0 ? (
-              <div className="loc-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
+              <div className="loc-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
                 {filteredRegions.map(loc => (
                   <div 
                     key={loc.id} 
@@ -167,7 +164,7 @@ const Step3 = ({ formData, setFormData }) => {
               <Marker key={activeRegion.id} position={activeRegion.coords}>
                 <Popup>
                   <strong>{activeRegion.id}</strong><br/>
-                  Sinh hoạt phí TB: {(activeRegion.defaultCost / 1000000).toFixed(1)} Triệu/Tháng
+                  Sinh hoạt phí TB: {(activeRegion.defaultCost / 1000000).toFixed(1).replace('.', ',')} Triệu/Tháng
                 </Popup>
               </Marker>
             </MapContainer>
@@ -183,7 +180,6 @@ const Step3 = ({ formData, setFormData }) => {
             Cân đối Tài chính
           </h3>
           
-          {/* Ô nhập Ngân sách gia đình (ĐÃ FORMAT SỐ CHUẨN) */}
           <div style={{marginBottom: '25px'}}>
             <label style={{fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px', fontSize: '0.9rem'}}>Ngân sách Gia đình chu cấp / Năm</label>
             <div style={{position: 'relative'}}>
@@ -204,17 +200,19 @@ const Step3 = ({ formData, setFormData }) => {
                 }} 
                 value={formatMoney(formData.familyBudget)} 
                 onChange={handleBudgetChange} 
-                placeholder="VD: 150.000.000" 
+                placeholder="VD: 150,000,000" 
               />
               <span style={{position: 'absolute', right: '15px', top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontWeight: 700, fontSize: '0.9rem'}}>VNĐ</span>
             </div>
           </div>
 
-          {/* Ô kéo Học phí (Thanh trượt) */}
           <div style={{marginBottom: '30px', background: '#f8fafc', padding: '15px', borderRadius: '10px', border: '1px solid #f1f5f9'}}>
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
               <label style={{fontWeight: 700, color: '#334155', fontSize: '0.9rem', margin: 0}}>Học phí trường nhắm đến / Năm</label>
-              <span style={{fontSize: '1.3rem', fontWeight: 800, color: '#10b981', background: '#d1fae5', padding: '4px 10px', borderRadius: '6px'}}>{(tuitionLimit / 1000000)} Tr</span>
+              {/* 🚀 ĐÃ SỬA: Thay đổi chấm thành phẩy cho phần thập phân luôn (VD: 15,5) */}
+              <span style={{fontSize: '1.3rem', fontWeight: 800, color: '#10b981', background: '#d1fae5', padding: '4px 10px', borderRadius: '6px'}}>
+                {String(tuitionLimit / 1000000).replace('.', ',')} Tr
+              </span>
             </div>
             <input type="range" min="15000000" max="200000000" step="5000000" className="custom-range" value={tuitionLimit} onChange={e => setFormData({...formData, tuitionLimit: parseInt(e.target.value)})} style={{width: '100%'}}/>
             <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '8px', fontSize: '0.75rem', color: '#94a3b8'}}>
@@ -223,7 +221,6 @@ const Step3 = ({ formData, setFormData }) => {
             </div>
           </div>
 
-          {/* Ô nhập Sinh hoạt phí (ĐÃ FORMAT SỐ CHUẨN) */}
           <div style={{marginBottom: '35px'}}>
             <label style={{fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px', fontSize: '0.9rem'}}>Sinh hoạt phí (Trọ, Ăn, Đi lại) / Tháng</label>
             <div style={{position: 'relative'}}>
@@ -244,34 +241,37 @@ const Step3 = ({ formData, setFormData }) => {
                 }} 
                 value={formatMoney(formData.livingCost)} 
                 onChange={handleLivingCostChange} 
-                placeholder="VD: 8.000.000"
+                placeholder="VD: 8,000,000"
               />
               <span style={{position: 'absolute', right: '15px', top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontWeight: 700, fontSize: '0.9rem'}}>VNĐ</span>
             </div>
           </div>
 
-          {/* Thẻ đen tính toán tổng hợp */}
           <div className="ori-dark-card" style={{padding: '25px', position: 'relative', overflow: 'hidden', borderRadius: '16px', background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.2)'}}>
             <i className="fas fa-calculator" style={{position: 'absolute', right: '-20px', bottom: '-20px', fontSize: '8rem', opacity: 0.05}}></i>
             
             <p style={{margin: '0 0 5px 0', fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px'}}>TỔNG CHI PHÍ DỰ TÍNH</p>
-            <h2 style={{fontSize: '2.4rem', margin: 0, color: 'white', fontWeight: 800}}>{(totalCost / 1000000).toLocaleString('vi-VN')} <span style={{fontSize: '1.1rem', fontWeight: 500, opacity: 0.8}}>Triệu / Năm</span></h2>
+            {/* 🚀 ĐÃ SỬA: Đổi dấu chấm thành dấu phẩy */}
+            <h2 style={{fontSize: '2.4rem', margin: 0, color: 'white', fontWeight: 800}}>
+              {String(totalCost / 1000000).replace('.', ',')} <span style={{fontSize: '1.1rem', fontWeight: 500, opacity: 0.8}}>Triệu / Năm</span>
+            </h2>
             
             <div style={{display: 'flex', height: '8px', borderRadius: '4px', overflow: 'hidden', marginTop: '20px', marginBottom: '20px'}}>
               <div style={{width: `${tuitionPercent}%`, background: '#10b981'}} title="Học phí"></div>
               <div style={{width: `${livingPercent}%`, background: '#3b82f6'}} title="Sinh hoạt phí"></div>
             </div>
             
-            {/* Cân đối thu chi báo đỏ/xanh */}
             <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <span style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>Ngân sách gia đình:</span>
-                <span style={{ fontWeight: 'bold', color: 'white', fontSize: '0.95rem' }}>{(familyBudget / 1000000).toLocaleString('vi-VN')} Tr</span>
+                <span style={{ fontWeight: 'bold', color: 'white', fontSize: '0.95rem' }}>
+                  {String(familyBudget / 1000000).replace('.', ',')} Tr
+                </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>Trạng thái quỹ:</span>
                 <span style={{ fontWeight: '900', fontSize: '1.2rem', color: isDeficit ? '#fca5a5' : '#6ee7b7' }}>
-                  {isDeficit ? '-' : '+'}{(Math.abs(balance) / 1000000).toLocaleString('vi-VN')} Tr
+                  {isDeficit ? '-' : '+'}{String(Math.abs(balance) / 1000000).replace('.', ',')} Tr
                 </span>
               </div>
             </div>

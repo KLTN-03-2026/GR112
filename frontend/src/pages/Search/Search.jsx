@@ -30,7 +30,6 @@ const Search = () => {
     const fetchSavedFavs = async () => {
       try {
         const res = await axios.get(`http://localhost:8000/api/favorites/${currentUserId}`);
-        // Chỉ cần lấy ID của các trường đã tim để làm sáng nút trái tim
         setFavList(res.data.map(s => s.id));
       } catch (e) {
         console.error("Lỗi lấy danh sách tim từ Database:", e);
@@ -41,23 +40,21 @@ const Search = () => {
 
   // HÀM BẤM TIM -> LƯU/XÓA TRỰC TIẾP XUỐNG MYSQL
   const handleToggleFavorite = async (e, school) => {
-    e.preventDefault(); // Ngăn việc click nhầm chuyển trang
+    e.preventDefault(); 
     try {
       const response = await axios.post('http://localhost:8000/api/favorites/toggle', {
         user_id: currentUserId,
         university_id: school.id
       });
       
-      // Kiểm tra trạng thái Backend trả về
       if (response.data.status === 'added') {
-        setFavList([...favList, school.id]); // Thêm ID vào danh sách sáng màu
+        setFavList([...favList, school.id]); 
         setToastMsg('Lưu trường yêu thích thành công! ❤️');
       } else {
-        setFavList(favList.filter(id => id !== school.id)); // Bỏ ID ra khỏi danh sách
+        setFavList(favList.filter(id => id !== school.id)); 
         setToastMsg('Đã bỏ lưu trường khỏi danh sách!');
       }
 
-      // Tự tắt thông báo sau 3s
       setTimeout(() => {
         setToastMsg('');
       }, 3000);
@@ -87,8 +84,8 @@ const Search = () => {
 
   // Hàm tự động phân loại Vùng Miền
   const getRegionFromProvince = (uni) => {
-    if (!uni.ranking_note) return 'Miền Bắc';
-    const note = uni.ranking_note.toLowerCase();
+    if (!uni.ranking_note && !uni.address) return 'Miền Bắc';
+    const note = (uni.address || uni.ranking_note || "").toLowerCase();
     
     if (note.includes('hà nội') || note.includes('hải phòng') || note.includes('quảng ninh') || 
         note.includes('tuyên quang') || note.includes('lào cai') || note.includes('thái nguyên') || 
@@ -316,12 +313,16 @@ const Search = () => {
           ) : (
             displayUnis.map((uni, index) => {
               const fallbackImage = `https://images.unsplash.com/photo-${1523050854058 + index % 10}-8df90110c9f1?w=400&q=80`;
-              const displayLocation = uni.ranking_note ? uni.ranking_note.split(' - ')[1] : 'Đang cập nhật';
+              
+              // 🚀 Lấy thẳng địa chỉ thật từ DB, nếu chưa có mới dùng ranking_note
+              const displayLocation = uni.address && uni.address !== "Đang cập nhật..." 
+                                      ? uni.address 
+                                      : (uni.ranking_note ? uni.ranking_note.split(' - ')[1] : 'Đang cập nhật');
+                                      
               const displayMajor = uni.major_code ? `${uni.major_name} (${uni.major_code})` : (uni.major_name || 'Đa ngành');
 
               return (
                 <div key={uni.id} className="sp-card">
-                  {/* ---- NÚT THẢ TIM TUYỆT ĐỐI GỌI API MYSQL ---- */}
                   <button 
                     className={`sp-fav-btn ${favList.includes(uni.id) ? 'active' : ''}`}
                     onClick={(e) => handleToggleFavorite(e, uni)}
@@ -340,25 +341,38 @@ const Search = () => {
                     <h3 title={uni.school_name} style={{whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>
                       {uni.school_name}
                     </h3>
-                    <p className="sp-loc"><i className="fas fa-map-marker-alt"></i> {displayLocation}</p>
                     
-                    <div className="sp-stats-grid">
-                      <div className="sp-stat-box">
-                        <span className="stat-label">ĐIỂM CHUẨN THPT</span>
-                        <span className="stat-value" style={{ color: '#ef4444' }}>{uni.score_thpt_last_year || 'N/A'}</span>
+                    {/* 🚀 ĐÃ SỬA: Icon bản đồ và địa chỉ đầy đủ */}
+                    <p className="sp-loc" style={{ overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                      <i className="fas fa-map-marker-alt"></i> {displayLocation}
+                    </p>
+                    
+                    {/* 🚀 ĐÃ SỬA: Lưới 4 ô (THPT, Học Bạ, ĐGNL, Học Phí) */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', margin: '15px 0' }}>
+                      <div style={{ background: '#f8fafc', padding: '10px 5px', borderRadius: '8px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                        <span style={{ display: 'block', fontSize: '0.65rem', color: '#64748b', fontWeight: 'bold', marginBottom: '3px' }}>ĐIỂM THPT</span>
+                        <span style={{ color: '#ef4444', fontWeight: '800', fontSize: '1.1rem' }}>{uni.score_thpt_last_year || '-'}</span>
                       </div>
-                      <div className="sp-stat-box">
-                        <span className="stat-label">HỌC PHÍ / NĂM</span>
-                        <span className="stat-value" style={{ color: '#0b132b', fontSize: '0.85rem' }}>{uni.tuition_fee || 'Đang cập nhật'}</span>
+                      <div style={{ background: '#f8fafc', padding: '10px 5px', borderRadius: '8px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                        <span style={{ display: 'block', fontSize: '0.65rem', color: '#64748b', fontWeight: 'bold', marginBottom: '3px' }}>HỌC BẠ</span>
+                        <span style={{ color: '#3b82f6', fontWeight: '800', fontSize: '1.1rem' }}>{uni.base_score || '-'}</span>
+                      </div>
+                      <div style={{ background: '#f8fafc', padding: '10px 5px', borderRadius: '8px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                        <span style={{ display: 'block', fontSize: '0.65rem', color: '#64748b', fontWeight: 'bold', marginBottom: '3px' }}>ĐIỂM ĐGNL</span>
+                        <span style={{ color: '#10b981', fontWeight: '800', fontSize: '1.1rem' }}>{uni.score_dgnl || '-'}</span>
+                      </div>
+                      <div style={{ background: '#f8fafc', padding: '10px 5px', borderRadius: '8px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                        <span style={{ display: 'block', fontSize: '0.65rem', color: '#64748b', fontWeight: 'bold', marginBottom: '3px' }}>HỌC PHÍ/NĂM</span>
+                        <span style={{ color: '#0f172a', fontWeight: '800', fontSize: '0.85rem' }}>{uni.tuition_fee || 'Cập nhật...'}</span>
                       </div>
                     </div>
 
                     <div className="sp-card-footer">
-                      <div className="sp-tags" style={{ maxWidth: '60%', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                      <div className="sp-tags" style={{ maxWidth: '65%', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
                         <span className="sp-tag" style={{ background: '#d1fae5', color: '#065f46' }}>{uni.subject_block}</span>
                         <span className="sp-tag" style={{ background: '#f1f5f9', color: '#475569' }}>{displayMajor}</span>
                       </div>
-                      <Link to={`/detail/${uni.id}`} className="sp-link" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                      <Link to={`/detail/${uni.id}`} className="sp-link" style={{ textDecoration: 'none', whiteSpace: 'nowrap', fontWeight: 'bold', color: '#4c1d95' }}>
                         Chi tiết &rarr;
                       </Link>
                     </div>

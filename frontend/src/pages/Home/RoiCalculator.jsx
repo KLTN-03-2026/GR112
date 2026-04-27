@@ -15,7 +15,7 @@ const RoiCalculator = () => {
   const formatInputNumber = (value) => {
     if (!value) return '';
     const onlyNumbers = value.toString().replace(/\D/g, '');
-    return onlyNumbers.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return onlyNumbers.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
   const handleInputChange = (field, value) => {
@@ -35,12 +35,20 @@ const RoiCalculator = () => {
     setLoading(true);
 
     try {
+      // 🚀 ĐÃ SỬA: "Phiên dịch" lại tên biến cho khớp y chang với Backend Python
+      const payloadToSend = {
+        tuition_per_year: formData.tuition,
+        uni_living_per_month: formData.uniLiving,
+        study_years: formData.years,
+        starting_salary: formData.salary,
+        post_grad_living_per_month: formData.postGradLiving
+      };
+
       // 1. GỌI API BACKEND ĐỂ TÍNH TOÁN & LƯU DATABASE
-      // Backend (Flask) sẽ tính toán và trả về kết quả cho ta
       const res = await fetch('http://localhost:8000/api/roi', {
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData) // Gửi 5 cục dữ liệu dạng số thô
+        body: JSON.stringify(payloadToSend) // Gửi cục dữ liệu đã đổi tên
       });
       
       const data = await res.json();
@@ -75,7 +83,7 @@ const RoiCalculator = () => {
             <div className="pr-form-group">
               <label>Học phí 1 năm (VNĐ)</label>
               <input 
-                type="text" inputMode="numeric" className="pr-input" placeholder="VD: 30.000.000" required
+                type="text" inputMode="numeric" className="pr-input" placeholder="VD: 30,000,000" required
                 value={formatInputNumber(formData.tuition)} 
                 onChange={(e) => handleInputChange('tuition', e.target.value)} 
               />
@@ -83,7 +91,7 @@ const RoiCalculator = () => {
             <div className="pr-form-group">
               <label>Sinh hoạt phí ĐH 1 tháng (VNĐ)</label>
               <input 
-                type="text" inputMode="numeric" className="pr-input" placeholder="VD: 4.000.000" required
+                type="text" inputMode="numeric" className="pr-input" placeholder="VD: 4,000,000" required
                 value={formatInputNumber(formData.uniLiving)} 
                 onChange={(e) => handleInputChange('uniLiving', e.target.value)} 
               />
@@ -104,7 +112,7 @@ const RoiCalculator = () => {
             <div className="pr-form-group">
               <label>Lương khởi điểm (VNĐ/Tháng)</label>
               <input 
-                type="text" inputMode="numeric" className="pr-input" placeholder="VD: 15.000.000" required
+                type="text" inputMode="numeric" className="pr-input" placeholder="VD: 15,000,000" required
                 value={formatInputNumber(formData.salary)} 
                 onChange={(e) => handleInputChange('salary', e.target.value)} 
               />
@@ -112,7 +120,7 @@ const RoiCalculator = () => {
             <div className="pr-form-group">
               <label>Sinh hoạt phí đi làm (VNĐ/Tháng)</label>
               <input 
-                type="text" inputMode="numeric" className="pr-input" placeholder="VD: 6.000.000" required
+                type="text" inputMode="numeric" className="pr-input" placeholder="VD: 6,000,000" required
                 value={formatInputNumber(formData.postGradLiving)} 
                 onChange={(e) => handleInputChange('postGradLiving', e.target.value)} 
               />
@@ -128,21 +136,28 @@ const RoiCalculator = () => {
           <div className="roi-result fade-in" style={{ marginTop: '40px', borderTop: '2px dashed #e2e8f0', paddingTop: '30px' }}>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '25px' }}>
-              <div style={{ background: '#fef2f2', padding: '20px', borderRadius: '12px', border: '1px solid #fecaca' }}>
-                <span style={{ fontSize: '0.85rem', color: '#b91c1c', display: 'block', fontWeight: 'bold' }}><i className="fas fa-arrow-down"></i> ĐẦU TƯ ({result.study_years} NĂM HỌC)</span>
-                <strong style={{ fontSize: '1.4rem', color: '#991b1b' }}>{formatVND(result.total_cost)}</strong>
-                <div style={{ fontSize: '0.75rem', color: '#dc2626', marginTop: '5px' }}>(Học phí + Ăn ở đại học)</div>
+              
+              {/* Ô 1: ĐẦU TƯ */}
+              <div style={{ background: '#fef2f2', padding: '20px', borderRadius: '12px', border: '1px solid #fecaca', display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '0.9rem', color: '#b91c1c', fontWeight: 'bold' }}><i className="fas fa-arrow-down"></i> ĐẦU TƯ ({result.study_years} NĂM HỌC)</span>
+                <span style={{ fontSize: '0.8rem', color: '#dc2626', marginTop: '4px', marginBottom: '12px' }}>(Học phí + Ăn ở đại học)</span>
+                <strong style={{ fontSize: '1.6rem', color: '#991b1b', marginTop: 'auto' }}>{formatVND(result.total_cost)}</strong>
               </div>
-              <div style={{ background: '#f0fdf4', padding: '20px', borderRadius: '12px', border: '1px solid #bbf7d0' }}>
-                <span style={{ fontSize: '0.85rem', color: '#15803d', display: 'block', fontWeight: 'bold' }}><i className="fas fa-arrow-up"></i> TỔNG LƯƠNG ({result.work_years} NĂM LÀM)</span>
-                <strong style={{ fontSize: '1.4rem', color: '#166534' }}>{formatVND(result.gross_earnings)}</strong>
-                <div style={{ fontSize: '0.75rem', color: '#16a34a', marginTop: '5px' }}>(Lương không đổi)</div>
+
+              {/* Ô 2: TỔNG LƯƠNG */}
+              <div style={{ background: '#f0fdf4', padding: '20px', borderRadius: '12px', border: '1px solid #bbf7d0', display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '0.9rem', color: '#15803d', fontWeight: 'bold' }}><i className="fas fa-arrow-up"></i> TỔNG LƯƠNG ({result.work_years} NĂM LÀM)</span>
+                <span style={{ fontSize: '0.8rem', color: '#16a34a', marginTop: '4px', marginBottom: '12px' }}>(Lương không đổi)</span>
+                <strong style={{ fontSize: '1.6rem', color: '#166534', marginTop: 'auto' }}>{formatVND(result.gross_earnings)}</strong>
               </div>
-              <div style={{ background: '#fff7ed', padding: '20px', borderRadius: '12px', border: '1px solid #fed7aa' }}>
-                <span style={{ fontSize: '0.85rem', color: '#c2410c', display: 'block', fontWeight: 'bold' }}><i className="fas fa-fire"></i> ĐỐT VÀO SINH HOẠT ĐI LÀM</span>
-                <strong style={{ fontSize: '1.4rem', color: '#9a3412' }}>{formatVND(result.total_living_work)}</strong>
-                <div style={{ fontSize: '0.75rem', color: '#ea580c', marginTop: '5px' }}>(Ăn, ở, xăng xe {result.work_years} năm)</div>
+
+              {/* Ô 3: ĐỐT VÀO SINH HOẠT */}
+              <div style={{ background: '#fff7ed', padding: '20px', borderRadius: '12px', border: '1px solid #fed7aa', display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '0.9rem', color: '#c2410c', fontWeight: 'bold' }}><i className="fas fa-fire"></i> TIỀN SINH HOẠT ĐI LẠI</span>
+                <span style={{ fontSize: '0.8rem', color: '#ea580c', marginTop: '4px', marginBottom: '12px' }}>(Ăn, ở, xăng xe {result.work_years} năm)</span>
+                <strong style={{ fontSize: '1.6rem', color: '#9a3412', marginTop: 'auto' }}>{formatVND(result.total_living_work)}</strong>
               </div>
+              
             </div>
 
             <div style={{ background: result.isPositive ? '#065f46' : '#7f1d1d', padding: '30px', borderRadius: '16px', textAlign: 'center', color: 'white', marginBottom: '25px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
@@ -162,8 +177,8 @@ const RoiCalculator = () => {
               </h4>
               <ul style={{ margin: 0, paddingLeft: '20px', color: '#475569', fontSize: '0.95rem', lineHeight: '1.8' }}>
                 <li><strong>Tổng Đầu Tư:</strong> = (Học phí 1 năm + Trọ ĐH 1 năm) × <span style={{color: '#0f172a'}}>{result.study_years} năm</span></li>
-                <li><strong>Tổng Lương Cày Được:</strong> = (Lương 1 tháng × 12) × <span style={{color: '#0f172a'}}>{result.work_years} năm</span></li>
-                <li><strong>Tiền Đốt Vào Sinh Hoạt:</strong> = (Trọ đi làm 1 tháng × 12) × <span style={{color: '#0f172a'}}>{result.work_years} năm</span></li>
+                <li><strong>Tổng Lương :</strong> = (Lương 1 tháng × 12) × <span style={{color: '#0f172a'}}>{result.work_years} năm</span></li>
+                <li><strong>Tiền Vào Sinh Hoạt:</strong> = (Trọ đi làm 1 tháng × 12) × <span style={{color: '#0f172a'}}>{result.work_years} năm</span></li>
                 <li><strong>Lãi/Lỗ Thực Tế:</strong> = Tổng Lương - Sinh Hoạt Đi Làm - Tổng Đầu Tư</li>
                 <li><strong style={{color: '#0b132b'}}>NET ROI (%):</strong> = (Lãi/Lỗ Thực Tế ÷ Tổng Đầu Tư) × 100</li>
               </ul>
