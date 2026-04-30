@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Message
 from sqlalchemy import or_
 from google import genai 
+from dotenv import load_dotenv
 # Sửa lại thành dòng này:
 
 
@@ -15,7 +16,14 @@ from models import User, ContactMessage, UniversityData, QuizResult, Career,Ques
 api_bp = Blueprint('api_bp', __name__)
 chat_bp = Blueprint('chat', __name__)
 
-client = genai.Client(api_key="AIzaSyBLnDzbMASkLtFyfyeApZSXrSYzfr2uWa4")
+# Dòng này giúp Python đọc các biến từ file .env
+load_dotenv() 
+
+# Lấy key từ file .env ra
+api_key = os.getenv("GEMINI_API_KEY")
+
+# Khởi tạo client với key vừa lấy được
+client = genai.Client(api_key=api_key)
 
 from functools import wraps
 from flask import request, jsonify, current_app
@@ -261,7 +269,7 @@ def send_forgot_password_otp():
 
     otp = str(random.randint(100000, 999999))
     user.otp = otp
-    user.otp_expire = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+    user.otp_expire = datetime.utcnow() + timedelta(minutes=5)
     db.session.commit()
 
     try:
@@ -280,7 +288,7 @@ def reset_password():
 
     if not user: return jsonify({"message": "Không tìm thấy tài khoản"}), 404
     if user.otp != data.get("otp"): return jsonify({"message": "Mã OTP không chính xác"}), 400
-    if datetime.datetime.utcnow() > user.otp_expire: return jsonify({"message": "Mã OTP đã hết hạn"}), 400
+    if datetime.utcnow() > user.otp_expire: return jsonify({"message": "Mã OTP đã hết hạn"}), 400
 
     user.password = generate_password_hash(data.get("newPassword"))
     user.otp = None 
@@ -517,7 +525,7 @@ def chat_api():
         from google import genai
         
         # Khởi tạo Client với API Key của bạn
-        client = genai.Client(api_key="AIzaSyBLnDzbMASkLtFyfyeApZSXrSYzfr2uWa4")
+        client = genai.Client(api_key=api_key)
 
         prompt_content = f"""
         Bạn là chuyên gia tư vấn tuyển sinh thông minh UniAI.
@@ -627,37 +635,60 @@ import re
 from flask import request, jsonify
 # Đảm bảo bạn đã import model Career (hoặc tên model tương ứng với bảng careers)
 # from models import Career 
+import re # 👈 Nhớ phải có dòng này ở đầu file router.py để dùng được biểu thức chính quy (re.search)
 
-@chat_bp.route('/api/get-full-profile/<int:user_id>', methods=['GET'])
+# ==========================================
+# API LẤY TOÀN BỘ HỒ SƠ CHO CHATBOT (Kèm gợi ý nghề nghiệp)
+# ==========================================
+@chat_bp.route('/api/get-full-profile/<int:user_id>', methods=['GET', 'OPTIONS'])
 def get_full_profile(user_id):
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+        
     try:
         user = User.query.get(user_id)
         if not user:
             return jsonify({"error": "Không tìm thấy người dùng"}), 404
 
-        # 1. LẤY ĐIỂM SỐ TỪ BẢNG OrientationProfile
+        # ----------------------------------------------------
+        # 1. LẤY ĐIỂM SỐ TỪ BẢNG OrientationProfile (Cho bảng 6 ô)
+        # ----------------------------------------------------
         profile = OrientationProfile.query.filter_by(user_id=user_id).first()
         user_scores = {}
         target_block = 'Chưa xác định'
+        
         if profile:
+            # Tính GPA trung bình
             gpa_list = [g for g in [profile.gpa_10, profile.gpa_11, profile.gpa_12] if g is not None]
             if len(gpa_list) > 0:
                 user_scores['GPA'] = round(sum(gpa_list) / len(gpa_list), 2)
-            if profile.dgnl_score is not None: user_scores['ĐGNL'] = profile.dgnl_score
-            if profile.ielts_score is not None: user_scores['IELTS'] = profile.ielts_score
+            
+            # Lấy các điểm còn lại
+            if getattr(profile, 'exam_score', None) is not None: user_scores['THPT'] = profile.exam_score
+            if getattr(profile, 'dgnl_score', None) is not None: user_scores['ĐGNL'] = profile.dgnl_score
+            if getattr(profile, 'ielts_score', None) is not None: user_scores['IELTS'] = profile.ielts_score
+            if getattr(profile, 'sat_score', None) is not None: user_scores['SAT'] = profile.sat_score
+            
             target_block = profile.target_block or 'Chưa xác định'
 
-        # 2. LẤY TÍNH CÁCH TỪ 5 BÀI TEST
-        # (Lấy kết quả mới nhất của mỗi loại)
-        res_holland = QuizResult.query.filter_by(user_id=user_id, quiz_type='holland').first()
-        res_mbti = QuizResult.query.filter_by(user_id=user_id, quiz_type='mbti').first()
-        res_mi = QuizResult.query.filter_by(user_id=user_id, quiz_type='mi').first()
+        # ----------------------------------------------------
+        # 2. LẤY TÍNH CÁCH TỪ 5 BÀI TEST (Lấy kết quả mới nhất)
+        # ----------------------------------------------------
+        res_holland = QuizResult.query.filter_by(user_id=user_id, quiz_type='holland').order_by(QuizResult.id.desc()).first()
+        res_mbti = QuizResult.query.filter_by(user_id=user_id, quiz_type='mbti').order_by(QuizResult.id.desc()).first()
+        res_mi = QuizResult.query.filter_by(user_id=user_id, quiz_type='mi').order_by(QuizResult.id.desc()).first()
+        res_grit = QuizResult.query.filter_by(user_id=user_id, quiz_type='grit').order_by(QuizResult.id.desc()).first()
+        res_mindset = QuizResult.query.filter_by(user_id=user_id, quiz_type='mindset').order_by(QuizResult.id.desc()).first()
         
         holland_val = res_holland.personality_group if res_holland else None
         mbti_val = res_mbti.personality_group if res_mbti else None
         mi_val = res_mi.personality_group if res_mi else None
+        grit_val = res_grit.personality_group if res_grit else None
+        mindset_val = res_mindset.personality_group if res_mindset else None
 
-        # 🚀 3. LOGIC LẤY NGHỀ TỪ DATABASE (THAY THẾ AI)
+        # ----------------------------------------------------
+        # 3. LOGIC LẤY NGHỀ TỪ DATABASE (THAY THẾ AI)
+        # ----------------------------------------------------
         db_careers = []
         
         # Hàm trợ giúp để trích xuất Keyword tiếng Anh trong dấu ngoặc (ví dụ: Realistic, ENTP,...)
@@ -670,8 +701,7 @@ def get_full_profile(user_id):
         search_keyword = extract_keyword(holland_val) or extract_keyword(mbti_val) or extract_keyword(mi_val)
 
         if search_keyword:
-            # Truy vấn trực tiếp vào bảng careers của bạn
-            # Lọc theo personality_keyword (Realistic, Investigative, LING,...)
+            # Truy vấn trực tiếp vào bảng Career
             career_records = Career.query.filter_by(personality_keyword=search_keyword).limit(6).all()
             
             for c in career_records:
@@ -682,7 +712,9 @@ def get_full_profile(user_id):
                     "top": bool(c.is_top)
                 })
 
-        # 4. ĐÓNG GÓI TRẢ VỀ
+        # ----------------------------------------------------
+        # 4. ĐÓNG GÓI TRẢ VỀ CHO REACT
+        # ----------------------------------------------------
         profile_data = {
             "name": getattr(user, 'full_name', getattr(user, 'name', 'Bạn')),
             "class": getattr(user, 'class_name', 'Chưa cập nhật'),
@@ -692,7 +724,9 @@ def get_full_profile(user_id):
             "holland_personality": holland_val,
             "mbti_personality": mbti_val,
             "mi_personality": mi_val,
-            "careers": db_careers # Giờ đây là dữ liệu thật từ MySQL của bạn
+            "grit_personality": grit_val,
+            "mindset_personality": mindset_val,
+            "careers": db_careers 
         }
         
         return jsonify(profile_data), 200
@@ -701,7 +735,6 @@ def get_full_profile(user_id):
         import traceback
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
-
 # =========================================================
 # 9. LÀM BÀI TRẮC NGHIỆM VÀ LƯU TEST
 # =========================================================
@@ -1102,11 +1135,14 @@ def get_mentors():
 
 # API 2: Nhận dữ liệu Đặt lịch từ form và lưu vào Database
 import jwt # Đảm bảo bạn đã import thư viện này ở đầu file
+from flask import request, jsonify, current_app
+# 🚀 NHỚ IMPORT THÊM MentorNotification VÀO ĐÂY NẾU CHƯA CÓ NHÉ SẾP!
+from models import db, Booking, MentorSlot, User, Notification, MentorNotification 
 
 @api_bp.route('/api/bookings', methods=['POST'])
 def create_booking():
     try:
-        # 1. KIỂM TRA BẢO MẬT: Bóc Token để biết Học sinh nào đang đặt lịch
+        # 1. KIỂM TRA BẢO MẬT
         auth_header = request.headers.get('Authorization')
         if not auth_header:
             return jsonify({'error': 'Bạn cần đăng nhập để đặt lịch!'}), 401
@@ -1122,7 +1158,7 @@ def create_booking():
         data = request.json
         mentor_id = data.get('mentor_id')
         slot_id = data.get('slot_id')
-        topic = data.get('topic') # Ở React, bạn đã gộp topic và needs vào đây rồi
+        topic = data.get('topic')
 
         if not mentor_id or not slot_id or not topic:
             return jsonify({'error': 'Vui lòng chọn đầy đủ khung giờ và chủ đề!'}), 400
@@ -1132,19 +1168,41 @@ def create_booking():
         if not slot or slot.is_booked:
             return jsonify({'error': 'Rất tiếc, khung giờ này vừa bị người khác đặt mất!'}), 400
 
-        # 4. LƯU VÀO DATABASE (Cấu trúc bảng mới)
+        # 4. LƯU VÀO DATABASE (Booking)
         new_booking = Booking(
             student_id=student_id,
             mentor_id=mentor_id,
             slot_id=slot_id,
             topic=topic,
-            status='pending' # Trạng thái chờ Cố vấn duyệt
+            status='pending'
         )
+        db.session.add(new_booking)
 
         # 5. KHÓA KHUNG GIỜ NÀY LẠI
         slot.is_booked = True
 
-        db.session.add(new_booking)
+        # 🚀 6. TẠO THÔNG BÁO CHO CẢ ADMIN VÀ MENTOR
+        # Lấy tên hiển thị của học sinh cho nó thân thiện
+        student = User.query.get(student_id)
+        student_display_name = student.full_name if (student and student.full_name) else (student.name if student else "Học sinh ẩn danh")
+
+        # --- 6.1 Bắn thông báo cho ADMIN ---
+        new_admin_notif = Notification(
+            title="Lịch hẹn mới 📅",
+            message=f"{student_display_name} vừa đặt lịch tư vấn về chủ đề: {topic}"
+        )
+        db.session.add(new_admin_notif)
+
+        # --- 6.2 Bắn thông báo cho CỐ VẤN (MENTOR) ---
+        new_mentor_notif = MentorNotification(
+            mentor_id=mentor_id,
+            title="📅 Có lịch hẹn tư vấn mới!",
+            message=f"Học sinh {student_display_name} vừa đặt lịch tư vấn chủ đề: {topic}. Hãy vào tab Lịch trình để xác nhận ngay nhé!",
+            is_read=False
+        )
+        db.session.add(new_mentor_notif)
+
+        # 7. CHỐT HẠ: LƯU TẤT CẢ VÀO DATABASE (Transaction an toàn)
         db.session.commit()
         
         return jsonify({'message': 'Đặt lịch thành công! Hệ thống đã gửi yêu cầu chờ Cố vấn xác nhận.'}), 201
@@ -2738,16 +2796,22 @@ def toggle_ban_user(current_user, id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+import os
 import random    
 import psutil
 import google.generativeai as genai
+from dotenv import load_dotenv # 👈 Phải import cái này để đọc file .env
 from flask import request, jsonify
+
 # Nhớ đảm bảo đã import đúng các thành phần từ models của bạn
 from models import AITrainingLog, User, db
 
-# Cấu hình Gemini (Dùng bản 2.5 Flash như máy bạn có)
-GOOGLE_API_KEY = "AIzaSyBLnDzbMASkLtFyfyeApZSXrSYzfr2uWa4"
-genai.configure(api_key=GOOGLE_API_KEY)
+load_dotenv() 
+api_key = os.getenv("GEMINI_API_KEY")
+
+# Chỉ cần ĐÚNG 1 dòng này để khởi tạo AI thôi, không dùng chữ Client gì hết nha sếp:
+genai.configure(api_key=api_key)
+
 
 # ---------------------------------------------------------
 # 1. API: LẤY THÔNG SỐ DASHBOARD (DỮ LIỆU THỰC TẾ)
@@ -2764,7 +2828,7 @@ def get_ai_dashboard(current_user):
         # 2. Tính toán tổng số phiên dựa trên user thật
         total_sessions = actual_user_count * 45
         
-        # 3. Logic nhảy số Tỷ lệ thành công ngẫu nhiên (ĐÃ SỬA THỤT LỀ)
+        # 3. Logic nhảy số Tỷ lệ thành công ngẫu nhiên
         if total_sessions > 0:
             # Tạo số ngẫu nhiên từ 99.90 đến 99.99
             random_rate = round(random.uniform(99.90, 99.99), 2)
@@ -3114,15 +3178,12 @@ def get_trending_keywords():
         print(f"Lỗi API Trending Keywords: {str(e)}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-from flask import request, jsonify
-from extensions import db
-# Đảm bảo đã import MentorReview và User từ file models của bạn
-# from models import MentorReview, User 
+import jwt
+from flask import Blueprint, jsonify, request, current_app
+# 🚀 Nhớ đảm bảo sếp đã import đầy đủ nhé
+from models import db, MentorReview, Booking, Notification, MentorNotification, User
 
-from flask import request, jsonify
-# Đảm bảo bạn đã import db, MentorReview, và Booking ở đầu file
-# from extensions import db
-# from models import MentorReview, Booking
+
 
 @chat_bp.route('/api/mentors/review', methods=['POST'])
 def submit_mentor_review():
@@ -3133,22 +3194,18 @@ def submit_mentor_review():
         rating = data.get('rating')
         comment = data.get('comment')
         
-        # 2. Lấy ID học sinh thật do React truyền lên (Không gán cứng số 1 nữa)
+        # 2. Lấy ID học sinh thật do React truyền lên
         student_id = data.get('student_id') 
         
-        # Kiểm tra bảo mật: Nếu React không gửi student_id lên thì chặn lại ngay
         if not student_id:
             return jsonify({"success": False, "message": "Bạn chưa đăng nhập hoặc thiếu thông tin ID học sinh."}), 400
 
-        # 3. Xử lý khóa ngoại booking_id (Rất quan trọng để tránh lỗi 500)
-        # Tự động tìm xem học sinh này đã từng đặt lịch với cố vấn này chưa
+        # 3. Xử lý khóa ngoại booking_id
         existing_booking = Booking.query.filter_by(student_id=student_id, mentor_id=mentor_id).first()
         
         if existing_booking:
-            valid_booking_id = existing_booking.id # Lấy ID lịch hẹn thật
+            valid_booking_id = existing_booking.id
         else:
-            # Nếu chưa từng đặt lịch mà vẫn cho đánh giá, bạn phải điền 1 ID lịch hẹn CÓ THẬT trong DB vào đây
-            # (Hoặc nếu DB của bạn cho phép booking_id bị bỏ trống, hãy đổi thành None)
             valid_booking_id = 1 
         
         # 4. Tạo record mới và lưu vào bảng mentor_reviews
@@ -3159,14 +3216,35 @@ def submit_mentor_review():
             rating=rating,
             comment=comment
         )
-        
         db.session.add(new_review)
+
+        # 5. Lấy tên học sinh để thông báo cho thân thiện
+        student = User.query.get(student_id)
+        student_display_name = student.full_name if (student and student.full_name) else (student.name if student else "Một học sinh")
+
+        # 🚀 6. TẠO THÔNG BÁO CHO MENTOR (Phần mới thêm)
+        new_mentor_notif = MentorNotification(
+            mentor_id=mentor_id,
+            title=f"⭐ Bạn vừa nhận được đánh giá {rating} sao!",
+            message=f"{student_display_name} vừa để lại đánh giá cho phiên tư vấn của bạn. Hãy vào xem chi tiết nhé!",
+            is_read=False
+        )
+        db.session.add(new_mentor_notif)
+
+        # 7. TẠO THÔNG BÁO CHO ADMIN (Sếp đã có sẵn)
+        new_admin_notif = Notification(
+            title="Đánh giá Cố vấn mới ⭐",
+            message=f"Có 1 bài đánh giá {rating} sao cho Cố vấn ID {mentor_id} vừa được gửi, đang chờ duyệt."
+        )
+        db.session.add(new_admin_notif)
+
+        # 8. Chốt đơn
         db.session.commit()
         
         return jsonify({"success": True, "message": "Đánh giá thành công!"}), 200
 
     except Exception as e:
-        db.session.rollback() # Hủy lưu nếu có lỗi
+        db.session.rollback() 
         print(f"\n[LỖI LƯU ĐÁNH GIÁ]: {str(e)}\n")
         return jsonify({"success": False, "message": "Lỗi dữ liệu: Có thể lịch hẹn hoặc học sinh không tồn tại trong hệ thống."}), 500
 import csv
@@ -3293,6 +3371,12 @@ def add_university_review(uni_id):
         )
         
         db.session.add(new_review)
+
+        new_notif = Notification(
+            title="Bài Review Trường mới 🏫",
+            message="Có 1 bài đánh giá trường Đại học mới đang chờ bạn duyệt."
+        )
+        db.session.add(new_notif)
         db.session.commit()
         
         return flask.jsonify({"message": "Đánh giá thành công!"}), 200
@@ -3300,3 +3384,606 @@ def add_university_review(uni_id):
         db.session.rollback() # Nếu lỗi thì hoàn tác, tránh kẹt Database
         print("Lỗi lưu đánh giá:", str(e))
         return flask.jsonify({"error": "Lỗi Database: " + str(e)}), 500
+    
+import flask
+from models import db, UniversityReview, MentorReview, User, UniversityData, Mentor
+
+# ==========================================
+# 1. API LẤY DANH SÁCH REVIEW (CHO ADMIN)
+# ==========================================
+@api_bp.route('/api/admin/reviews', methods=['GET'])
+def admin_get_reviews():
+    review_type = flask.request.args.get('type', 'university')
+    
+    try:
+        results = []
+        if review_type == 'university':
+            # JOIN 3 Bảng: Review, User, University
+            reviews = db.session.query(UniversityReview, User, UniversityData)\
+                .join(User, UniversityReview.user_id == User.id)\
+                .join(UniversityData, UniversityReview.university_id == UniversityData.id)\
+                .order_by(UniversityReview.created_at.desc()).all()
+
+            for r, u, uni in reviews:
+                results.append({
+                    "id": r.id,
+                    "name": u.name or u.full_name or "Ẩn danh",
+                    "role": str(u.role).upper() if u.role else "USER",
+                    "target": uni.school_name,
+                    "content": r.content,
+                    "time": r.created_at.strftime("%d/%m/%Y") if r.created_at else "",
+                    "verified": u.verified,
+                    "rating": r.rating,
+                    "status": getattr(r, 'status', 'pending') # Lấy status, mặc định pending
+                })
+        else:
+            # JOIN 3 Bảng: MentorReview, User, Mentor
+            reviews = db.session.query(MentorReview, User, Mentor)\
+                .join(User, MentorReview.student_id == User.id)\
+                .join(Mentor, MentorReview.mentor_id == Mentor.id)\
+                .order_by(MentorReview.created_at.desc()).all()
+
+            for r, u, m in reviews:
+                results.append({
+                    "id": r.id,
+                    "name": u.name or u.full_name or "Ẩn danh",
+                    "role": str(u.role).upper() if u.role else "USER",
+                    "target": f"Cố vấn: {m.full_name}",
+                    "content": r.comment, # Lưu ý: DB của bạn cột này tên là comment
+                    "time": r.created_at.strftime("%d/%m/%Y") if r.created_at else "",
+                    "verified": u.verified,
+                    "rating": r.rating,
+                    "status": getattr(r, 'status', 'pending')
+                })
+
+        return flask.jsonify(results), 200
+    except Exception as e:
+        print("LỖI LẤY REVIEW:", e)
+        return flask.jsonify({"error": str(e)}), 500
+
+
+# ==========================================
+# 2. API XỬ LÝ REVIEW (DUYỆT / ẨN / XÓA)
+# ==========================================
+@api_bp.route('/api/admin/reviews/<int:review_id>', methods=['POST', 'DELETE', 'OPTIONS'])
+def admin_handle_review(review_id):
+    if flask.request.method == 'OPTIONS':
+        return flask.jsonify({}), 200
+        
+    try:
+        # LỆNH XÓA (DELETE)
+        if flask.request.method == 'DELETE':
+            # Do React gửi Delete không kèm Type, ta sẽ tìm và xóa ở cả 2 bảng cho chắc ăn
+            uni_rev = UniversityReview.query.get(review_id)
+            if uni_rev:
+                db.session.delete(uni_rev)
+                
+            mentor_rev = MentorReview.query.get(review_id)
+            if mentor_rev:
+                db.session.delete(mentor_rev)
+                
+            db.session.commit()
+            return flask.jsonify({"message": "Đã xóa vĩnh viễn!"}), 200
+            
+        # LỆNH DUYỆT VÀ ẨN (POST)
+        data = flask.request.json
+        action = data.get('action') # 'approve' hoặc 'hide'
+        review_type = data.get('type') # 'university' hoặc 'mentor'
+        
+        status_to_update = 'published' if action == 'approve' else 'hidden'
+        
+        if review_type == 'university':
+            rev = UniversityReview.query.get(review_id)
+            if rev:
+                rev.status = status_to_update
+        else:
+            rev = MentorReview.query.get(review_id)
+            if rev:
+                rev.status = status_to_update
+                
+        db.session.commit()
+        return flask.jsonify({"message": f"Đã chuyển trạng thái thành {status_to_update}!"}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        print("LỖI XỬ LÝ REVIEW:", e)
+        return flask.jsonify({"error": str(e)}), 500
+
+        
+import flask
+from models import db, Article,SystemSetting,Notification,NewsletterSubscriber
+
+# ==========================================
+# 1. API LẤY DANH SÁCH BÀI VIẾT TỪ DB
+# ==========================================
+@api_bp.route('/api/admin/articles', methods=['GET'])
+def get_admin_articles():
+    try:
+        # Lấy tất cả bài viết, sắp xếp mới nhất lên đầu
+        articles = Article.query.order_by(Article.created_at.desc()).all()
+        return flask.jsonify([a.to_dict() for a in articles]), 200
+    except Exception as e:
+        print("LỖI LẤY BÀI VIẾT:", e)
+        return flask.jsonify({"error": str(e)}), 500
+
+# ==========================================
+# 2. API XÓA BÀI VIẾT (KHI BẤM NÚT THÙNG RÁC)
+# ==========================================
+@api_bp.route('/api/admin/articles/<int:article_id>', methods=['DELETE', 'OPTIONS'])
+def delete_admin_article(article_id):
+    if flask.request.method == 'OPTIONS':
+        return flask.jsonify({}), 200
+        
+    try:
+        article = Article.query.get(article_id)
+        if article:
+            db.session.delete(article)
+            db.session.commit()
+            print(f"🗑️ Đã xóa bài viết ID: {article_id}")
+            return flask.jsonify({"message": "Đã xóa bài viết thành công!"}), 200
+        return flask.jsonify({"error": "Không tìm thấy bài viết"}), 404
+    except Exception as e:
+        db.session.rollback()
+        print("LỖI XÓA BÀI VIẾT:", e)
+        return flask.jsonify({"error": str(e)}), 500
+    # ==========================================
+# 3. API THÊM VÀ SỬA BÀI VIẾT (POST / PUT)
+# ==========================================
+@api_bp.route('/api/admin/articles', methods=['POST', 'OPTIONS'])
+def add_admin_article():
+    if flask.request.method == 'OPTIONS':
+        return flask.jsonify({}), 200
+    try:
+        data = flask.request.json
+        new_article = Article(
+            title=data.get('title'),
+            category=data.get('category'),
+            category_code=data.get('categoryCode'),
+            status=data.get('status', 'Bản nháp'),
+            image_url=data.get('image', ''),
+            content=data.get('content', '')
+        )
+        db.session.add(new_article)
+        db.session.commit()
+        return flask.jsonify({"message": "Thêm bài viết thành công!"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return flask.jsonify({"error": str(e)}), 500
+
+@api_bp.route('/api/admin/articles/<int:article_id>', methods=['PUT', 'OPTIONS'])
+def edit_admin_article(article_id):
+    if flask.request.method == 'OPTIONS':
+        return flask.jsonify({}), 200
+    try:
+        article = Article.query.get(article_id)
+        if not article:
+            return flask.jsonify({"error": "Không tìm thấy bài viết"}), 404
+            
+        data = flask.request.json
+        article.title = data.get('title', article.title)
+        article.category = data.get('category', article.category)
+        article.category_code = data.get('categoryCode', article.category_code)
+        article.status = data.get('status', article.status)
+        article.image_url = data.get('image', article.image_url)
+        article.content = data.get('content', article.content)
+        
+        db.session.commit()
+        return flask.jsonify({"message": "Cập nhật thành công!"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return flask.jsonify({"error": str(e)}), 500
+
+        # ==========================================
+# CỤM API PUBLIC CHO HỌC SINH ĐỌC BÀI VIẾT
+# ==========================================
+
+# 1. API Lấy danh sách bài viết (Chỉ lấy bài "Đã xuất bản")
+@api_bp.route('/api/articles', methods=['GET'])
+def get_public_articles():
+    try:
+        # Lọc ra bài có status='Đã xuất bản' và xếp mới nhất lên đầu
+        articles = Article.query.filter_by(status='Đã xuất bản').order_by(Article.created_at.desc()).all()
+        return flask.jsonify([a.to_dict() for a in articles]), 200
+    except Exception as e:
+        print("LỖI LẤY BÀI VIẾT PUBLIC:", e)
+        return flask.jsonify({"error": str(e)}), 500
+
+# 2. API Lấy nội dung chi tiết 1 bài viết (Khi học sinh bấm vào xem)
+@api_bp.route('/api/articles/<int:article_id>', methods=['GET'])
+def get_article_detail(article_id):
+    try:
+        article = Article.query.get(article_id)
+        
+        # Nếu không tìm thấy hoặc bài đó đang bị ẩn (Bản nháp) thì báo lỗi
+        if not article or article.status != 'Đã xuất bản':
+            return flask.jsonify({"error": "Bài viết không tồn tại hoặc đã bị ẩn"}), 404
+            
+        # 🚀 TÍNH NĂNG XỊN: Mỗi lần có người bấm vào xem, tự động TĂNG VIEW lên 1
+        article.views = (article.views or 0) + 1
+        db.session.commit()
+        
+        return flask.jsonify(article.to_dict()), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        print("LỖI CHI TIẾT BÀI VIẾT:", e)
+        return flask.jsonify({"error": str(e)}), 500
+
+        # ==========================================
+# API LẤY VÀ CẬP NHẬT CÀI ĐẶT HỆ THỐNG
+# ==========================================
+@api_bp.route('/api/admin/settings', methods=['GET', 'POST', 'OPTIONS'])
+def admin_system_settings():
+    if flask.request.method == 'OPTIONS':
+        return flask.jsonify({}), 200
+
+    try:
+        # Lấy dòng cài đặt đầu tiên (Hệ thống thường chỉ có 1 dòng cấu hình chung)
+        setting = SystemSetting.query.first()
+        
+        # Nếu chưa có dòng nào trong DB, tự động tạo 1 dòng mặc định
+        if not setting:
+            setting = SystemSetting()
+            db.session.add(setting)
+            db.session.commit()
+
+        # NẾU LÀ LỆNH GET: Trả dữ liệu về cho React hiển thị
+        if flask.request.method == 'GET':
+            return flask.jsonify(setting.to_dict()), 200
+            
+        # NẾU LÀ LỆNH POST: Nhận dữ liệu từ React và lưu đè vào DB
+        if flask.request.method == 'POST':
+            data = flask.request.json
+            
+            setting.site_name = data.get('site_name', setting.site_name)
+            setting.support_email = data.get('support_email', setting.support_email)
+            setting.hotline = data.get('hotline', setting.hotline)
+            setting.maintenance_mode = data.get('maintenance_mode', setting.maintenance_mode)
+            setting.notify_new_review = data.get('notify_new_review', setting.notify_new_review)
+            setting.notify_new_booking = data.get('notify_new_booking', setting.notify_new_booking)
+            setting.two_factor_auth = data.get('two_factor_auth', setting.two_factor_auth)
+            
+            db.session.commit()
+            return flask.jsonify({"message": "Đã lưu cấu hình thành công!"}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        print("LỖI CÀI ĐẶT:", e)
+        return flask.jsonify({"error": str(e)}), 500
+
+        # ==========================================
+# API LẤY THÔNG BÁO CHO THANH HEADER
+# ==========================================
+@api_bp.route('/api/admin/notifications', methods=['GET'])
+def get_admin_notifications():
+    try:
+        # Lấy 5 thông báo mới nhất
+        notifs = Notification.query.order_by(Notification.created_at.desc()).limit(5).all()
+        # Đếm số lượng thông báo CHƯA ĐỌC (is_read = False)
+        unread_count = Notification.query.filter_by(is_read=False).count()
+        
+        return flask.jsonify({
+            "unread_count": unread_count,
+            "data": [n.to_dict() for n in notifs]
+        }), 200
+    except Exception as e:
+        return flask.jsonify({"error": str(e)}), 500
+
+
+
+
+# ==========================================
+# API ĐĂNG KÝ NHẬN BẢN TIN (NEWSLETTER)
+# ==========================================
+@api_bp.route('/api/subscribe', methods=['POST', 'OPTIONS'])
+def subscribe_newsletter():
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+
+    try:
+        data = request.json
+        email = data.get('email')
+
+        if not email:
+            return jsonify({"success": False, "message": "Vui lòng nhập email của bạn!"}), 400
+
+        # Kiểm tra email tồn tại
+        existing = NewsletterSubscriber.query.filter_by(email=email).first()
+        if existing:
+            return jsonify({"success": True, "message": "Email này đã được đăng ký từ trước! Cảm ơn bạn."}), 200
+
+        # Lưu email mới
+        new_subscriber = NewsletterSubscriber(email=email)
+        db.session.add(new_subscriber)
+
+        # Thông báo cho Admin
+        new_notif = Notification(
+            title="Đăng ký Bản tin mới 💌",
+            message=f"Có một người dùng vừa đăng ký nhận bản tin với email: {email}"
+        )
+        db.session.add(new_notif)
+        db.session.commit()
+
+        # 🚀 GỌI BƯU TÁ GỬI EMAIL CHÀO MỪNG (Chạy ngầm để không bị lag web)
+        threading.Thread(target=send_welcome_email, args=(email,)).start()
+
+        return jsonify({"success": True, "message": "Đăng ký nhận bản tin thành công! Vui lòng kiểm tra email của bạn."}), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": f"Lỗi hệ thống: {str(e)}"}), 500
+
+import smtplib
+import threading
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from config import Config # 👈 Import file config.py của sếp vào đây
+
+# HÀM BƯU TÁ TỰ ĐỘNG GỬI EMAIL (Đã liên kết với config.py)
+def send_welcome_email(receiver_email):
+    # Tự động lấy Email và Mật khẩu từ file config.py của sếp
+    sender_email = Config.MAIL_USERNAME
+    sender_password = Config.MAIL_PASSWORD
+
+    msg = MIMEMultipart()
+    msg['From'] = f"ConsulTing Team <{sender_email}>"
+    msg['To'] = receiver_email
+    msg['Subject'] = "🎉 Chào mừng bạn đến với Bản tin ConsulTing!"
+
+    # Nội dung email siêu xịn xò
+    body = """
+    <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+        <h2 style="color: #4f46e5;">Xin chào! 🚀</h2>
+        <p>Cảm ơn bạn đã tin tưởng và đăng ký nhận bản tin từ <b>ConsulTing</b>.</p>
+        <p>Từ nay, những thông tin mới nhất về Tuyển sinh, Học bổng và Định hướng nghề nghiệp bằng AI sẽ được gửi đến bạn sớm nhất!</p>
+        <br>
+        <p>Trân trọng,</p>
+        <p><b>Đội ngũ ConsulTing</b></p>
+    </div>
+    """
+    msg.attach(MIMEText(body, 'html'))
+
+    try:
+        # Lấy thông tin Server và Port từ config.py luôn cho chuẩn
+        server = smtplib.SMTP(Config.MAIL_SERVER, Config.MAIL_PORT)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.send_message(msg)
+        server.quit()
+        print(f"✅ Đã gửi email thành công tới: {receiver_email}")
+    except Exception as e:
+        print(f"❌ Lỗi gửi email: {str(e)}")
+
+        import threading
+import smtplib
+from datetime import datetime
+from flask import request, jsonify
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+# Lưu ý: Sếp nhớ import các Model của sếp ở đầu file router.py nhé (Ví dụ: from models import db, Article, NewsletterSubscriber)
+from config import Config 
+
+# =====================================================================
+# HÀM BỔ TRỢ: GỬI MAIL HÀNG LOẠT (Chạy ngầm)
+# =====================================================================
+def send_broadcast_email_task(subject, html_content, recipient_emails):
+    sender_email = Config.MAIL_USERNAME
+    sender_password = Config.MAIL_PASSWORD
+    
+    try:
+        server = smtplib.SMTP(Config.MAIL_SERVER, Config.MAIL_PORT)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        
+        for email in recipient_emails:
+            msg = MIMEMultipart()
+            msg['From'] = f"ConsulTing Admin <{sender_email}>"
+            msg['To'] = email
+            msg['Subject'] = subject
+            
+            body = f"""
+            <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+                <h2 style="color: #4f46e5; border-bottom: 2px solid #e0e7ff; padding-bottom: 10px;">Tin tức mới từ ConsulTing 🚀</h2>
+                <div style="font-size: 1.05rem; margin-top: 20px;">
+                    {html_content}
+                </div>
+                <br><hr style="border: 0; border-top: 1px solid #e2e8f0;">
+                <p style="font-size: 0.85rem; color: #64748b; text-align: center;">Bạn nhận được email này vì đã đăng ký bản tin trên website ConsulTing.</p>
+            </div>
+            """
+            msg.attach(MIMEText(body, 'html'))
+            server.send_message(msg)
+            
+        server.quit()
+        print(f"✅ Đã gửi mail hàng loạt thành công cho {len(recipient_emails)} người!")
+    except Exception as e:
+        print(f"❌ Lỗi gửi mail hàng loạt: {str(e)}")
+
+
+# =====================================================================
+# 1. API QUẢN LÝ BÀI VIẾT (CRUD: Create - Read - Update - Delete)
+# =====================================================================
+
+# Lấy danh sách toàn bộ bài viết
+@api_bp.route('/api/admin/articles', methods=['GET'])
+def get_all_articles():
+    try:
+        articles = Article.query.order_by(Article.id.desc()).all()
+        result = [{
+            "id": a.id,
+            "title": a.title,
+            "category": a.category,
+            "categoryCode": a.categoryCode,
+            "status": a.status,
+            "image": a.image,
+            "content": a.content,
+            "date": a.created_at.strftime('%d/%m/%Y') if a.created_at else "Đang cập nhật",
+            "views": a.views if hasattr(a, 'views') else 0
+        } for a in articles]
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Thêm bài viết mới
+@api_bp.route('/api/admin/articles', methods=['POST', 'OPTIONS'])
+def create_article():
+    if request.method == 'OPTIONS': return jsonify({}), 200
+    try:
+        data = request.json
+        new_article = Article(
+            title=data.get('title'),
+            category=data.get('category'),
+            categoryCode=data.get('categoryCode'),
+            status=data.get('status'),
+            image=data.get('image'),
+            content=data.get('content')
+            # Lưu ý: nếu Model Article của sếp ko có created_at tự động thì thêm created_at=datetime.utcnow()
+        )
+        db.session.add(new_article)
+        db.session.commit()
+        return jsonify({"message": "Thêm bài viết thành công"}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+# Sửa bài viết
+@api_bp.route('/api/admin/articles/<int:id>', methods=['PUT', 'OPTIONS'])
+def update_article(id):
+    if request.method == 'OPTIONS': return jsonify({}), 200
+    try:
+        article = Article.query.get(id)
+        if not article:
+            return jsonify({"error": "Không tìm thấy bài viết"}), 404
+        
+        data = request.json
+        article.title = data.get('title', article.title)
+        article.category = data.get('category', article.category)
+        article.categoryCode = data.get('categoryCode', article.categoryCode)
+        article.status = data.get('status', article.status)
+        article.image = data.get('image', article.image)
+        article.content = data.get('content', article.content)
+        
+        db.session.commit()
+        return jsonify({"message": "Cập nhật thành công"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+# Xóa bài viết
+@api_bp.route('/api/admin/articles/<int:id>', methods=['DELETE', 'OPTIONS'])
+def delete_article(id):
+    if request.method == 'OPTIONS': return jsonify({}), 200
+    try:
+        article = Article.query.get(id)
+        if not article:
+            return jsonify({"error": "Không tìm thấy bài viết"}), 404
+            
+        db.session.delete(article)
+        db.session.commit()
+        return jsonify({"message": "Xóa thành công"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+# =====================================================================
+# 2. API QUẢN LÝ BẢN TIN & GỬI MAIL HÀNG LOẠT
+# =====================================================================
+
+# Lấy danh sách email đăng ký
+@api_bp.route('/api/admin/subscribers', methods=['GET'])
+def get_subscribers():
+    try:
+        subs = NewsletterSubscriber.query.order_by(NewsletterSubscriber.subscribed_at.desc()).all()
+        result = [{
+            "id": s.id, 
+            "email": s.email, 
+            "subscribed_at": s.subscribed_at.strftime('%d/%m/%Y %H:%M') if s.subscribed_at else ""
+        } for s in subs]
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Lệnh gửi mail hàng loạt
+@api_bp.route('/api/admin/broadcast', methods=['POST', 'OPTIONS'])
+def broadcast_email():
+    if request.method == 'OPTIONS': return jsonify({}), 200
+    try:
+        data = request.json
+        subject = data.get('subject')
+        content = data.get('content')
+        
+        if not subject or not content:
+            return jsonify({"success": False, "message": "Vui lòng nhập đầy đủ tiêu đề và nội dung!"}), 400
+            
+        subs = NewsletterSubscriber.query.all()
+        if not subs:
+            return jsonify({"success": False, "message": "Chưa có ai đăng ký nhận bản tin!"}), 400
+            
+        emails = [s.email for s in subs]
+        
+        # Chạy bưu tá ngầm
+        threading.Thread(target=send_broadcast_email_task, args=(subject, content, emails)).start()
+        
+        return jsonify({"success": True, "message": f"Đang tiến hành gửi email đến {len(emails)} người đăng ký!"}), 200
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Lỗi hệ thống: {str(e)}"}), 500
+
+
+
+
+import jwt
+from flask import request, jsonify, current_app
+# 🚀 Nhớ import db và MentorNotification của sếp vào đây nhé
+from models import db, MentorNotification 
+
+# 🚀 ĐÃ SỬA: Thêm '/api/mentor/notifications' có dấu gạch chéo ở đầu
+@api_bp.route('/api/mentor/notifications', methods=['GET'])
+def get_mentor_notifications():
+    try:
+        # 1. Vẫn giữ đoạn kiểm tra Token để Frontend không báo lỗi 401
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+            return jsonify({'error': 'Bạn cần đăng nhập!'}), 401
+
+        # 🚀 2. CHEAT CODE: TẮT CHẾ ĐỘ LỌC ID (Lấy toàn bộ thông báo)
+        notifications = MentorNotification.query.order_by(MentorNotification.created_at.desc()).all()
+        
+        data = [n.to_dict() for n in notifications]
+        
+        # Đếm TẤT CẢ thông báo chưa đọc trong toàn bộ hệ thống
+        unread_count = MentorNotification.query.filter_by(is_read=False).count()
+
+        return jsonify({
+            "success": True,
+            "data": data,
+            "unread_count": unread_count
+        }), 200
+
+    except Exception as e:
+        print("Lỗi lấy thông báo:", str(e))
+        return jsonify({"success": False, "error": "Lỗi Server Backend"}), 500
+
+
+# =========================================================
+# API ĐÁNH DẤU ĐÃ ĐỌC (CŨNG DÙNG CHEAT CODE LUÔN)
+# =========================================================
+# 🚀 ĐÃ SỬA: Thêm '/api/mentor/notifications/read-all' có dấu gạch chéo ở đầu
+@api_bp.route('/api/mentor/notifications/read-all', methods=['POST'])
+def mark_all_notifications_read():
+    try:
+        # Vẫn cần check token cho có lệ
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+            return jsonify({'error': 'Bạn cần đăng nhập!'}), 401
+
+        # 🚀 CHEAT CODE: Bấm 1 phát là đánh dấu "Đã đọc" cho TOÀN BỘ thông báo trong DB
+        MentorNotification.query.filter_by(is_read=False).update({'is_read': True})
+        db.session.commit() 
+        
+        return jsonify({"success": True}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False}), 500

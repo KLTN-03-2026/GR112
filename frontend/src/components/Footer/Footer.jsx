@@ -1,26 +1,28 @@
 // src/components/Footer/Footer.jsx
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-// Import đầy đủ các icon từ lucide-react
 import { Facebook, Twitter, Instagram, Linkedin, Send } from 'lucide-react';
 import './Footer.css';
 
 const Footer = () => {
-  // State để lưu trữ email người dùng nhập vào
   const [email, setEmail] = useState('');
+  const [message, setMessage] = useState(''); // State lưu thông báo xịn xò
+  const [isLoading, setIsLoading] = useState(false); // State chống spam click
 
-  // Hàm xử lý khi bấm Đăng ký bản tin (Đã tích hợp API Backend)
   const handleSubscribe = async (e) => {
-    e.preventDefault(); // Ngăn trình duyệt reload lại trang
+    e.preventDefault(); 
     
     if (!email) {
-      alert("Vui lòng nhập địa chỉ email của bạn!");
+      setMessage("❌ Vui lòng nhập địa chỉ email của bạn!");
       return;
     }
 
+    setIsLoading(true);
+    setMessage(''); // Xóa thông báo cũ
+
     try {
-      // Gọi API gửi thẳng dữ liệu về Backend Flask ở cổng 8000
-      const response = await fetch('http://localhost:8000/api/newsletter', {
+      // Đã đổi endpoint thành /api/subscribe cho khớp với file router.py
+      const response = await fetch('http://localhost:8000/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
@@ -28,15 +30,17 @@ const Footer = () => {
 
       const result = await response.json();
 
-      if (response.ok) {
-        alert(result.message); // Báo thành công (và tự động gửi email)
+      if (response.ok || result.success) {
+        setMessage("🎉 Đăng ký nhận bản tin thành công!"); 
         setEmail(''); // Xóa trắng ô input
       } else {
-        alert(`Lỗi: ${result.error}`);
+        setMessage(`❌ Lỗi: ${result.message || result.error}`);
       }
     } catch (error) {
-      alert("Không thể kết nối tới server! Vui lòng bật backend.");
+      setMessage("❌ Không thể kết nối tới server! Vui lòng thử lại.");
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -70,20 +74,31 @@ const Footer = () => {
               placeholder="Nhập email của bạn..." 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading}
               required
             />
-            <button type="submit">
-              {/* Thay icon cũ bằng icon Send của lucide-react */}
-              <Send size={18} />
+            <button type="submit" disabled={isLoading} style={{ cursor: isLoading ? 'wait' : 'pointer' }}>
+              {isLoading ? <span style={{fontSize: '12px', fontWeight: 'bold'}}>...</span> : <Send size={18} />}
             </button>
           </form>
+          
+          {/* 🚀 KHÚC NÀY HIỂN THỊ THÔNG BÁO SIÊU MƯỢT THAY CHO ALERT */}
+          {message && (
+            <p style={{ 
+              marginTop: '12px', 
+              fontSize: '0.85rem', 
+              color: message.includes('❌') ? '#ef4444' : '#10b981', 
+              fontWeight: '600' 
+            }}>
+              {message}
+            </p>
+          )}
         </div>
       </div>
       
       <div className="footer-bottom">
         <p>© 2026 CONSULTING. ĐƯỢC XÂY DỰNG VỚI ĐỘ CHÍNH XÁC TỪ AI.</p>
         <div className="social-links">
-          {/* Đã thay toàn bộ chữ (TWITTER, LINKEDIN...) bằng Logo cực mượt */}
           <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><Facebook size={20} /></a>
           <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><Twitter size={20} /></a>
           <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><Linkedin size={20} /></a>

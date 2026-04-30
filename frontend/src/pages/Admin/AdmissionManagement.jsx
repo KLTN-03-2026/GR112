@@ -3,8 +3,9 @@ import './AdmissionManagement.css';
 import { 
   Database, Plus, Upload, Search, Filter, 
   Edit3, Trash2, TrendingUp, BarChart2,
-  ChevronLeft, ChevronRight, ArrowUpRight, X, Save
+  ChevronLeft, ChevronRight, X, Save
 } from 'lucide-react';
+import Swal from 'sweetalert2'; // 🚀 IMPORT VŨ KHÍ SWEETALERT2
 
 const AdmissionManagement = () => {
   const [admissions, setAdmissions] = useState([]);
@@ -61,6 +62,7 @@ const AdmissionManagement = () => {
     setShowFormModal(true);
   };
 
+  // 🚀 ĐÃ THAY BẰNG SWEETALERT2
   const handleSubmit = (e) => {
     e.preventDefault();
     const url = formData.id ? `http://localhost:8000/api/admin/admissions/${formData.id}` : 'http://localhost:8000/api/admin/admissions';
@@ -72,42 +74,95 @@ const AdmissionManagement = () => {
       body: JSON.stringify(formData)
     }).then(res => {
       if(res.ok) {
-        alert("✅ Lưu thành công!");
+        Swal.fire({
+          title: 'Thành công!',
+          text: 'Đã lưu thông tin tuyển sinh!',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false
+        });
         setShowFormModal(false);
         fetchData();
+      } else {
+        Swal.fire('Lỗi!', 'Không thể lưu dữ liệu, vui lòng thử lại.', 'error');
+      }
+    }).catch(err => {
+      Swal.fire('Lỗi kết nối!', 'Không thể kết nối với máy chủ.', 'error');
+    });
+  };
+
+  // 🚀 ĐÃ THAY BẰNG SWEETALERT2
+  const handleDelete = (id) => {
+    Swal.fire({
+      title: 'Xóa bản ghi?',
+      text: "CẢNH BÁO: Bạn có chắc chắn muốn xóa bản ghi tuyển sinh này không?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: 'Xóa ngay',
+      cancelButtonText: 'Hủy bỏ',
+      borderRadius: '16px'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch(`http://localhost:8000/api/admin/admissions/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } })
+        .then(res => { 
+          if(res.ok) {
+            Swal.fire({
+              title: 'Đã xóa!',
+              text: 'Bản ghi đã được xóa.',
+              icon: 'success',
+              timer: 1500,
+              showConfirmButton: false
+            });
+            fetchData(); 
+          }
+        }).catch(err => {
+          Swal.fire('Lỗi kết nối!', 'Không thể xóa bản ghi.', 'error');
+        });
       }
     });
   };
 
-  const handleDelete = (id) => {
-    if(window.confirm("⚠️ Bạn có chắc muốn xóa bản ghi này?")) {
-      fetch(`http://localhost:8000/api/admin/admissions/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } })
-      .then(res => { if(res.ok) fetchData(); });
-    }
-  };
-
-  // 🚀 HÀM ĐỌC VÀ GỬI FILE EXCEL LÊN BACKEND
+  // 🚀 ĐÃ THAY BẰNG SWEETALERT2 VÀ THÊM HIỆU ỨNG LOADING
   const handleExcelUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('year', yearFilter); 
+    Swal.fire({
+      title: 'Đang Import Excel...',
+      text: 'Hệ thống đang xử lý dữ liệu, vui lòng chờ!',
+      allowOutsideClick: false,
+      didOpen: () => { Swal.showLoading(); }
+    });
+
+    const uploadData = new FormData();
+    uploadData.append('file', file);
+    uploadData.append('year', yearFilter); 
 
     fetch('http://localhost:8000/api/admin/admissions/import', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` },
-      body: formData
+      body: uploadData
     })
     .then(res => res.json())
     .then(data => {
-      if(data.error) alert(`❌ Lỗi: ${data.error}`);
-      else {
-        alert(`✅ ${data.message}`);
+      if(data.error) {
+        Swal.fire('Lỗi Import!', data.error, 'error');
+      } else {
+        Swal.fire({
+          title: 'Import Thành công!',
+          text: data.message,
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
         fetchData(); 
       }
       e.target.value = null; 
+    }).catch(err => {
+      Swal.fire('Lỗi kết nối!', 'Không thể tải file lên máy chủ.', 'error');
+      e.target.value = null;
     });
   };
 

@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react"; // ĐÃ THÊM: Import icon con mắt
+import { Eye, EyeOff, Loader2 } from "lucide-react"; 
+import Swal from "sweetalert2"; // 🚀 Thêm thư viện thông báo xịn
 import "./ChangePassWord.css";
 
 export default function ChangePassword() {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [message, setMessage] = useState({ type: "", text: "" });
   const [loading, setLoading] = useState(false);
   const [userEmail, setUserEmail] = useState("");
 
-  // ĐÃ THÊM: State quản lý ẩn/hiện mật khẩu cho từng ô
   const [showOldPass, setShowOldPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
@@ -32,25 +31,45 @@ export default function ChangePassword() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // 1. KIỂM TRA RỖNG
     if (!oldPassword || !newPassword || !confirmPassword) {
-      setMessage({ type: "error", text: "Vui lòng nhập đầy đủ thông tin!" });
+      Swal.fire("Lỗi", "Vui lòng nhập đầy đủ thông tin!", "error");
       return;
     }
-    if (newPassword.length < 6) {
-      setMessage({ type: "error", text: "Mật khẩu mới phải có ít nhất 6 ký tự!" });
+
+    // 🚀 2. BẢO MẬT CHUẨN NGÂN HÀNG (Dành cho mật khẩu mới)
+    const hasUpperCase = /[A-Z]/.test(newPassword);
+    const hasLowerCase = /[a-z]/.test(newPassword);
+    const hasNumber = /[0-9]/.test(newPassword);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<> ]/.test(newPassword);
+
+    if (newPassword.length < 8 || newPassword.length > 20) {
+      Swal.fire("Cảnh báo", "Mật khẩu mới phải từ 8 đến 20 ký tự!", "warning");
       return;
     }
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Mật khẩu chưa đủ mạnh',
+        text: 'Mật khẩu mới phải bao gồm: Chữ hoa, chữ thường, số và ký tự đặc biệt (!@#...).',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
+
+    // 3. KIỂM TRA LOGIC CƠ BẢN
     if (newPassword !== confirmPassword) {
-      setMessage({ type: "error", text: "Mật khẩu xác nhận không khớp!" });
+      Swal.fire("Lỗi", "Mật khẩu xác nhận không khớp!", "error");
       return;
     }
+    
     if (oldPassword === newPassword) {
-      setMessage({ type: "error", text: "Mật khẩu mới phải khác mật khẩu cũ!" });
+      Swal.fire("Cảnh báo", "Mật khẩu mới phải khác mật khẩu cũ!", "warning");
       return;
     }
 
     setLoading(true);
-    setMessage({ type: "", text: "" });
 
     try {
       const response = await fetch(`${API_URL}/api/change-password`, {
@@ -66,17 +85,16 @@ export default function ChangePassword() {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage({ type: "success", text: "Đổi mật khẩu thành công!" });
+        Swal.fire("Thành công!", "Đổi mật khẩu thành công!", "success");
         setOldPassword("");
         setNewPassword("");
         setConfirmPassword("");
-        // Reset lại icon về ẩn sau khi đổi thành công
         setShowOldPass(false); setShowNewPass(false); setShowConfirmPass(false);
       } else {
-        setMessage({ type: "error", text: data.error || "Đổi mật khẩu thất bại" });
+        Swal.fire("Lỗi", data.error || "Đổi mật khẩu thất bại, sai mật khẩu cũ!", "error");
       }
     } catch (error) {
-      setMessage({ type: "error", text: "Lỗi kết nối máy chủ!" });
+      Swal.fire("Lỗi", "Không thể kết nối máy chủ. Vui lòng thử lại sau!", "error");
     } finally {
       setLoading(false);
     }
@@ -91,15 +109,9 @@ export default function ChangePassword() {
         </div>
 
         <form onSubmit={handleSubmit} className="cp-body">
-          {message.text && (
-            <div className={`cp-alert ${message.type}`}>
-              {message.text}
-            </div>
-          )}
-
           <div className="cp-form-group">
             <label>Tài khoản Email</label>
-            <input type="text" value={userEmail} disabled />
+            <input type="text" value={userEmail} disabled className="disabled-input" />
           </div>
 
           <div className="cp-form-group">
@@ -110,6 +122,7 @@ export default function ChangePassword() {
                 placeholder="••••••••" 
                 value={oldPassword} 
                 onChange={(e) => setOldPassword(e.target.value)} 
+                disabled={loading}
               />
               <button type="button" className="cp-password-toggle" onClick={() => setShowOldPass(!showOldPass)}>
                 {showOldPass ? <Eye size={18} /> : <EyeOff size={18} />}
@@ -125,6 +138,7 @@ export default function ChangePassword() {
                 placeholder="••••••••" 
                 value={newPassword} 
                 onChange={(e) => setNewPassword(e.target.value)} 
+                disabled={loading}
               />
               <button type="button" className="cp-password-toggle" onClick={() => setShowNewPass(!showNewPass)}>
                 {showNewPass ? <Eye size={18} /> : <EyeOff size={18} />}
@@ -140,6 +154,7 @@ export default function ChangePassword() {
                 placeholder="••••••••" 
                 value={confirmPassword} 
                 onChange={(e) => setConfirmPassword(e.target.value)} 
+                disabled={loading}
               />
               <button type="button" className="cp-password-toggle" onClick={() => setShowConfirmPass(!showConfirmPass)}>
                 {showConfirmPass ? <Eye size={18} /> : <EyeOff size={18} />}
@@ -148,7 +163,13 @@ export default function ChangePassword() {
           </div>
 
           <button type="submit" className="cp-btn-submit" disabled={loading}>
-            {loading ? "Đang xử lý..." : "Cập nhật mật khẩu"}
+            {loading ? (
+              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <Loader2 className="spinner" size={20} /> Đang xử lý...
+              </span>
+            ) : (
+              "Cập nhật mật khẩu"
+            )}
           </button>
         </form>
 

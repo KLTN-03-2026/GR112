@@ -1,68 +1,124 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react"; 
+import { Eye, EyeOff, Loader2 } from "lucide-react"; 
+import Swal from "sweetalert2"; 
 import "./Login.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); 
+
   const navigate = useNavigate();
+
+  // Hàm kiểm tra định dạng Email chuẩn 
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(String(email).toLowerCase());
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError(""); // Reset lỗi cũ
 
-    if (!email || !password) {
-      setError("Vui lòng nhập đầy đủ thông tin");
+    // 1. CHỐNG RÁC DỮ LIỆU & KIỂM TRA ĐẦU VÀO
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !password) {
+      setError("Vui lòng nhập đầy đủ thông tin!");
       return;
     }
 
+    if (!validateEmail(cleanEmail)) {
+      setError("Định dạng email không hợp lệ!");
+      return;
+    }
+
+    // 🚀 BẮT ĐẦU: BẢO MẬT CHUẨN NGÂN HÀNG 🚀
+    const hasUpperCase = /[A-Z]/.test(password); 
+    const hasLowerCase = /[a-z]/.test(password); 
+    const hasNumber = /[0-9]/.test(password);    
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<> ]/.test(password); 
+
+    if (password.length < 8 || password.length > 20) {
+      setError("Mật khẩu phải từ 8 đến 20 ký tự!");
+      return;
+    }
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
+      setError("Mật khẩu quá yếu!");
+      Swal.fire({
+        icon: 'warning',
+        title: 'Mật khẩu chưa đủ mạnh',
+        text: 'Để an toàn, mật khẩu phải bao gồm: Chữ hoa, chữ thường, số và ký tự đặc biệt (!@#...).',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
+    // 🚀 KẾT THÚC: BẢO MẬT CHUẨN NGÂN HÀNG 🚀
+
+    // 2. KHÓA NÚT SUBMIT
+    setIsLoading(true);
+
     try {
+      // 3. DỌN DẸP TOKEN CŨ 
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("userRole");
+
       const res = await fetch("http://localhost:8000/api/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        // 🚀 Chỉ gửi Email và Password, không cần gửi Role nữa
-        body: JSON.stringify({ email, password }),
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({ email: cleanEmail, password }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || data.message || "Đăng nhập thất bại");
+        setError(data.error || data.message || "Tài khoản hoặc mật khẩu không chính xác!");
+        setIsLoading(false);
         return;
       }
 
-      if (data.user) {
-        if (data.token) {
-          localStorage.setItem("token", data.token);
-        }
-
+      if (data.user && data.token) {
+        // 4. LƯU TRỮ AN TOÀN
+        localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
         
         if (data.user.role) {
-            localStorage.setItem("userRole", data.user.role);
+          localStorage.setItem("userRole", data.user.role);
         }
 
-        // 🚀 Backend sẽ tự trả về role, React chỉ việc lấy ra dùng để chuyển trang
-        if (data.user.role === 'admin') {
-            alert("Đăng nhập thành công! Chào mừng Quản trị viên.");
+        // 5. HIỂN THỊ THÔNG BÁO VÀ CHUYỂN HƯỚNG
+        Swal.fire({
+          icon: 'success',
+          title: 'Đăng nhập thành công!',
+          text: `Chào mừng ${data.user.full_name || 'bạn'} quay lại hệ thống.`,
+          timer: 1500,
+          showConfirmButton: false
+        }).then(() => {
+          if (data.user.role === 'admin') {
             navigate("/admin");
-        } else if (data.user.role === 'mentor') {
-            alert("Đăng nhập thành công! Chào mừng Cố vấn chuyên môn.");
+          } else if (data.user.role === 'mentor') {
             navigate("/mentor");
-        } else {
-            alert("Đăng nhập thành công!");
+          } else {
             navigate("/");
-        }
+          }
+        });
 
       } else {
-        setError("Server không trả về thông tin người dùng!");
+        setError("Dữ liệu Server trả về không hợp lệ!");
       }
 
     } catch (err) {
-      setError("Không kết nối được server");
+      console.error("Login Error:", err);
+      setError("Không thể kết nối đến máy chủ. Vui lòng thử lại sau!");
+    } finally {
+      setIsLoading(false); 
     }
   };
 
@@ -87,10 +143,11 @@ export default function Login() {
         <div className="form-group">
           <label style={{ fontSize: '14px', color: '#333', marginBottom: '5px', display: 'block' }}>Email</label>
           <input
-            type="email"
+            type="text" 
             placeholder="example@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            disabled={isLoading} 
           />
         </div>
 
@@ -106,11 +163,13 @@ export default function Login() {
               placeholder="Nhập mật khẩu"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading}
             />
             <button 
               type="button" 
               className="password-toggle" 
               onClick={() => setShowPassword(!showPassword)}
+              disabled={isLoading}
             >
               {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
             </button>
@@ -119,8 +178,14 @@ export default function Login() {
 
         {error && <div className="error-box">{error}</div>}
 
-        <button type="submit" className="login-btn">
-          Đăng nhập →
+        <button type="submit" className="login-btn" disabled={isLoading}>
+          {isLoading ? (
+            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <Loader2 className="spinner" size={20} /> Đang xử lý...
+            </span>
+          ) : (
+            "Đăng nhập →"
+          )}
         </button>
 
         <p className="register-text">

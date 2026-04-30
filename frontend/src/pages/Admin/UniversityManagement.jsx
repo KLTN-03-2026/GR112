@@ -4,6 +4,7 @@ import {
   Plus, Search, Filter, Edit3, ChevronLeft, 
   ChevronRight, Zap, ListTree, X, Trash2, Save, CheckCircle, AlertTriangle
 } from 'lucide-react';
+import Swal from 'sweetalert2'; // 🚀 IMPORT VŨ KHÍ SWEETALERT2
 
 const UniversityManagement = () => {
   const [universities, setUniversities] = useState([]);
@@ -122,6 +123,7 @@ const UniversityManagement = () => {
     setShowFormModal(true);
   };
 
+  // 🚀 XỬ LÝ GỬI FORM (ĐÃ ĐỘ LẠI BẰNG SWEETALERT2)
   const handleSubmitForm = (e) => {
     e.preventDefault();
     const url = formData.id ? `http://localhost:8000/api/admin/universities/${formData.id}` : 'http://localhost:8000/api/admin/universities';
@@ -133,27 +135,61 @@ const UniversityManagement = () => {
       body: JSON.stringify(formData)
     }).then(res => {
       if (res.ok) {
-        alert("✅ Lưu dữ liệu thành công!");
+        Swal.fire({
+          title: 'Thành công!',
+          text: 'Đã lưu dữ liệu Trường/Ngành thành công!',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false
+        });
         setShowFormModal(false);
         fetchUniversities(); 
         fetchSystemStats(); // <-- Load lại Lịch sử & Cảnh báo
         if (showMajorsModal && formData.school_name) fetchMajorsBySchool(formData.school_name); 
+      } else {
+        Swal.fire('Lỗi!', 'Có lỗi xảy ra khi lưu dữ liệu.', 'error');
       }
+    }).catch(() => {
+      Swal.fire('Lỗi kết nối!', 'Không thể kết nối đến máy chủ.', 'error');
     });
   };
 
+  // 🚀 XÓA NGÀNH HỌC (ĐÃ ĐỘ LẠI BẰNG SWEETALERT2)
   const handleDeleteMajor = (id) => {
-    if (window.confirm("⚠️ Bạn có chắc muốn xóa ngành này khỏi hệ thống?")) {
-      fetch(`http://localhost:8000/api/admin/universities/${id}`, {
-        method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
-      }).then(res => {
-        if (res.ok) {
-          fetchUniversities();
-          fetchSystemStats(); // <-- Load lại Lịch sử & Cảnh báo
-          if (showMajorsModal) fetchMajorsBySchool(currentSchool);
-        }
-      });
-    }
+    Swal.fire({
+      title: 'Xóa ngành học?',
+      text: "Bạn có chắc chắn muốn xóa ngành này khỏi hệ thống? Dữ liệu không thể khôi phục!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444', // Đỏ cảnh báo
+      cancelButtonColor: '#94a3b8',  // Xám hủy bỏ
+      confirmButtonText: 'Xóa ngay',
+      cancelButtonText: 'Hủy bỏ',
+      borderRadius: '16px'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch(`http://localhost:8000/api/admin/universities/${id}`, {
+          method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
+        }).then(res => {
+          if (res.ok) {
+            Swal.fire({
+              title: 'Đã xóa!',
+              text: 'Ngành học đã được xóa khỏi hệ thống.',
+              icon: 'success',
+              timer: 1500,
+              showConfirmButton: false
+            });
+            fetchUniversities();
+            fetchSystemStats(); // <-- Load lại Lịch sử & Cảnh báo
+            if (showMajorsModal) fetchMajorsBySchool(currentSchool);
+          } else {
+            Swal.fire('Lỗi!', 'Không thể xóa ngành học này.', 'error');
+          }
+        }).catch(() => {
+          Swal.fire('Lỗi kết nối!', 'Không thể kết nối đến máy chủ.', 'error');
+        });
+      }
+    });
   };
 
   return (

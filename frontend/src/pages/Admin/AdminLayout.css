@@ -66,6 +66,52 @@
 .content-render { flex: 1; overflow-y: auto; padding: 35px; background: #f8fafc; }
 .fade-in-container { animation: slideUp 0.4s cubic-bezier(0, 0, 0.2, 1); }
 
+
+/* --- DROPDOWN HEADER (THÔNG BÁO & PROFILE) --- */
+.header-dropdown {
+  position: absolute;
+  top: 120%; /* Nằm ngay dưới avatar/chuông */
+  right: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  width: 300px;
+  z-index: 1000;
+  overflow: hidden;
+  text-align: left;
+}
+
+.notif-header {
+  padding: 15px;
+  border-bottom: 1px solid #e2e8f0;
+  font-weight: bold;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.notif-item {
+  padding: 12px 15px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+  color: #475569;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.notif-item:hover { background: #f1f5f9; color: #0f172a; }
+.notif-item:last-child { border-bottom: none; }
+
+.profile-dropdown { width: 200px; }
+
+.profile-menu-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 15px; color: #475569; text-decoration: none;
+  font-size: 0.95rem; font-weight: 500; transition: 0.2s;
+}
+
+.profile-menu-item:hover { background: #f1f5f9; color: #0f172a; }
+.profile-menu-item.logout-btn:hover { background: #fef2f2; color: #ef4444; }
 @keyframes slideUp {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }

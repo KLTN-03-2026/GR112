@@ -1,6 +1,7 @@
 from app import create_app
 from extensions import db
-from models import UniversityData, UniversityDetail, MasterInterest, MasterWorkEnvironment
+# 🚀 IMPORT THÊM 2 BẢNG TRUNG GIAN ĐỂ XÓA RÁC
+from models import UniversityData, UniversityDetail, MasterInterest, MasterWorkEnvironment, university_interest, university_environment,UniversityReview
 import random
 
 app = create_app()
@@ -15,7 +16,8 @@ INTERESTS_DATA = [
     "Tổ chức sự kiện", "Báo chí & Truyền thông", "Chăm sóc bệnh nhân", "Nghiên cứu y khoa", 
     "Dược phẩm & Thuốc", "Dinh dưỡng & Thể thao", "Thú y & Động vật", "Nông nghiệp & Cây trồng", 
     "Môi trường & Sinh thái", "Tâm lý & Hành vi con người", "Pháp lý & Tố tụng", "Giao tiếp cộng đồng", 
-    "Giảng dạy & Truyền đạt", "Ngoại ngữ & Dịch thuật", "Lịch sử & Văn hóa", "Hoạt động tình nguyện"
+    "Giảng dạy & Truyền đạt", "Ngoại ngữ & Dịch thuật", "Lịch sử & Văn hóa", "Hoạt động tình nguyện",
+    "Khoa học dữ liệu", "Thương mại điện tử", "Dịch vụ du lịch" # Thêm vài sở thích mới
 ]
 
 ENVIRONMENTS_DATA = [
@@ -93,25 +95,29 @@ SCHOOLS = [
     {"name": "Đại học Bình Dương (Phân hiệu Cà Mau)", "logo": "/assets/logo/bdu.jpg", "base": 17.0, "province": "Cà Mau", "address": "Đường số 6, Phường 5, TP Cà Mau", "type": "Đại học Tư thục", "website": "camau.bdu.edu.vn"},
     {"name": "Trường Đại học Công nghệ TP.HCM (HUTECH)", "logo": "/assets/logo/hutech.jpg", "base": 20.5, "province": "TP. Hồ Chí Minh", "address": "475A Điện Biên Phủ, Bình Thạnh", "type": "Đại học Tư thục", "website": "hutech.edu.vn"},
     {"name": "Trường Đại học Văn Lang", "logo": "/assets/logo/vlu.jpg", "base": 20.5, "province": "TP. Hồ Chí Minh", "address": "69/68 Đặng Thùy Trâm, Bình Thạnh", "type": "Đại học Tư thục", "website": "vlu.edu.vn"},
-    {"name": "Đại học RMIT Việt Nam (Nam Sài Gòn)", "logo": "/assets/logo/rmit_hcm.jpg", "base": 25.0, "province": "TP. Hồ Chí Minh", "address": "702 Nguyễn Văn Linh, Quận 7", "type": "Đại học Quốc tế", "website": "rmit.edu.vn"}
+    {"name": "Đại học RMIT Việt Nam (Nam Sài Gòn)", "logo": "/assets/logo/rmit.jpg", "base": 25.0, "province": "TP. Hồ Chí Minh", "address": "702 Nguyễn Văn Linh, Quận 7", "type": "Đại học Quốc tế", "website": "rmit.edu.vn"}
 ]
 
 # ========================================================
-# 2. DANH SÁCH NGÀNH (THÊM MÃ NGÀNH)
+# 2. DANH SÁCH NGÀNH (THÊM MÃ NGÀNH VÀ CÁC NGÀNH MỚI)
 # ========================================================
 MAJORS_CONFIG = [
     # ---- NHÓM CÔNG NGHỆ & KỸ THUẬT ----
     {"major": "Khoa học Máy tính", "code": "7480101", "blocks": ['A00', 'A01', 'A02', 'D01', 'D07'], "bonus": 1.5, "fee": "~30-35tr/năm"},
     {"major": "Trí tuệ Nhân tạo (AI)", "code": "7480107", "blocks": ['A00', 'A01', 'A09', 'D07'], "bonus": 2.2, "fee": "~35-40tr/năm"},
+    {"major": "Khoa học Dữ liệu", "code": "7480109", "blocks": ['A00', 'A01', 'D01'], "bonus": 1.8, "fee": "~30-38tr/năm"}, # MỚI
     {"major": "Kỹ thuật Xây dựng", "code": "7580201", "blocks": ['A00', 'A01', 'A03', 'A04', 'D07'], "bonus": -0.8, "fee": "~24tr/năm"},
     {"major": "Kỹ thuật Ô tô", "code": "7520114", "blocks": ['A00', 'A01', 'C01', 'D90'], "bonus": 0.2, "fee": "~25tr/năm"},
     {"major": "An toàn Thông tin", "code": "7480202", "blocks": ['A00', 'A01', 'D01', 'D90'], "bonus": 1.0, "fee": "~28tr/năm"},
     
     # ---- NHÓM KINH TẾ & QUẢN TRỊ ----
     {"major": "Kinh doanh Quốc tế", "code": "7340120", "blocks": ['A00', 'A01', 'D01', 'D07'], "bonus": 1.8, "fee": "~38tr/năm"},
+    {"major": "Thương mại Điện tử", "code": "7340122", "blocks": ['A00', 'A01', 'D01', 'D07'], "bonus": 1.6, "fee": "~35tr/năm"}, # MỚI
+    {"major": "Logistics và Quản lý chuỗi cung ứng", "code": "7510605", "blocks": ['A00', 'A01', 'D01'], "bonus": 2.0, "fee": "~36tr/năm"}, # MỚI
     {"major": "Marketing", "code": "7340115", "blocks": ['A01', 'C00', 'C15', 'C20', 'D01', 'D07'], "bonus": 1.4, "fee": "~35tr/năm"},
     {"major": "Quản trị Kinh doanh", "code": "7340101", "blocks": ['A00', 'A01', 'C04', 'C14', 'D01'], "bonus": 0.8, "fee": "~32tr/năm"},
     {"major": "Tài chính - Ngân hàng", "code": "7340201", "blocks": ['A00', 'A01', 'C03', 'C14', 'D01'], "bonus": 0.9, "fee": "~30tr/năm"},
+    {"major": "Quản trị Dịch vụ Du lịch và Lữ hành", "code": "7810103", "blocks": ['C00', 'D01', 'A01'], "bonus": 0.5, "fee": "~30tr/năm"}, # MỚI
 
     # ---- NHÓM NGÔN NGỮ ----
     {"major": "Ngôn ngữ Anh", "code": "7220201", "blocks": ['D01', 'D14', 'D15', 'D66', 'D78'], "bonus": 0.5, "fee": "~25tr/năm"},
@@ -122,6 +128,7 @@ MAJORS_CONFIG = [
     {"major": "Báo chí", "code": "7320101", "blocks": ['C00', 'C03', 'C04', 'C15', 'D01', 'D14'], "bonus": 1.5, "fee": "~25tr/năm"},
     {"major": "Truyền thông Đa phương tiện", "code": "7320104", "blocks": ['C00', 'C15', 'D01', 'A01'], "bonus": 1.2, "fee": "~35tr/năm"},
     {"major": "Luật Kinh tế", "code": "7380107", "blocks": ['A00', 'A01', 'C00', 'C14', 'D01'], "bonus": 0.7, "fee": "~24tr/năm"},
+    {"major": "Tâm lý học", "code": "7310401", "blocks": ['B00', 'C00', 'D01', 'D14'], "bonus": 0.9, "fee": "~26tr/năm"}, # MỚI
 
     # ---- NHÓM Y DƯỢC & SINH HỌC ----
     {"major": "Y khoa", "code": "7720101", "blocks": ['B00', 'A00'], "bonus": 2.5, "fee": "~50-70tr/năm"},
@@ -136,17 +143,29 @@ MAJORS_CONFIG = [
 
 with app.app_context():
     # ---------------------------------------------------------
-    # 0. TẠO BẢNG & LÀM SẠCH DỮ LIỆU CŨ
+    # 0. TẠO BẢNG & LÀM SẠCH DỮ LIỆU CŨ (FIX LỖI 1451 Ở ĐÂY)
     # ---------------------------------------------------------
     print("🚀 Đang rà soát cấu trúc Database...")
     db.create_all()
 
     print("🧹 Đang làm sạch dữ liệu cũ...")
+    
+    # 1. Xóa 2 bảng trung gian
+    db.session.execute(university_interest.delete())
+    db.session.execute(university_environment.delete())
+
+    # 2. XÓA CÁC BẢNG CON BÁM VÀO BẢNG MẸ
+    db.session.query(UniversityReview).delete()  # 🚀 THÊM DÒNG NÀY ĐỂ DỌN SẠCH REVIEW
     db.session.query(UniversityDetail).delete()
-    db.session.query(UniversityData).delete()
+
+    # 3. Xóa các bảng danh mục
     db.session.query(MasterInterest).delete()
     db.session.query(MasterWorkEnvironment).delete()
 
+    # 4. Cuối cùng mới an tâm trảm bảng mẹ
+    db.session.query(UniversityData).delete()
+
+   
     # ---------------------------------------------------------
     # 1. NẠP SỞ THÍCH VÀ MÔI TRƯỜNG
     # ---------------------------------------------------------
@@ -215,17 +234,18 @@ with app.app_context():
                 direct_adm_val = "Xét tuyển thẳng học sinh giỏi cấp Tỉnh/Quốc gia"
                 aptitude_val = "Yêu cầu thi môn Năng khiếu đạt >= 5.0" if any(k in block for k in ['V', 'H', 'M', 'N', 'T']) else "Không yêu cầu"
 
-                # 💡 MẸO NHỎ ĐỂ GIAO DIỆN LỌC ĐƯỢC TỈNH: Nhúng Tên tỉnh vào ranking_note
                 smart_ranking_note = f"Chương trình chuẩn ({block}) - {school['province']}"
 
-                # GÁN MÃ NGÀNH VÀ TÊN NGÀNH VÀO ĐÚNG CỘT TƯƠNG ỨNG TRONG MODEL MỚI
+                # 🚀 LƯU VÀO MODEL MỚI (Thêm quota và year)
                 record = UniversityData(
                     school_name=school["name"],
-                    major_name=m["major"],        # <--- Chỉ lưu tên ngành
-                    major_code=m["code"],         # <--- Lưu riêng mã ngành vào cột mới
+                    major_name=m["major"],        
+                    major_code=m["code"],         
                     school_logo=school["logo"],
                     subject_block=block,
-                    base_score=final_score,
+                    base_score=final_score,       
+                    quota=random.randint(50, 300),   # 🚀 CHỈ TIÊU (Ngẫu nhiên 50-300)
+                    year=2025,                       # 🚀 NĂM TUYỂN SINH
                     tuition_fee=current_fee,
                     ranking_note=smart_ranking_note,
                     school_type=school["type"],
@@ -241,21 +261,24 @@ with app.app_context():
                 # =========================================================
                 major_lower = m["major"].lower()
                 
-                if any(w in major_lower for w in ["máy tính", "thông tin", "ai", "trí tuệ"]):
+                if any(w in major_lower for w in ["máy tính", "thông tin", "ai", "trí tuệ", "dữ liệu"]):
                     if "Lập trình & Phần mềm" in all_interests: record.interests.append(all_interests["Lập trình & Phần mềm"])
                     if "doc_lap" in all_envs: record.environments.append(all_envs["doc_lap"])
-                elif any(w in major_lower for w in ["kinh doanh", "marketing", "tài chính", "quốc tế"]):
+                elif any(w in major_lower for w in ["kinh doanh", "marketing", "tài chính", "quốc tế", "thương mại", "logistics"]):
                     if "Khởi nghiệp & Kinh doanh" in all_interests: record.interests.append(all_interests["Khởi nghiệp & Kinh doanh"])
                     if "nang_dong" in all_envs: record.environments.append(all_envs["nang_dong"])
                 elif any(w in major_lower for w in ["y khoa", "răng"]):
                     if "Chăm sóc bệnh nhân" in all_interests: record.interests.append(all_interests["Chăm sóc bệnh nhân"])
                     if "ap_luc_cao" in all_envs: record.environments.append(all_envs["ap_luc_cao"])
+                elif any(w in major_lower for w in ["du lịch"]):
+                    if "Giao tiếp cộng đồng" in all_interests: record.interests.append(all_interests["Giao tiếp cộng đồng"])
+                    if "hien_truong" in all_envs: record.environments.append(all_envs["hien_truong"])
 
                 # Ghép Province thẳng vào Address để giao diện detail đẹp hơn
                 full_address = f"{school['address']}, {school['province']}"
 
                 detail_record = UniversityDetail(
-                    description=f"Trường {school['name']} là một cơ sở đào tạo {school['type'].lower()} uy tín tại {school['province']}.",
+                    description=f"Trường {school['name']} là một cơ sở đào tạo {school['type'].lower()} uy tín tại {school['province']}. Ngành {m['major']} có chỉ tiêu dự kiến là {record.quota} sinh viên.",
                     address=full_address, 
                     website=f"https://{school['website']}",
                     phone=f"02{random.randint(4,8)} 38{random.randint(10,50)} {random.randint(1000,9999)}",
@@ -268,4 +291,4 @@ with app.app_context():
     db.session.add_all(generated_records)
     db.session.commit()
     
-    print(f"✨ HOÀN THÀNH! Đã nạp thành công {len(generated_records)} dòng dữ liệu phủ sóng 35+ tỉnh thành.")
+    print(f"✨ HOÀN THÀNH! Đã nạp thành công {len(generated_records)} dòng dữ liệu chuẩn xác theo cấu trúc Model mới.")

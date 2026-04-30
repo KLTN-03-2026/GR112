@@ -1,15 +1,22 @@
 /* ================= TỔNG QUAN TRANG CHỦ ================= */
+/* 🚀 CỨU TINH Ở ĐÂY: Lệnh này ép tất cả khung không được phình to khi có padding */
+.home-page * {
+  box-sizing: border-box;
+}
+
 .home-page {
   font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   color: #0f172a;
-  background-color: #f8fafc; /* Nền xám xanh cực nhạt, sang trọng */
+  background-color: #f8fafc;
   padding-bottom: 0;
   overflow-x: hidden;
+  width: 100%;
 }
 
 /* Các Section chung */
 section {
   max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
   padding: 80px 5%;
 }
@@ -25,7 +32,6 @@ section {
   position: relative;
 }
 
-/* Họa tiết Gradient nền cho Hero */
 .hm-hero::before {
   content: '';
   position: absolute;
@@ -66,7 +72,6 @@ section {
   line-height: 1.15;
   margin: 0 0 25px 0;
   letter-spacing: -1.5px;
-  /* Tạo hiệu ứng Text Gradient nhẹ */
   background: linear-gradient(90deg, #0f172a 0%, #334155 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -92,7 +97,7 @@ section {
   font-weight: 700;
   border: none;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s ease;
   font-size: 1.05rem;
   box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
 }
@@ -176,7 +181,7 @@ section {
 .hm-float-text span { font-size: 0.8rem; color: #64748b; line-height: 1.5; display: block;}
 
 
-/* ================= FEATURES SECTION (CÔNG CỤ HIỆN ĐẠI) ================= */
+/* ================= FEATURES SECTION ================= */
 .hm-features { padding-top: 60px; }
 
 .hm-section-header {
@@ -186,7 +191,7 @@ section {
 }
 .hm-section-header h2 { font-size: 2.5rem; font-weight: 800; margin: 0 0 15px 0; color: #0f172a; }
 .hm-section-header p { font-size: 1.1rem; color: #64748b; max-width: 700px; line-height: 1.6; margin: 0 auto;}
-.hm-icon-bg { display: none; } /* Bỏ icon nền để trông Clean hơn */
+.hm-icon-bg { display: none; }
 
 .hm-features-grid {
   display: grid;
@@ -201,7 +206,7 @@ section {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.4s ease;
 }
 
 .hm-feat-card:hover {
@@ -212,7 +217,6 @@ section {
 .hm-feat-card.span-1 { grid-column: span 1; }
 .hm-feat-card.span-2 { grid-column: span 2; }
 
-/* Các biến thể màu sắc của Feature Card */
 .hm-feat-card.light { background: white; border: 1px solid rgba(226, 232, 240, 0.8); }
 .hm-feat-card.dark { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; justify-content: center; }
 .hm-feat-card.purple { background: linear-gradient(135deg, #4f46e5 0%, #7e22ce 100%); color: white; }
@@ -223,39 +227,79 @@ section {
 
 .hm-feat-card h3 { font-size: 1.4rem; margin: 0 0 15px 0; font-weight: 800; z-index: 2;}
 .hm-feat-card p { font-size: 1rem; line-height: 1.6; margin: 0; z-index: 2; opacity: 0.85;}
-.hm-bg-icon { position: absolute; right: -20px; bottom: -30px; font-size: 12rem; opacity: 0.05; z-index: 1;}
 
 .hm-avatar-card .hm-avatars { display: flex; margin-bottom: 25px; }
 .hm-avatar-card img { width: 50px; height: 50px; border-radius: 50%; border: 3px solid white; margin-left: -15px; object-fit: cover; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
 .hm-avatar-card img:first-child { margin-left: 0; }
 
+/* ================= HEADER CHUNG CHO CÁC KHỐI ================= */
+.hm-uni-header { 
+  width: 100%; 
+  margin: 0 auto 30px; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  gap: 20px; 
+}
+.hm-uni-header-text {
+  flex: 1;
+  text-align: left;
+}
+.hm-uni-header-text h2 { 
+  font-size: 2.2rem; 
+  font-weight: 800; 
+  margin: 0 0 8px 0; 
+  color: #0f172a; 
+  display: flex; 
+  align-items: center; 
+  gap: 10px;
+}
+.hm-uni-header-text p { 
+  color: #64748b; 
+  font-size: 1.1rem; 
+  margin: 0; 
+}
 
-/* ================= UNIVERSITIES SECTION (CÁC TRƯỜNG ĐẠI HỌC) ================= */
-.hm-universities { background: #ffffff; width: 100%; max-width: 100%; border-top: 1px solid #f1f5f9; padding-bottom: 100px;}
-.hm-uni-header { max-width: 1400px; margin: 0 auto 40px; display: flex; justify-content: space-between; align-items: flex-end;}
-.hm-uni-header h2 { font-size: 2.2rem; font-weight: 800; margin: 0 0 10px 0; color: #0f172a;}
-.hm-uni-header p { color: #64748b; font-size: 1.1rem; margin: 0; }
-.hm-btn-outline-small { background: transparent; border: 2px solid #e2e8f0; padding: 10px 24px; border-radius: 10px; font-weight: 700; color: #475569; cursor: pointer; transition: 0.3s;}
-.hm-btn-outline-small:hover { background: #f8fafc; border-color: #cbd5e1; color: #0f172a;}
+/* 🚀 NÚT XEM TẤT CẢ - ĐÃ ĐƯỢC CHUẨN HÓA */
+.hm-btn-outline-small { 
+  background: white; 
+  border: 2px solid #cbd5e1; 
+  padding: 10px 24px; 
+  border-radius: 8px; 
+  font-weight: 600; 
+  color: #334155; 
+  cursor: pointer; 
+  transition: all 0.2s ease;
+  white-space: nowrap; 
+  flex-shrink: 0; 
+  min-width: 160px; /* Độ rộng cố định, không bao giờ bị méo */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+.hm-btn-outline-small:hover { 
+  background: #f8fafc; 
+  border-color: #4f46e5; 
+  color: #4f46e5;
+}
 
-/* Custom Scrollbar cho danh sách trường trượt ngang */
-.hm-uni-scroll-container::-webkit-scrollbar {
-  height: 8px;
+.hm-btn-outline-red {
+  border-color: #e11d48;
+  color: #e11d48;
 }
-.hm-uni-scroll-container::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 10px;
-  margin: 0 20px;
-}
-.hm-uni-scroll-container::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
-}
-.hm-uni-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+.hm-btn-outline-red:hover {
+  background: #fff1f2;
 }
 
-/* Thẻ Trường Học (UniCard) */
+/* ================= UNIVERSITIES SECTION ================= */
+.hm-universities { background: #ffffff; width: 100%; border-top: 1px solid #f1f5f9; padding-bottom: 100px;}
+
+.hm-uni-scroll-container::-webkit-scrollbar { height: 8px; }
+.hm-uni-scroll-container::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; margin: 0 20px; }
+.hm-uni-scroll-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+.hm-uni-scroll-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
 .uni-suggest-card {
   border: 1px solid rgba(226, 232, 240, 0.6);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0,0,0,0.02) !important;
@@ -265,12 +309,8 @@ section {
   box-shadow: 0 20px 40px rgba(79, 70, 229, 0.1), 0 4px 12px rgba(0,0,0,0.04) !important;
   border-color: #c7d2fe;
 }
-.uni-suggest-img img {
-  transition: transform 0.6s ease;
-}
-.uni-suggest-card:hover .uni-suggest-img img {
-  transform: scale(1.05);
-}
+.uni-suggest-img img { transition: transform 0.6s ease; }
+.uni-suggest-card:hover .uni-suggest-img img { transform: scale(1.05); }
 
 
 /* ================= TESTIMONIALS SECTION ================= */
@@ -287,7 +327,6 @@ section {
   box-shadow: 0 20px 40px rgba(0,0,0,0.03);
   position: relative;
 }
-/* Dấu ngoặc kép mờ làm nền */
 .hm-testi-card::before {
   content: '"';
   position: absolute;
@@ -374,7 +413,7 @@ section {
   .hm-hero { flex-direction: column; text-align: center; padding-top: 120px; }
   .hm-hero-content { margin-bottom: 60px; max-width: 800px;}
   .hm-hero-btns { justify-content: center; }
-  .hm-floating-card { display: none; } /* Ẩn card nổi trên mobile cho gọn */
+  .hm-floating-card { display: none; }
   .hm-features-grid { grid-template-columns: repeat(2, 1fr); }
   .hm-feat-card.span-2 { grid-column: span 1; }
   .hm-testi-container { flex-direction: column; }
@@ -385,7 +424,10 @@ section {
   .hm-title { font-size: 2.2rem; }
   .hm-hero-btns { flex-direction: column; }
   .hm-features-grid { grid-template-columns: 1fr; }
+  
   .hm-uni-header { flex-direction: column; align-items: flex-start; gap: 15px; }
+  .hm-btn-outline-small { width: 100%; } 
+  
   .hm-cta h2 { font-size: 2.2rem; }
   .hm-cta-btns { flex-direction: column; padding: 0 20px;}
   .hm-stat-circle { width: 250px; height: 250px; }

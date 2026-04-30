@@ -441,6 +441,7 @@ class MentorReview(db.Model):
     mentor_id = db.Column(db.Integer, db.ForeignKey('mentors.id'), nullable=False)
     rating = db.Column(db.Float, nullable=False) # Số sao: 1.0 đến 5.0
     comment = db.Column(db.Text)
+    status = db.Column(db.String(20), default='pending')
     created_at = db.Column(db.DateTime, default=db.func.now())
 
 # ==========================================
@@ -454,7 +455,123 @@ class UniversityReview(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     rating = db.Column(db.Integer, nullable=False, default=5) # Số sao từ 1 đến 5
     content = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(20), default='pending')
     created_at = db.Column(db.DateTime, default=db.func.now())
 
     # Thiết lập mối quan hệ để API get_university_reviews có thể lấy được tên User
     user = db.relationship('User', backref='university_reviews_list')
+
+    # ==========================================
+# BẢNG QUẢN LÝ BÀI VIẾT (CMS / BLOG)
+# ==========================================
+class Article(db.Model):
+    __tablename__ = 'articles'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    category = db.Column(db.String(100), nullable=False)      # Tên chuyên mục (VD: Cẩm nang định hướng)
+    category_code = db.Column(db.String(50), nullable=False) # Mã chuyên mục (VD: cam-nang)
+    content = db.Column(db.Text)                             # Nội dung chi tiết của bài viết
+    image_url = db.Column(LONGTEXT)                  # Link ảnh thumbnail
+    status = db.Column(db.String(50), default='Bản nháp')    # Trạng thái: 'Đã xuất bản' hoặc 'Bản nháp'
+    views = db.Column(db.Integer, default=0)                 # Lượt xem
+    created_at = db.Column(db.DateTime, default=db.func.now())
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'category': self.category,
+            'categoryCode': self.category_code,
+            'status': self.status,
+            'views': self.views,
+            'image': self.image_url or 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=200&q=80',
+            'date': self.created_at.strftime("%d/%m/%Y") if self.created_at else "",
+            'content': self.content
+        }
+
+        # ==========================================
+# BẢNG LƯU CẤU HÌNH HỆ THỐNG (SETTINGS)
+# ==========================================
+class SystemSetting(db.Model):
+    __tablename__ = 'system_settings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    site_name = db.Column(db.String(255), default="MindConnect - Hệ thống Tư vấn Hướng nghiệp")
+    support_email = db.Column(db.String(255), default="support@mindconnect.edu.vn")
+    hotline = db.Column(db.String(50), default="1900 1568")
+    
+    # Các công tắc (Lưu kiểu Boolean: True/False)
+    maintenance_mode = db.Column(db.Boolean, default=False)
+    notify_new_review = db.Column(db.Boolean, default=True)
+    notify_new_booking = db.Column(db.Boolean, default=True)
+    two_factor_auth = db.Column(db.Boolean, default=False)
+
+    def to_dict(self):
+        return {
+            "site_name": self.site_name,
+            "support_email": self.support_email,
+            "hotline": self.hotline,
+            "maintenance_mode": self.maintenance_mode,
+            "notify_new_review": self.notify_new_review,
+            "notify_new_booking": self.notify_new_booking,
+            "two_factor_auth": self.two_factor_auth
+        }
+
+        # ==========================================
+# BẢNG THÔNG BÁO HỆ THỐNG (DÀNH CHO ADMIN)
+# ==========================================
+class Notification(db.Model):
+    __tablename__ = 'notifications'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255))
+    message = db.Column(db.Text)
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=db.func.now())
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "message": self.message,
+            "is_read": self.is_read
+        }
+
+        # ==========================================
+# BẢNG ĐĂNG KÝ NHẬN BẢN TIN (NEWSLETTER)
+# ==========================================
+class NewsletterSubscriber(db.Model):
+    __tablename__ = 'newsletter_subscribers'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255), unique=True, nullable=False)
+    subscribed_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __init__(self, email):
+        self.email = email
+
+from datetime import datetime
+# Nhớ đảm bảo sếp đã import đối tượng db của SQLAlchemy ở đầu file nhé (vd: from app import db)
+
+class MentorNotification(db.Model):
+    __tablename__ = 'mentor_notifications'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    mentor_id = db.Column(db.Integer, nullable=False) # ID của cố vấn nhận thông báo
+    title = db.Column(db.String(255), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Hàm tiện ích để chuyển dữ liệu sang dạng JSON trả về cho Frontend React
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'mentor_id': self.mentor_id,
+            'title': self.title,
+            'message': self.message,
+            'is_read': self.is_read,
+            # Format lại thời gian cho đẹp (VD: 15/05/2026 14:30)
+            'created_at': self.created_at.strftime('%d/%m/%Y %H:%M') if self.created_at else None 
+        }

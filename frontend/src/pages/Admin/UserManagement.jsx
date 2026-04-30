@@ -4,6 +4,7 @@ import {
   UserPlus, FileText, Search, Filter, 
   MoreVertical, ChevronLeft, ChevronRight, Sparkles, X, Edit3, Trash2
 } from 'lucide-react';
+import Swal from 'sweetalert2'; 
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -75,9 +76,15 @@ const UserManagement = () => {
   const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
-  // 4. MỞ MODAL SỬA
+  // 🚀 4. MỞ MODAL SỬA (Đã chuẩn hóa role về lowercase để xử lý an toàn)
   const openEditModal = (user) => {
-    setFormData({ id: user.id, name: user.name, email: user.email, role: user.role.toUpperCase(), verified: user.verified });
+    setFormData({ 
+      id: user.id, 
+      name: user.name, 
+      email: user.email, 
+      role: user.role.toLowerCase(), // Chuẩn hóa về chữ thường
+      verified: user.verified 
+    });
     setShowModal(true);
   };
 
@@ -90,73 +97,187 @@ const UserManagement = () => {
       body: JSON.stringify(formData)
     }).then(res => {
       if(res.ok) {
-        alert("✅ Cập nhật thành công!");
+        Swal.fire({
+          title: 'Thành công!',
+          text: 'Đã cập nhật thông tin người dùng.',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false
+        });
         setShowModal(false);
         fetchUsers();
+      } else {
+        Swal.fire('Lỗi!', 'Không thể cập nhật dữ liệu.', 'error');
       }
+    }).catch(err => {
+      Swal.fire('Lỗi kết nối!', 'Không thể kết nối đến máy chủ.', 'error');
     });
   };
 
   // 6. XÓA NGƯỜI DÙNG
   const handleDelete = (id) => {
-    if(window.confirm("⚠️ Xóa người dùng này sẽ xóa toàn bộ dữ liệu liên quan. Bạn có chắc chắn?")) {
-      fetch(`http://localhost:8000/api/admin/users/${id}`, { 
-        method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } 
-      })
-      .then(res => { if(res.ok) fetchUsers(); });
-    }
-  };
-
-  // 🚀 7. THÊM NGƯỜI DÙNG NHANH
-  const handleAddUser = () => {
-    const name = window.prompt("Nhập Họ và Tên người dùng mới:");
-    if (!name) return;
-    const email = window.prompt("Nhập Email đăng nhập:");
-    if (!email) return;
-    const password = window.prompt("Nhập Mật khẩu (Mặc định: 123456):") || "123456";
-    const role = window.prompt("Nhập Vai trò (admin, mentor, user) - Mặc định: user:") || "user";
-
-    fetch('http://localhost:8000/api/admin/users', {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ name, email, password, role })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if(data.error) alert("❌ Lỗi: " + data.error);
-      else {
-        alert("✅ Đã tạo tài khoản thành công!");
-        fetchUsers(); 
+    Swal.fire({
+      title: 'Xóa người dùng?',
+      text: "CẢNH BÁO: Xóa người dùng này sẽ xóa toàn bộ dữ liệu liên quan. Bạn có chắc chắn không?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: 'Xóa ngay',
+      cancelButtonText: 'Hủy bỏ',
+      borderRadius: '16px'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch(`http://localhost:8000/api/admin/users/${id}`, { 
+          method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } 
+        })
+        .then(res => { 
+          if(res.ok) {
+            Swal.fire({
+              title: 'Đã xóa!',
+              text: 'Người dùng đã bị xóa khỏi hệ thống.',
+              icon: 'success',
+              timer: 1500,
+              showConfirmButton: false
+            });
+            fetchUsers(); 
+          } else {
+            Swal.fire('Lỗi!', 'Không thể xóa người dùng này.', 'error');
+          }
+        }).catch(err => {
+          Swal.fire('Lỗi kết nối!', 'Không thể kết nối đến máy chủ.', 'error');
+        });
       }
     });
   };
 
-  // 🚀 8. KHÓA / MỞ KHÓA TÀI KHOẢN
-  const handleToggleBan = (userId, currentRole) => {
-    const action = currentRole === 'banned' ? 'MỞ KHÓA' : 'KHÓA';
-    if (window.confirm(`Bạn có chắc chắn muốn ${action} tài khoản này không?`)) {
-      fetch(`http://localhost:8000/api/admin/users/${userId}/toggle-ban`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}` }
+  // 7. THÊM NGƯỜI DÙNG NHANH
+  const handleAddUser = async () => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Thêm Người Dùng Mới',
+      html: `
+        <div style="display: flex; flex-direction: column; gap: 10px; text-align: left;">
+          <label style="font-size: 13px; font-weight: bold; color: #64748b;">Họ và Tên (*)</label>
+          <input id="swal-input-name" class="swal2-input" style="margin: 0; width: auto;" placeholder="Nhập họ và tên...">
+          
+          <label style="font-size: 13px; font-weight: bold; color: #64748b; margin-top: 10px;">Email đăng nhập (*)</label>
+          <input id="swal-input-email" type="email" class="swal2-input" style="margin: 0; width: auto;" placeholder="Nhập email...">
+          
+          <label style="font-size: 13px; font-weight: bold; color: #64748b; margin-top: 10px;">Mật khẩu</label>
+          <input id="swal-input-pass" type="password" class="swal2-input" style="margin: 0; width: auto;" placeholder="Mặc định: 123456">
+          
+          <label style="font-size: 13px; font-weight: bold; color: #64748b; margin-top: 10px;">Vai trò hệ thống</label>
+          <select id="swal-input-role" class="swal2-select" style="margin: 0; width: 100%;">
+            <option value="user">USER (Học sinh)</option>
+            <option value="mentor">MENTOR (Cố vấn)</option>
+            <option value="admin">ADMIN (Quản trị)</option>
+          </select>
+        </div>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Tạo tài khoản',
+      cancelButtonText: 'Hủy',
+      confirmButtonColor: '#0f172a',
+      borderRadius: '16px',
+      preConfirm: () => {
+        const name = document.getElementById('swal-input-name').value;
+        const email = document.getElementById('swal-input-email').value;
+        if (!name || !email) {
+          Swal.showValidationMessage('Vui lòng nhập đầy đủ Họ Tên và Email!');
+          return false;
+        }
+        return {
+          name: name,
+          email: email,
+          password: document.getElementById('swal-input-pass').value || "123456",
+          role: document.getElementById('swal-input-role').value
+        };
+      }
+    });
+
+    if (formValues) {
+      fetch('http://localhost:8000/api/admin/users', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formValues)
       })
       .then(res => res.json())
       .then(data => {
-        if(data.error) alert("❌ Lỗi: " + data.error);
-        else {
-          alert("✅ " + data.message);
+        if(data.error) {
+          Swal.fire('Lỗi!', data.error, 'error');
+        } else {
+          Swal.fire({
+            title: 'Thành công!',
+            text: 'Đã tạo tài khoản mới thành công!',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+          });
           fetchUsers(); 
         }
+      }).catch(err => {
+        Swal.fire('Lỗi kết nối!', 'Không thể kết nối đến máy chủ.', 'error');
       });
     }
+  };
+
+  // 🚀 8. KHÓA / MỞ KHÓA TÀI KHOẢN (Sửa lỗi case-sensitive)
+  const handleToggleBan = (userId, currentRole) => {
+    const isBanned = currentRole.toLowerCase() === 'banned';
+    const actionText = isBanned ? 'Mở khóa' : 'Khóa';
+    const btnColor = isBanned ? '#10b981' : '#ef4444';
+
+    Swal.fire({
+      title: `${actionText} tài khoản?`,
+      text: `Bạn có chắc chắn muốn ${actionText.toLowerCase()} người dùng này không?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: btnColor,
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: `Đồng ý ${actionText}`,
+      cancelButtonText: 'Hủy bỏ',
+      borderRadius: '16px'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch(`http://localhost:8000/api/admin/users/${userId}/toggle-ban`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(res => res.json())
+        .then(data => {
+          if(data.error) {
+            Swal.fire('Lỗi!', data.error, 'error');
+          } else {
+            Swal.fire({
+              title: 'Thành công!',
+              text: data.message,
+              icon: 'success',
+              timer: 1500,
+              showConfirmButton: false
+            });
+            fetchUsers(); 
+          }
+        }).catch(err => {
+          Swal.fire('Lỗi kết nối!', 'Không thể thao tác.', 'error');
+        });
+      }
+    });
   };
 
   // 9. XUẤT FILE EXCEL
   const handleExport = async () => {
     try {
-      alert("⏳ Đang tạo file Excel, vui lòng đợi...");
+      Swal.fire({
+        title: 'Đang tạo Excel...',
+        text: 'Hệ thống đang trích xuất dữ liệu, vui lòng đợi!',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
       const res = await fetch('http://localhost:8000/api/admin/users/export', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -170,16 +291,28 @@ const UserManagement = () => {
       document.body.appendChild(a);
       a.click();
       a.remove();
+
+      Swal.close();
+      Swal.fire({
+        title: 'Hoàn tất!',
+        text: 'File báo cáo đã được tải xuống máy của bạn.',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
+      });
     } catch (err) {
-      alert('❌ Lỗi khi tải file báo cáo.');
+      Swal.close();
+      Swal.fire('Lỗi!', 'Có lỗi xảy ra khi xuất file báo cáo.', 'error');
     }
   };
 
-  // HÀM CHỌN MÀU CHO VAI TRÒ
+  // 🚀 HÀM CHỌN MÀU CHO VAI TRÒ (Thêm màu riêng cho MENTOR)
   const getRoleStyle = (role) => {
-    if (role === 'ADMIN') return { bg: '#fee2e2', color: '#9f1239' };
-    if (role === 'banned') return { bg: '#1e293b', color: '#f8fafc' }; // Màu đen tội phạm
-    return { bg: '#e0f2fe', color: '#0369a1' }; // Mặc định là USER/MENTOR
+    const r = role.toLowerCase();
+    if (r === 'admin') return { bg: '#fee2e2', color: '#9f1239' };
+    if (r === 'banned') return { bg: '#1e293b', color: '#f8fafc' }; // Màu đen tội phạm
+    if (r === 'mentor') return { bg: '#fef3c7', color: '#b45309' }; // Màu vàng xịn cho MENTOR
+    return { bg: '#e0f2fe', color: '#0369a1' }; // Mặc định là USER
   };
 
   return (
@@ -230,6 +363,7 @@ const UserManagement = () => {
           <select className="filter-select" value={roleFilter} onChange={e => {setRoleFilter(e.target.value); setCurrentPage(1);}}>
             <option value="Tất cả">Vai trò: Tất cả</option>
             <option value="USER">USER</option>
+            <option value="MENTOR">MENTOR</option>
             <option value="ADMIN">ADMIN</option>
             <option value="BANNED">BANNED (Bị khóa)</option>
           </select>
@@ -264,9 +398,11 @@ const UserManagement = () => {
                       <tr key={user.id}>
                         <td>
                           <div className="user-info-cell">
-                            <div className="avatar-small">{user.name.charAt(0).toUpperCase()}</div>
+                            <div className="avatar-small" style={{ background: roleStyle.bg, color: roleStyle.color }}>
+                              {user.name.charAt(0).toUpperCase()}
+                            </div>
                             <div>
-                              <p className="user-name" style={{ textDecoration: user.role === 'banned' ? 'line-through' : 'none' }}>{user.name}</p>
+                              <p className="user-name" style={{ textDecoration: user.role.toLowerCase() === 'banned' ? 'line-through' : 'none' }}>{user.name}</p>
                               <span className="user-email">{user.email}</span>
                             </div>
                           </div>
@@ -296,17 +432,16 @@ const UserManagement = () => {
                             <button onClick={() => openEditModal(user)} style={{background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer'}} title="Sửa quyền"><Edit3 size={18} /></button>
                             <button onClick={() => handleDelete(user.id)} style={{background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer'}} title="Xóa người dùng"><Trash2 size={18} /></button>
                             
-                            {/* 🚀 NÚT KHÓA / MỞ KHÓA MỚI */}
                             <button 
                               onClick={() => handleToggleBan(user.id, user.role)}
                               style={{
-                                background: user.role === 'banned' ? '#10b981' : '#475569', 
+                                background: user.role.toLowerCase() === 'banned' ? '#10b981' : '#475569', 
                                 color: 'white', border: 'none', padding: '4px 8px', 
                                 borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold'
                               }}
-                              title={user.role === 'banned' ? 'Mở khóa tài khoản' : 'Khóa tài khoản'}
+                              title={user.role.toLowerCase() === 'banned' ? 'Mở khóa tài khoản' : 'Khóa tài khoản'}
                             >
-                              {user.role === 'banned' ? '🔓 Mở' : '🔒 Khóa'}
+                              {user.role.toLowerCase() === 'banned' ? '🔓 Mở' : '🔒 Khóa'}
                             </button>
                           </div>
                         </td>
@@ -336,10 +471,10 @@ const UserManagement = () => {
       <div className="ai-insight-banner">
         <div className="ai-icon-bg"><Sparkles size={20}/></div>
         <div className="ai-content">
-          <h4 style={{ margin: '0 0 5px 0' }}>AI INSIGHT: Phân tích người dùng</h4>
+          <h4 style={{ margin: '0 0 5px 0' }}>AI INSIGHT: Phân tích cộng đồng</h4>
           <p style={{ margin: 0, fontSize: '13.5px', color: '#334155', lineHeight: '1.5' }}>
             {stats.reported > 0 
-              ? `🔴 BÁO ĐỘNG: Có ${stats.reported} tài khoản bị báo cáo vi phạm quy tắc. Đề nghị Admin kiểm tra và xử lý khẩn cấp!`
+              ? `🔴 BÁO ĐỘNG: Có ${stats.reported} tài khoản bị báo cáo vi phạm quy tắc. Đề nghị Admin kiểm tra Modal "Báo cáo" và xử lý khẩn cấp!`
               : stats.pending > 0 
                 ? `🟡 CẢNH BÁO NHẸ: Có ${stats.pending} tài khoản chưa được xác thực email. Khuyến nghị gửi email nhắc nhở để tăng tỷ lệ kích hoạt.`
                 : `🟢 TUYỆT VỜI: Tất cả tài khoản đều đã xác thực và không có báo cáo vi phạm nào. Cộng đồng đang hoạt động rất tốt!`}
@@ -347,7 +482,7 @@ const UserManagement = () => {
         </div>
       </div>
 
-      {/* MODAL SỬA NGƯỜI DÙNG */}
+      {/* 🚀 MODAL SỬA NGƯỜI DÙNG (Đã thêm quyền MENTOR) */}
       {showModal && (
         <div className="cm-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(15, 23, 42, 0.65)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
           <div className="cm-modal-content" style={{ background: '#fff', width: '400px', borderRadius: '12px', padding: '24px' }}>
@@ -365,8 +500,9 @@ const UserManagement = () => {
               <div>
                 <label style={{fontSize: '12px', fontWeight: 'bold', color: '#64748b'}}>Vai trò hệ thống</label>
                 <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} style={{width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', marginTop: '5px', background: 'white'}}>
-                  <option value="USER">USER (Học sinh/Sinh viên)</option>
-                  <option value="ADMIN">ADMIN (Quản trị viên)</option>
+                  <option value="user">USER (Học sinh/Sinh viên)</option>
+                  <option value="mentor">MENTOR (Cố vấn chuyên môn)</option> 
+                  <option value="admin">ADMIN (Quản trị viên)</option>
                 </select>
               </div>
 

@@ -4,6 +4,7 @@ import {
   Activity, Database, CheckCircle2, Globe, 
   RotateCcw, Sparkles, Send, Zap
 } from 'lucide-react';
+import Swal from 'sweetalert2'; // 🚀 IMPORT VŨ KHÍ SWEETALERT2
 
 const AISystemManagement = () => {
   const token = localStorage.getItem('token');
@@ -63,28 +64,62 @@ const AISystemManagement = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // 3. GỌI API TEST GEMINI
-  const handleTestGemini = () => {
-    const prompt = window.prompt(`Bạn muốn hỏi Gemini 2.5 Flash điều gì?`);
-    if (!prompt) return;
+  // 3. GỌI API TEST GEMINI (🚀 ĐÃ ĐỘ LẠI BẰNG SWEETALERT2)
+  const handleTestGemini = async () => {
+    // 🚀 Dùng Swal có input thay vì window.prompt xấu xí
+    const { value: promptText } = await Swal.fire({
+      title: 'Trò chuyện với AI',
+      input: 'text',
+      inputLabel: 'Bạn muốn hỏi Gemini 2.5 Flash điều gì?',
+      inputPlaceholder: 'Nhập câu hỏi của bạn vào đây...',
+      showCancelButton: true,
+      confirmButtonColor: '#3b82f6',
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: 'Gửi câu hỏi <i class="fas fa-paper-plane"></i>',
+      cancelButtonText: 'Hủy',
+      borderRadius: '16px'
+    });
+
+    if (!promptText) return; // Người dùng bấm Hủy hoặc không nhập gì
+
     setIsTesting(true);
+
+    // Có thể hiện thêm 1 Swal loading cho nó chuyên nghiệp
+    Swal.fire({
+      title: 'AI đang suy nghĩ...',
+      text: 'Vui lòng đợi trong giây lát!',
+      allowOutsideClick: false,
+      didOpen: () => { Swal.showLoading(); }
+    });
+
     fetch('http://localhost:8000/api/admin/ai/test-gemini', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json', 
         'Authorization': `Bearer ${token}` 
       },
-      body: JSON.stringify({ prompt: prompt })
+      body: JSON.stringify({ prompt: promptText })
     })
     .then(res => res.json())
     .then(data => {
       setIsTesting(false);
-      if (data.error) alert("❌ Lỗi AI: " + data.error);
-      else alert(`🤖 [${data.model_used}] trả lời:\n\n${data.reply}`);
+      if (data.error) {
+        Swal.fire('Lỗi AI!', data.error, 'error');
+      } else {
+        // 🚀 Hiện kết quả trả về bằng Swal siêu đẹp
+        Swal.fire({
+          title: `🤖 [${data.model_used}]`,
+          text: data.reply,
+          icon: 'info',
+          confirmButtonColor: '#3b82f6',
+          confirmButtonText: 'Tuyệt vời!',
+          borderRadius: '16px'
+        });
+      }
     })
     .catch(() => { 
       setIsTesting(false); 
-      alert("❌ Lỗi kết nối đến Backend! Hãy chắc chắn Server Python đang chạy."); 
+      Swal.fire('Lỗi kết nối!', 'Không thể kết nối đến Backend! Hãy chắc chắn Server Python đang chạy.', 'error');
     });
   };
 

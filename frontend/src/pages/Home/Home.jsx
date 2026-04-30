@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Eye, Clock, BookOpen, Award, Compass, Flame } from 'lucide-react'; 
 import './Home.css';
 
 // --- COMPONENT THẺ TRƯỜNG HỌC ---
@@ -10,19 +11,12 @@ const UniCard = ({ uni, index, isScroll = false }) => {
     { type: 'MỚI NỔI', color: '#ef4444', bg: '#fef2f2', c: '#991b1b' }
   ][index % 3];
 
-  // ĐÃ SỬA: Lấy đúng điểm học bạ từ cột base_score, KHÔNG CỘNG 1.5 NỮA
   const hocBaScore = uni.base_score ? parseFloat(uni.base_score).toFixed(2) : 'Đang cập nhật';
-  
-  // ĐÃ SỬA: Lấy đúng điểm THPT từ cột score_thpt_last_year
   const thptScore = uni.score_thpt_last_year ? parseFloat(uni.score_thpt_last_year).toFixed(2) : 'Đang cập nhật';
-
   const displayMajor = uni.major_code ? `${uni.major_name} (${uni.major_code})` : (uni.major_name || 'Đa ngành');
-  
   const locationName = uni.region || (uni.ranking_note && uni.ranking_note.includes(' - ') ? uni.ranking_note.split(' - ')[1] : 'Đang cập nhật');
-
   const hasDirect = uni.direct_admission && uni.direct_admission.toLowerCase() !== 'không xét' ? 'Có xét' : 'Không xét';
   const hasAptitude = uni.aptitude_test && uni.aptitude_test.toLowerCase() !== 'không yêu cầu' ? 'Có xét' : 'Không yêu cầu';
-
   const fallbackImage = `https://images.unsplash.com/photo-${1523050854058 + index}-8df90110c9f1?w=400&q=80`;
 
   return (
@@ -30,43 +24,29 @@ const UniCard = ({ uni, index, isScroll = false }) => {
       to={`/detail/${uni.id}`} 
       className="uni-suggest-card" 
       style={{ 
-        textDecoration: 'none', 
-        color: 'inherit',
-        display: 'flex', 
-        flexDirection: 'column', 
-        height: '100%', 
-        boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
-        borderRadius: '12px',
-        overflow: 'hidden',
-        background: 'white',
-        minWidth: isScroll ? '320px' : 'auto', 
-        scrollSnapAlign: isScroll ? 'start' : 'none',
-        flexShrink: isScroll ? 0 : 1,
+        textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column', height: '100%', 
+        boxShadow: '0 4px 15px rgba(0,0,0,0.05)', borderRadius: '12px', overflow: 'hidden', background: 'white',
+        minWidth: isScroll ? '320px' : 'auto', scrollSnapAlign: isScroll ? 'start' : 'none', flexShrink: isScroll ? 0 : 1,
         transition: 'transform 0.3s ease'
       }}
     >
       <div className="uni-suggest-img" style={{ height: '160px', position: 'relative' }}>
         <span style={{ 
-            position: 'absolute', top: '10px', left: '10px', zIndex: 2,
-            background: b.color, color: 'white', padding: '4px 12px',
-            borderRadius: '20px', fontSize: '0.75rem', fontWeight: 'bold'
+            position: 'absolute', top: '10px', left: '10px', zIndex: 2, background: b.color, color: 'white', 
+            padding: '4px 12px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 'bold'
         }}>{b.type}</span>
         <img src={uni.school_logo || fallbackImage} alt={uni.school_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
       
       <div className="uni-suggest-info" style={{ display: 'flex', flexDirection: 'column', flex: 1, padding: '20px' }}>
-        <h3 style={{ fontSize: '1.05rem', marginBottom: '5px', lineHeight: '1.4', height: '2.8rem', overflow: 'hidden' }}>{uni.school_name}</h3>
-        
+        <h3 style={{ fontSize: '1.05rem', marginBottom: '5px', lineHeight: '1.4', height: '2.8rem', overflow: 'hidden', textAlign: 'left' }}>{uni.school_name}</h3>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
-          <div style={{flex: 1, paddingRight: '10px'}}>
-            <p style={{ fontWeight: 'bold', color: '#10b981', fontSize: '0.85rem', margin: '0 0 5px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={displayMajor}>
-              {displayMajor}
-            </p>
+          <div style={{flex: 1, paddingRight: '10px', textAlign: 'left'}}>
+            <p style={{ fontWeight: 'bold', color: '#10b981', fontSize: '0.85rem', margin: '0 0 5px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={displayMajor}>{displayMajor}</p>
             <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               <i className="fas fa-map-marker-alt"></i> Khu vực: {locationName}
             </p>
           </div>
-          
           {uni.subject_block && (
             <span style={{ background: '#e2e8f0', color: '#334155', padding: '4px 8px', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800, whiteSpace: 'nowrap' }}>
               Khối {uni.subject_block}
@@ -75,9 +55,7 @@ const UniCard = ({ uni, index, isScroll = false }) => {
         </div>
         
         <div className="uni-prob" style={{background: b.bg, padding: '10px', borderRadius: '8px', textAlign: 'center', marginBottom: '15px'}}>
-          <span style={{color: b.c, fontWeight: 'bold', fontSize: '0.9rem'}}>
-            ĐIỂM CHUẨN THPT: {thptScore}
-          </span>
+          <span style={{color: b.c, fontWeight: 'bold', fontSize: '0.9rem'}}>ĐIỂM CHUẨN THPT: {thptScore}</span>
         </div>
 
         <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', marginBottom: '15px', display: 'flex', flexDirection: 'column', gap: '8px', border: '1px solid #e2e8f0', flex: 1 }}>
@@ -105,9 +83,7 @@ const UniCard = ({ uni, index, isScroll = false }) => {
 
         <div style={{ fontSize: '0.85rem', color: '#64748b', borderTop: '1px dashed #cbd5e1', paddingTop: '15px', marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>HP: {uni.tuition_fee || 'Cập nhật...'}</span>
-          <span style={{ background: '#e0e7ff', color: '#4f46e5', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.75rem' }}>
-            {uni.school_type || 'Công lập'}
-          </span>
+          <span style={{ background: '#e0e7ff', color: '#4f46e5', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.75rem' }}>{uni.school_type || 'Công lập'}</span>
         </div>
       </div>
     </Link>
@@ -118,19 +94,21 @@ const UniCard = ({ uni, index, isScroll = false }) => {
 // --- MAIN HOME COMPONENT ---
 const Home = () => {
   const [universities, setUniversities] = useState([]);
+  const [articles, setArticles] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [needUpdate, setNeedUpdate] = useState(false);
+  
+  // 🚀 QUẢN LÝ ĐÓNG/MỞ DANH SÁCH (CẢ TRƯỜNG LẪN TIN TỨC)
+  const [showAllTopUnis, setShowAllTopUnis] = useState(false);
+  const [showAllArticles, setShowAllArticles] = useState(false); // Thêm State này
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    // 1. Kiểm tra User thiếu thông tin (CHỈ ÁP DỤNG CHO HỌC SINH)
     const savedUser = localStorage.getItem("user");
     if (savedUser && savedUser !== "undefined") {
       try {
         const user = JSON.parse(savedUser);
-        
-        // 🚀 ĐÃ SỬA: Thêm điều kiện user.role === 'user'
-        // Chỉ những tài khoản là học sinh (user) VÀ thiếu trường/lớp mới bị nhắc nhở
         if (user.role === 'user' && (!user.className || !user.schoolName)) {
           setNeedUpdate(true);
         }
@@ -139,16 +117,17 @@ const Home = () => {
       }
     }
 
-    // 2. Fetch data thật từ Backend Database
-    const fetchUniversities = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/universities');
-        const data = await response.json();
+        const [uniRes, articleRes] = await Promise.all([
+          fetch('http://localhost:8000/api/universities'),
+          fetch('http://localhost:8000/api/articles') 
+        ]);
         
-        if (response.ok) {
-          setUniversities(data); 
-        } else {
-          console.error("Lỗi lấy dữ liệu trường:", data.error);
+        if (uniRes.ok) setUniversities(await uniRes.json());
+        if (articleRes.ok) {
+          const articleData = await articleRes.json();
+          setArticles(articleData); // 🚀 Lấy TOÀN BỘ bài viết thay vì slice(0,3)
         }
       } catch (error) {
         console.error("Lỗi kết nối Backend:", error);
@@ -157,7 +136,7 @@ const Home = () => {
       }
     };
 
-    fetchUniversities();
+    fetchData();
   }, []);
 
   const getRegionFromProvince = (uni) => {
@@ -167,49 +146,18 @@ const Home = () => {
       if (loc.includes('đà nẵng') || loc.includes('huế') || loc.includes('nghệ an') || loc.includes('khánh hòa') || loc.includes('đà lạt')) return 'Miền Trung';
       if (loc.includes('hồ chí minh') || loc.includes('cần thơ') || loc.includes('đồng nai') || loc.includes('bình dương') || loc.includes('long an')) return 'Miền Nam';
     }
-
     if (!uni.ranking_note) return 'Miền Bắc';
     const note = uni.ranking_note.toLowerCase();
-    
-    if (note.includes('hà nội') || note.includes('hải phòng') || note.includes('quảng ninh') || 
-        note.includes('tuyên quang') || note.includes('lào cai') || note.includes('thái nguyên') || 
-        note.includes('phú thọ') || note.includes('bắc ninh') || note.includes('hưng yên') || 
-        note.includes('ninh bình') || note.includes('cao bằng') || note.includes('lạng sơn') || 
-        note.includes('lai châu') || note.includes('điện biên') || note.includes('sơn la') || 
-        note.includes('hải dương') || note.includes('thái bình') || note.includes('nam định')) {
-      return 'Miền Bắc';
-    }
-    
-    if (note.includes('đà nẵng') || note.includes('huế') || note.includes('nghệ an') || 
-        note.includes('thanh hóa') || note.includes('hà tĩnh') || note.includes('quảng bình') || 
-        note.includes('quảng trị') || note.includes('quảng nam') || note.includes('quảng ngãi') || 
-        note.includes('bình định') || note.includes('quy nhơn') || note.includes('phú yên') || 
-        note.includes('khánh hòa') || note.includes('nha trang') || note.includes('gia lai') || 
-        note.includes('đắk lắk') || note.includes('lâm đồng') || note.includes('đà lạt')) {
-      return 'Miền Trung';
-    }
-    
-    if (note.includes('hồ chí minh') || note.includes('cần thơ') || note.includes('đồng nai') || 
-        note.includes('tây ninh') || note.includes('đồng tháp') || note.includes('vĩnh long') || 
-        note.includes('cà mau') || note.includes('an giang') || note.includes('bình dương') || 
-        note.includes('bà rịa') || note.includes('vũng tàu') || note.includes('tiền giang') || 
-        note.includes('trà vinh') || note.includes('kiên giang') || note.includes('bạc liêu') || 
-        note.includes('long an')) {
-      return 'Miền Nam';
-    }
-
+    if (note.includes('hà nội') || note.includes('hải phòng') || note.includes('quảng ninh') || note.includes('tuyên quang') || note.includes('lào cai') || note.includes('thái nguyên') || note.includes('phú thọ') || note.includes('bắc ninh') || note.includes('hưng yên') || note.includes('ninh bình') || note.includes('cao bằng') || note.includes('lạng sơn') || note.includes('lai châu') || note.includes('điện biên') || note.includes('sơn la') || note.includes('hải dương') || note.includes('thái bình') || note.includes('nam định')) return 'Miền Bắc';
+    if (note.includes('đà nẵng') || note.includes('huế') || note.includes('nghệ an') || note.includes('thanh hóa') || note.includes('hà tĩnh') || note.includes('quảng bình') || note.includes('quảng trị') || note.includes('quảng nam') || note.includes('quảng ngãi') || note.includes('bình định') || note.includes('quy nhơn') || note.includes('phú yên') || note.includes('khánh hòa') || note.includes('nha trang') || note.includes('gia lai') || note.includes('đắk lắk') || note.includes('lâm đồng') || note.includes('đà lạt')) return 'Miền Trung';
+    if (note.includes('hồ chí minh') || note.includes('cần thơ') || note.includes('đồng nai') || note.includes('tây ninh') || note.includes('đồng tháp') || note.includes('vĩnh long') || note.includes('cà mau') || note.includes('an giang') || note.includes('bình dương') || note.includes('bà rịa') || note.includes('vũng tàu') || note.includes('tiền giang') || note.includes('trà vinh') || note.includes('kiên giang') || note.includes('bạc liêu') || note.includes('long an')) return 'Miền Nam';
     return 'Miền Bắc'; 
   };
 
   const getTopUniqueUnis = () => {
     const uniqueSchools = [];
     const schoolNames = new Set();
-    
-    // ĐÃ SỬA: Ưu tiên xếp hạng theo điểm THPT, nếu không có thì lấy điểm học bạ
-    const sorted = [...universities].sort((a, b) => 
-      parseFloat(b.score_thpt_last_year || b.base_score || 0) - parseFloat(a.score_thpt_last_year || a.base_score || 0)
-    );
-
+    const sorted = [...universities].sort((a, b) => parseFloat(b.score_thpt_last_year || b.base_score || 0) - parseFloat(a.score_thpt_last_year || a.base_score || 0));
     for (const uni of sorted) {
       if (!schoolNames.has(uni.school_name)) {
         schoolNames.add(uni.school_name);
@@ -218,6 +166,9 @@ const Home = () => {
     }
     return uniqueSchools;
   };
+
+  // 🚀 Lọc danh sách bài viết hiển thị (3 bài hoặc tất cả)
+  const visibleArticles = showAllArticles ? articles : articles.slice(0, 3);
 
   return (
     <div className="home-page fade-in">
@@ -232,20 +183,9 @@ const Home = () => {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '15px' }}>
             <i className="fas fa-exclamation-circle" style={{ fontSize: '22px', color: '#ea580c' }}></i>
-            <span>
-              <strong>Chú ý:</strong> Hồ sơ học thuật của bạn chưa hoàn thiện. Vui lòng bổ sung để hệ thống gợi ý chính xác nhất!
-            </span>
+            <span><strong>Chú ý:</strong> Hồ sơ học thuật của bạn chưa hoàn thiện. Vui lòng bổ sung để hệ thống gợi ý chính xác nhất!</span>
           </div>
-          
-          <button 
-            onClick={() => window.location.href = '/profile'} 
-            style={{
-              backgroundColor: '#ea580c', color: 'white', padding: '10px 24px', borderRadius: '6px',
-              border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap',
-              boxShadow: '0 2px 4px rgba(234,88,12,0.3)',
-              position: 'relative', zIndex: 9999
-            }}
-          >
+          <button onClick={() => window.location.href = '/profile'} style={{ backgroundColor: '#ea580c', color: 'white', padding: '10px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', whiteSpace: 'nowrap', boxShadow: '0 2px 4px rgba(234,88,12,0.3)', position: 'relative', zIndex: 9999 }}>
             Cập nhật ngay <i className="fas fa-arrow-right" style={{marginLeft: '5px'}}></i>
           </button>
         </div>
@@ -258,12 +198,8 @@ const Home = () => {
           <h1 className="hm-title">Bản đồ Chính xác cho Vận mệnh Học thuật.</h1>
           <p className="hm-subtitle">Vượt xa những lời khuyên chung chung. Hệ thống AI của chúng tôi phân tích hồ sơ tài năng và xu hướng thị trường để kết nối bạn với những trường đại học phù hợp với tiềm năng thực sự của bạn.</p>
           <div className="hm-hero-btns" style={{ flexWrap: 'wrap' }}>
-            <Link to="/quiz" className="hm-btn-primary" style={{ textDecoration: 'none' }}>
-              Làm trắc nghiệm hướng nghiệp &rarr;
-            </Link>
-            <Link to="/search" className="hm-btn-outline" style={{ textDecoration: 'none' }}>
-              Tìm trường ngay
-            </Link>
+            <Link to="/quiz" className="hm-btn-primary" style={{ textDecoration: 'none' }}>Làm trắc nghiệm hướng nghiệp &rarr;</Link>
+            <Link to="/search" className="hm-btn-outline" style={{ textDecoration: 'none' }}>Tìm trường ngay</Link>
             <Link to="/orientation" className="hm-btn-outline" style={{ textDecoration: 'none', borderColor: '#4f46e5', color: '#4f46e5', backgroundColor: '#e0e7ff' }}>
               Tư vấn & Định hướng <i className="fas fa-map-signs" style={{marginLeft: '5px'}}></i>
             </Link>
@@ -290,7 +226,6 @@ const Home = () => {
         </div>
 
         <div className="hm-features-grid">
-          
           <Link to="/roi-calculator" className="hm-feat-card purple span-1" style={{ textDecoration: 'none', color: 'white', display: 'block' }}>
             <div className="hm-feat-icon white"><i className="fas fa-chart-line"></i></div>
             <h3>Dự đoán ROI</h3>
@@ -313,46 +248,91 @@ const Home = () => {
           </Link>
 
           <Link to="/orientation" className="hm-feat-card span-3" style={{ 
-            textDecoration: 'none', 
-            gridColumn: '1 / -1', 
-            background: '#f4f7ff', 
-            border: '2px dashed #a5b4fc', 
-            borderRadius: '24px',
-            display: 'flex', 
-            flexDirection: 'row', 
-            alignItems: 'center', 
-            justifyContent: 'space-between', 
-            padding: '50px 60px',
-            marginTop: '15px',
-            boxShadow: '0 10px 30px rgba(67, 56, 202, 0.05)',
-            transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+            textDecoration: 'none', gridColumn: '1 / -1', background: '#f4f7ff', border: '2px dashed #a5b4fc', borderRadius: '24px',
+            display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: '50px 60px',
+            marginTop: '15px', boxShadow: '0 10px 30px rgba(67, 56, 202, 0.05)', transition: 'transform 0.3s ease, box-shadow 0.3s ease'
           }}>
             <div style={{ flex: 1, paddingRight: '40px' }}>
-              <h3 style={{ fontSize: '2.2rem', fontWeight: '800', color: '#4338ca', margin: '0 0 15px 0', lineHeight: '1.3' }}>
-                Tư vấn & Định hướng<br/>Chuyên sâu
-              </h3>
-              <p style={{ color: '#64748b', fontSize: '1.15rem', lineHeight: '1.7', margin: 0, maxWidth: '600px' }}>
-                Chưa biết bắt đầu từ đâu? Đăng ký ngay để nhận lộ trình học tập và nghề nghiệp được cá nhân hóa hoàn toàn dành riêng cho bạn.
-              </p>
+              <h3 style={{ fontSize: '2.2rem', fontWeight: '800', color: '#4338ca', margin: '0 0 15px 0', lineHeight: '1.3' }}>Tư vấn & Định hướng<br/>Chuyên sâu</h3>
+              <p style={{ color: '#64748b', fontSize: '1.15rem', lineHeight: '1.7', margin: 0, maxWidth: '600px' }}>Chưa biết bắt đầu từ đâu? Đăng ký ngay để nhận lộ trình học tập và nghề nghiệp được cá nhân hóa hoàn toàn dành riêng cho bạn.</p>
             </div>
-            <div style={{ 
-              width: '120px', 
-              height: '120px', 
-              background: '#7c3aed', 
-              borderRadius: '50%', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              color: 'white', 
-              fontSize: '3rem', 
-              flexShrink: 0, 
-              boxShadow: '0 15px 35px rgba(124, 58, 237, 0.3)' 
-            }}>
+            <div style={{ width: '120px', height: '120px', background: '#7c3aed', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '3rem', flexShrink: 0, boxShadow: '0 15px 35px rgba(124, 58, 237, 0.3)' }}>
               <i className="fas fa-map-marked-alt"></i>
             </div>
           </Link>
         </div>
       </section>
+
+      {/* --- BÀI VIẾT SECTION --- */}
+      {articles.length > 0 && (
+        <section className="hm-hot-news" style={{ padding: '0 20px', maxWidth: '1200px', margin: '40px auto 40px auto' }}>
+          
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', width: '100%', gap: '20px' }}>
+            <div style={{ flex: 1 }}>
+              <h2 style={{ fontSize: '2.2rem', color: '#e11d48', margin: '0 0 10px 0', display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left' }}>
+                <Flame size={32} color="#ef4444" /> Tin tức nổi bật & Học bổng
+              </h2>
+              <p style={{ color: '#64748b', fontSize: '1.1rem', margin: 0, textAlign: 'left' }}>Cập nhật ngay các thông tin tuyển sinh, học bổng nóng hổi nhất từ MindConnect.</p>
+            </div>
+            
+            {/* 🚀 ĐỔI LINK THÀNH BUTTON ĐỂ SỔ XUỐNG DƯỚI */}
+            <button 
+              onClick={() => setShowAllArticles(!showAllArticles)}
+              style={{
+                background: 'white', border: '1px solid #cbd5e1', color: '#334155',
+                padding: '10px 24px', borderRadius: '8px', cursor: 'pointer',
+                fontWeight: '600', whiteSpace: 'nowrap', flexShrink: 0,
+                transition: 'all 0.3s ease'
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.borderColor = '#e11d48'; e.currentTarget.style.color = '#e11d48'; e.currentTarget.style.backgroundColor = '#fff1f2'; }}
+              onMouseOut={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.color = '#334155'; e.currentTarget.style.backgroundColor = 'white'; }}
+            >
+              {showAllArticles ? 'Thu gọn tin tức' : 'Xem tất cả'}
+            </button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '30px' }}>
+            {/* 🚀 MAP TỪ visibleArticles THAY VÌ articles */}
+            {visibleArticles.map(article => (
+              <Link to={`/article/${article.id}`} key={article.id} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div style={{ 
+                  background: 'white', borderRadius: '16px', overflow: 'hidden', 
+                  boxShadow: '0 10px 25px rgba(225, 29, 72, 0.1)', border: '1px solid #ffe4e6', transition: 'transform 0.3s' 
+                }}
+                onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-8px)'}
+                onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  <div style={{ height: '200px', width: '100%', overflow: 'hidden', position: 'relative' }}>
+                    <img src={article.image} alt={article.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <div style={{
+                      position: 'absolute', top: '15px', left: '15px', padding: '6px 12px', 
+                      borderRadius: '8px', fontSize: '0.75rem', fontWeight: 'bold',
+                      background: article.categoryCode === 'hoc-bong' ? '#dcfce3' : article.categoryCode === 'tuyen-sinh' ? '#ffedd5' : '#e0e7ff',
+                      color: article.categoryCode === 'hoc-bong' ? '#047857' : article.categoryCode === 'tuyen-sinh' ? '#c2410c' : '#4f46e5',
+                      display: 'flex', alignItems: 'center', gap: '5px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+                    }}>
+                      {article.categoryCode === 'hoc-bong' && <Award size={14}/>}
+                      {article.categoryCode === 'tuyen-sinh' && <BookOpen size={14}/>}
+                      {article.categoryCode === 'cam-nang' && <Compass size={14}/>}
+                      {article.category}
+                    </div>
+                  </div>
+                  <div style={{ padding: '20px', textAlign: 'left' }}>
+                    <h3 style={{ fontSize: '1.2rem', color: '#1e293b', margin: '0 0 10px 0', lineHeight: '1.5' }}>{article.title}</h3>
+                    <p style={{ color: '#64748b', fontSize: '0.9rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      {article.content || "Nhấn vào để đọc chi tiết bài viết này..."}
+                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #f1f5f9' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#94a3b8', fontSize: '0.85rem' }}><Clock size={14} /> {article.date}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#e11d48', fontSize: '0.85rem', fontWeight: 'bold' }}><Eye size={14} /> {(article.views || 0).toLocaleString('vi-VN')}</span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* --- UNIVERSITIES SECTION --- */}
       <section className="hm-universities">
@@ -363,55 +343,54 @@ const Home = () => {
           </div>
         ) : (
           <>
-            {/* CÁC TRƯỜNG ĐẠI HỌC TIÊU BIỂU */}
-            <div className="hm-uni-header">
-              <div>
-                <h2>Các trường đại học tiêu biểu</h2>
-                <p>Danh sách các ngôi trường có chỉ số phù hợp cao nhất dành cho bạn.</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', width: '100%', gap: '20px' }}>
+              <div style={{ flex: 1 }}>
+                <h2 style={{ fontSize: '2rem', margin: '0 0 5px 0', color: '#0f172a', textAlign: 'left' }}>Các trường đại học tiêu biểu</h2>
+                <p style={{ margin: 0, color: '#64748b', fontSize: '1.05rem', textAlign: 'left' }}>Danh sách các ngôi trường có chỉ số phù hợp cao nhất dành cho bạn.</p>
               </div>
-              <Link to="/search" className="hm-btn-outline-small" style={{ textDecoration: 'none' }}>Xem tất cả</Link>
+              
+              <button 
+                onClick={() => setShowAllTopUnis(!showAllTopUnis)}
+                style={{
+                  background: 'white', border: '1px solid #cbd5e1', color: '#334155',
+                  padding: '10px 24px', borderRadius: '8px', cursor: 'pointer',
+                  fontWeight: '600', whiteSpace: 'nowrap', flexShrink: 0,
+                  transition: 'all 0.3s ease'
+                }} 
+                onMouseOver={(e) => { e.currentTarget.style.borderColor = '#4f46e5'; e.currentTarget.style.color = '#4f46e5'; e.currentTarget.style.backgroundColor = '#f8fafc'; }}
+                onMouseOut={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.color = '#334155'; e.currentTarget.style.backgroundColor = 'white'; }}
+              >
+                {showAllTopUnis ? 'Thu gọn danh sách' : 'Xem tất cả'}
+              </button>
             </div>
 
             <div style={{ 
-              display: 'flex', 
-              gap: '25px', 
-              marginBottom: '60px',
-              overflowX: 'auto',
-              paddingBottom: '20px',
-              scrollSnapType: 'x mandatory',
-              WebkitOverflowScrolling: 'touch'
+              display: showAllTopUnis ? 'grid' : 'flex', 
+              gridTemplateColumns: showAllTopUnis ? 'repeat(auto-fill, minmax(320px, 1fr))' : 'none',
+              gap: '25px', marginBottom: '60px', 
+              overflowX: showAllTopUnis ? 'visible' : 'auto', 
+              paddingBottom: '20px', 
+              scrollSnapType: showAllTopUnis ? 'none' : 'x mandatory', 
+              WebkitOverflowScrolling: 'touch' 
             }}>
               {getTopUniqueUnis().map((uni, index) => (
-                <UniCard key={`top-${uni.id}`} uni={uni} index={index} isScroll={true} />
+                <UniCard key={`top-${uni.id}`} uni={uni} index={index} isScroll={!showAllTopUnis} />
               ))}
             </div>
 
-            {/* KHÁM PHÁ THEO VÙNG MIỀN */}
+            {/* --- CÁC TRƯỜNG THEO KHU VỰC --- */}
             {['Miền Bắc', 'Miền Trung', 'Miền Nam'].map((region) => {
               const regionUnis = universities.filter(u => getRegionFromProvince(u) === region);
-              
-              const displayRegionUnis = regionUnis; 
-              
-              if (displayRegionUnis.length === 0) return null;
-
+              if (regionUnis.length === 0) return null;
               return (
-                <div key={region} style={{ marginBottom: '50px' }}>
-                  <div className="hm-uni-header" style={{ marginBottom: '20px' }}>
-                    <h3 style={{ fontSize: '1.5rem', color: '#1e293b' }}>
-                      <i className="fas fa-map-marker-alt" style={{ color: '#4f46e5', marginRight: '10px' }}></i>
-                      Đại học tại {region}
+                <div key={region} style={{ marginBottom: '50px', textAlign: 'left' }}>
+                  <div style={{ marginBottom: '20px', textAlign: 'left', width: '100%' }}>
+                    <h3 style={{ fontSize: '1.5rem', color: '#1e293b', margin: 0, textAlign: 'left' }}>
+                      <i className="fas fa-map-marker-alt" style={{ color: '#4f46e5', marginRight: '10px' }}></i> Đại học tại {region}
                     </h3>
                   </div>
-                  
-                  <div className="hm-uni-scroll-container" style={{ 
-                    display: 'flex', 
-                    gap: '20px', 
-                    overflowX: 'auto', 
-                    paddingBottom: '20px',
-                    scrollSnapType: 'x mandatory',
-                    WebkitOverflowScrolling: 'touch'
-                  }}>
-                    {displayRegionUnis.map((uni, index) => (
+                  <div className="hm-uni-scroll-container" style={{ display: 'flex', gap: '20px', overflowX: 'auto', paddingBottom: '20px', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}>
+                    {regionUnis.map((uni, index) => (
                       <UniCard key={`${region}-${uni.id}`} uni={uni} index={index} isScroll={true} />
                     ))}
                   </div>

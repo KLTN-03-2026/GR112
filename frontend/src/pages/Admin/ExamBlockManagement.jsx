@@ -4,6 +4,7 @@ import {
   Layers, Plus, Trash2, Edit, Search, 
   BookOpen, CheckCircle, AlertCircle, X, Save
 } from 'lucide-react';
+import Swal from 'sweetalert2'; // 🚀 IMPORT VŨ KHÍ SWEETALERT2
 
 const ExamBlockManagement = () => {
   const [blocks, setBlocks] = useState([]);
@@ -59,7 +60,7 @@ const ExamBlockManagement = () => {
     setShowFormModal(true);
   };
 
-  // LƯU DỮ LIỆU (THÊM/SỬA)
+  // LƯU DỮ LIỆU (THÊM/SỬA) 🚀 ĐÃ THAY BẰNG SWEETALERT2
   const handleSubmit = (e) => {
     e.preventDefault();
     const url = formData.id ? `http://localhost:8000/api/admin/exam-blocks/${formData.id}` : 'http://localhost:8000/api/admin/exam-blocks';
@@ -71,28 +72,71 @@ const ExamBlockManagement = () => {
       body: JSON.stringify(formData)
     }).then(res => {
       if(res.ok) {
-        alert("✅ Lưu thành công!");
+        Swal.fire({
+          title: 'Thành công!',
+          text: 'Đã lưu thông tin Khối thi.',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false
+        });
         setShowFormModal(false);
         fetchBlocks();
       } else {
-        alert("❌ Có lỗi xảy ra, vui lòng kiểm tra lại (mã khối có thể đã bị trùng).");
+        Swal.fire({
+          title: 'Lỗi!',
+          text: 'Có lỗi xảy ra, vui lòng kiểm tra lại (mã khối có thể đã bị trùng).',
+          icon: 'error',
+          confirmButtonColor: '#4f46e5'
+        });
       }
+    }).catch(err => {
+      Swal.fire('Lỗi kết nối!', 'Không thể kết nối đến máy chủ.', 'error');
     });
   };
 
-  // XÓA
+  // XÓA 🚀 ĐÃ THAY BẰNG SWEETALERT2
   const handleDelete = (id, usage) => {
     if (usage > 0) {
-      alert("⚠️ Không thể xóa Khối thi này vì đang có ngành học sử dụng. Vui lòng gỡ khối này khỏi các ngành trước khi xóa!");
+      Swal.fire({
+        title: 'Không thể xóa!',
+        text: 'Đang có ngành học sử dụng khối này. Vui lòng gỡ khối khỏi các ngành trước khi xóa!',
+        icon: 'warning',
+        confirmButtonColor: '#f59e0b' // Màu cam cảnh báo
+      });
       return;
     }
     
-    if(window.confirm(`⚠️ Bạn có chắc muốn xóa khối ${id} không?`)) {
-      fetch(`http://localhost:8000/api/admin/exam-blocks/${id}`, { 
-        method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } 
-      })
-      .then(res => { if(res.ok) fetchBlocks(); });
-    }
+    Swal.fire({
+      title: 'Xác nhận xóa?',
+      text: `Bạn có chắc chắn muốn xóa khối ${id} không? Dữ liệu không thể khôi phục!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: 'Xóa ngay',
+      cancelButtonText: 'Hủy bỏ',
+      borderRadius: '16px'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch(`http://localhost:8000/api/admin/exam-blocks/${id}`, { 
+          method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } 
+        })
+        .then(res => { 
+          if(res.ok) {
+            Swal.fire({
+              title: 'Đã xóa!',
+              text: 'Khối thi đã được xóa thành công.',
+              icon: 'success',
+              timer: 1500,
+              showConfirmButton: false
+            });
+            fetchBlocks(); 
+          }
+        }).catch(err => {
+          Swal.fire('Lỗi kết nối!', 'Không thể xóa bản ghi.', 'error');
+        });
+      }
+    });
   };
 
   return (
@@ -174,7 +218,6 @@ const ExamBlockManagement = () => {
             <h3 style={{display: 'flex', alignItems: 'center', gap: '8px', marginTop: 0, fontSize: '16px', color: '#0f172a'}}><BookOpen size={18} color="#3b82f6"/> Hướng dẫn</h3>
             <ul style={{listStyle: 'none', padding: 0, fontSize: '13px', color: '#475569', lineHeight: '1.6'}}>
               <li style={{display: 'flex', gap: '8px', marginBottom: '10px'}}><CheckCircle size={16} color="#10b981" style={{flexShrink: 0, marginTop: '2px'}}/> Mã khối (A00, B00...) đóng vai trò là Khóa chính trong CSDL.</li>
-              {/* 🚀 Đã cập nhật lại nội dung hướng dẫn cho phù hợp */}
               <li style={{display: 'flex', gap: '8px', marginBottom: '10px'}}><CheckCircle size={16} color="#10b981" style={{flexShrink: 0, marginTop: '2px'}}/> Phân loại khối thi (Tự nhiên, Xã hội) giúp hệ thống phân tích và gợi ý ngành nghề chính xác hơn.</li>
               <li style={{display: 'flex', gap: '8px'}}><AlertCircle size={16} color="#f59e0b" style={{flexShrink: 0, marginTop: '2px'}}/> Không thể xóa khối thi nếu có trên 0 ngành học đang sử dụng.</li>
             </ul>

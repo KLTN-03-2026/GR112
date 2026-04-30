@@ -122,3 +122,47 @@
 .ac-btn-edit:hover { background: #3b82f6; color: white; }
 .ac-btn-delete { background: #fef2f2; color: #ef4444; }
 .ac-btn-delete:hover { background: #ef4444; color: white; }
+
+/* --- MODAL NHẬP LIỆU BÀI VIẾT --- */
+.ac-modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
+  display: flex; justify-content: center; align-items: center; z-index: 1000;
+}
+.ac-modal-content {
+  background: white; width: 600px; max-width: 90%; border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); overflow: hidden;
+}
+.ac-modal-header {
+  padding: 20px 25px; border-bottom: 1px solid #e2e8f0;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.ac-modal-header h2 { margin: 0; font-size: 1.2rem; color: #0f172a; }
+.ac-close-btn { background: transparent; border: none; cursor: pointer; color: #64748b; transition: 0.2s; }
+.ac-close-btn:hover { color: #ef4444; }
+
+.ac-modal-body { padding: 25px; max-height: 70vh; overflow-y: auto; }
+.ac-form-group { margin-bottom: 15px; }
+.ac-form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 8px; }
+.ac-input {
+  width: 100%; padding: 10px 15px; border: 1px solid #cbd5e1; border-radius: 8px;
+  font-size: 0.95rem; outline: none; box-sizing: border-box; transition: 0.2s;
+}
+.ac-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px #eff6ff; }
+
+.ac-modal-footer {
+  padding: 15px 25px; background: #f8fafc; border-top: 1px solid #e2e8f0;
+  display: flex; justify-content: flex-end; gap: 10px;
+}
+.ac-btn-cancel { padding: 10px 20px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; cursor: pointer; font-weight: 600; color: #475569; }
+.ac-btn-save { padding: 10px 20px; border-radius: 8px; border: none; background: #3b82f6; color: white; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+.ac-btn-save:hover { background: #2563eb; }
+.ac-category-badge.cam-nang { background: #e0e7ff; color: #4f46e5; }
+.ac-category-badge.tuyen-sinh { background: #ffedd5; color: #c2410c; }
+.ac-category-badge.hoc-bong { background: #dcfce3; color: #047857; }
+
+/* 🚀 THÊM MÀU CHO 4 CHUYÊN MỤC MỚI VÀO ĐÂY: */
+.ac-category-badge.tin-tuc { background: #fce7f3; color: #be123c; } /* Màu Hồng đỏ */
+.ac-category-badge.review-truong { background: #f3e8ff; color: #7e22ce; } /* Màu Tím */
+.ac-category-badge.goc-sinh-vien { background: #fef9c3; color: #b45309; } /* Màu Vàng cam */
+.ac-category-badge.tai-lieu { background: #e0f2fe; color: #0369a1; } /* Màu Xanh dương nhạt */

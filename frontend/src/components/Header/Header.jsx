@@ -45,6 +45,9 @@ const Header = () => {
     background: isActive(path) ? 'rgba(255,255,255,0.2)' : ''
   });
 
+  // 🚀 LẤY TÊN HIỂN THỊ ĐỂ LÀM SEED TẠO AVATAR
+  const username = user?.email ? user.email.split('@')[0] : "User";
+
   return (
     <header className="navbar">
       <Link to="/" className="nav-brand" style={{textDecoration: 'none'}}>ConsulTing</Link>
@@ -137,17 +140,27 @@ const Header = () => {
               </button>
             )}
 
-            {/* DROPDOWN USER */}
+            {/* DROPDOWN USER ẨN TÊN, CHỈ ĐỂ AVATAR */}
             <div className="custom-dropdown">
-              <button className="pill-btn user-logged-btn" type="button" onClick={() => toggleDropdown('user')}>
-                <span>{user.email ? user.email.split('@')[0] : "User"}</span>
-                <i className="fas fa-chevron-down" style={{marginLeft: '4px'}}></i>
+              <button 
+                className="pill-btn user-logged-btn" 
+                type="button" 
+                onClick={() => toggleDropdown('user')}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '4px 10px 4px 4px', borderRadius: '30px' }} 
+              >
+                {/* 🚀 AVATAR TỰ ĐỘNG GENERATE (Phóng to lên xíu cho đẹp) */}
+                <img 
+                  src={`https://api.dicebear.com/7.x/adventurer/svg?seed=${username}`} 
+                  alt="Avatar" 
+                  style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#e2e8f0', objectFit: 'cover' }} 
+                />
+                <i className="fas fa-chevron-down" style={{fontSize: '12px', color: '#64748b', marginRight: '2px'}}></i>
               </button>
               
               <div className={`dropdown-menu ${activeDropdown === 'user' ? 'show' : ''}`}>
                 <div style={{ padding: '15px', backgroundColor: '#f8f9fa', borderBottom: '1px solid #eee', marginBottom: '5px' }}>
                    <strong style={{ display: 'block', color: '#2c3e50', fontSize: '15px' }}>
-                      {user.fullName || (user.email ? user.email.split('@')[0] : "Người dùng")}
+                      {user.fullName || username}
                    </strong>
                    <span style={{ fontSize: '12px', color: '#7f8c8d' }}>
                       {user.role === 'mentor' 
@@ -168,11 +181,9 @@ const Header = () => {
                     <Link to="/favorites" onClick={() => setActiveDropdown(null)}>
                       <i className="fas fa-heart"></i> Trường yêu thích
                     </Link>
-                    
-                    {/* 🚀 NÚT LỊCH SỬ ĐẶT LỊCH ĐƯỢC THÊM VÀO ĐÂY */}
                     <Link to="/booking-history" onClick={() => setActiveDropdown(null)}>
-  <i className="fas fa-history" style={{color: '#3b82f6'}}></i> Lịch sử đặt lịch
-</Link>
+                      <i className="fas fa-history" style={{color: '#3b82f6'}}></i> Lịch sử đặt lịch
+                    </Link>
                   </>
                 )}
 

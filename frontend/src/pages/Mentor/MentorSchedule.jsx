@@ -1,7 +1,7 @@
 // src/pages/Mentor/MentorSchedule.jsx
 import React, { useState, useEffect } from 'react';
-// 🚀 1. ĐÃ THÊM IMPORT ICON "Video" Ở ĐÂY
 import { Calendar, Clock, CheckCircle, XCircle, Plus, Trash2, Video } from 'lucide-react';
+import Swal from 'sweetalert2'; // 🚀 IMPORT VŨ KHÍ SWEETALERT2
 import './MentorSchedule.css';
 
 const MentorSchedule = () => {
@@ -44,8 +44,16 @@ const MentorSchedule = () => {
     }
   };
 
+  // 🚀 ĐÃ THAY BẰNG SWEETALERT2
   const handleAddSlot = async () => {
-    if (!newDate || !newTime) return alert("Vui lòng chọn đầy đủ ngày và giờ!");
+    if (!newDate || !newTime) {
+      return Swal.fire({
+        title: 'Thiếu thông tin!',
+        text: 'Vui lòng chọn đầy đủ ngày và giờ rảnh.',
+        icon: 'warning',
+        confirmButtonColor: '#fbbf24'
+      });
+    }
 
     try {
       const token = localStorage.getItem('token');
@@ -60,65 +68,110 @@ const MentorSchedule = () => {
       const data = await res.json();
       
       if (res.ok) {
-        alert("Đã thêm giờ rảnh thành công!");
+        Swal.fire({
+          title: 'Thành công!',
+          text: 'Đã mở khung giờ rảnh mới.',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false
+        });
         setNewDate(''); 
         setNewTime('');
         fetchSlots(); 
       } else {
-        alert(data.error || "Có lỗi xảy ra!");
+        Swal.fire('Lỗi!', data.error || "Có lỗi xảy ra!", 'error');
       }
     } catch (error) {
-      alert("Không thể kết nối đến máy chủ.");
+      Swal.fire('Lỗi kết nối!', 'Không thể kết nối đến máy chủ.', 'error');
     }
   };
 
+  // 🚀 ĐÃ THAY BẰNG SWEETALERT2
   const handleDeleteSlot = async (slotId) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa khung giờ này?")) return;
-
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:8000/api/mentor/slots/${slotId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        setSlots(slots.filter(slot => slot.id !== slotId));
-      } else {
-        alert(data.error || "Không thể xóa khung giờ này.");
+    Swal.fire({
+      title: 'Xóa khung giờ?',
+      text: "Bạn chắc chắn muốn đóng khung giờ rảnh này chứ?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: 'Xóa ngay',
+      cancelButtonText: 'Hủy',
+      borderRadius: '16px'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await fetch(`http://localhost:8000/api/mentor/slots/${slotId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            Swal.fire({
+              title: 'Đã xóa!',
+              icon: 'success',
+              timer: 1000,
+              showConfirmButton: false
+            });
+            setSlots(slots.filter(slot => slot.id !== slotId));
+          } else {
+            Swal.fire('Lỗi!', "Không thể xóa khung giờ này.", 'error');
+          }
+        } catch (error) {
+          Swal.fire('Lỗi!', 'Lỗi kết nối máy chủ.', 'error');
+        }
       }
-    } catch (error) {
-      alert("Lỗi kết nối máy chủ.");
-    }
+    });
   };
 
+  // 🚀 ĐÃ THAY BẰNG SWEETALERT2
   const handleUpdateBooking = async (bookingId, status) => {
-    const actionName = status === 'confirmed' ? "chấp nhận" : "từ chối";
-    if (!window.confirm(`Bạn có chắc chắn muốn ${actionName} lịch hẹn này?`)) return;
+    const isConfirming = status === 'confirmed';
+    const actionText = isConfirming ? "Chấp nhận" : "Từ chối";
+    const actionColor = isConfirming ? '#10b981' : '#ef4444';
 
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:8000/api/mentor/bookings/${bookingId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ status })
-      });
-      const data = await res.json();
+    Swal.fire({
+      title: `${actionText} lịch hẹn?`,
+      text: `Bạn chắc chắn muốn ${actionText.toLowerCase()} buổi tư vấn này chứ?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: actionColor,
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: actionText,
+      cancelButtonText: 'Quay lại',
+      borderRadius: '16px'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await fetch(`http://localhost:8000/api/mentor/bookings/${bookingId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ status })
+          });
+          const data = await res.json();
 
-      if (res.ok) {
-        alert(data.message);
-        fetchBookings(); 
-        fetchSlots();    
-      } else {
-        alert(data.error || "Có lỗi xảy ra!");
+          if (res.ok) {
+            Swal.fire({
+              title: 'Thành công!',
+              text: data.message,
+              icon: 'success',
+              timer: 1500,
+              showConfirmButton: false
+            });
+            fetchBookings(); 
+            fetchSlots();    
+          } else {
+            Swal.fire('Lỗi!', data.error || "Có lỗi xảy ra!", 'error');
+          }
+        } catch (error) {
+          Swal.fire('Lỗi!', 'Lỗi kết nối máy chủ.', 'error');
+        }
       }
-    } catch (error) {
-      alert("Lỗi kết nối máy chủ.");
-    }
+    });
   };
 
   return (
@@ -176,47 +229,36 @@ const MentorSchedule = () => {
                         </button>
                       </>
                     ) : item.status === 'confirmed' ? (
-                      /* 🚀 2. GIAO DIỆN MỚI KHI ĐÃ CHỐT LỊCH (CÓ NÚT VÀO PHÒNG) */
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
                         <span className="ms-status-confirmed" style={{ color: '#10b981', fontWeight: 'bold', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <CheckCircle size={14}/> Đã chốt lịch
                         </span>
                         
                         <button 
-  className="ms-btn-enter-room"
-  /* 🚀 THAY ĐỔI ONCLICK Ở ĐÂY */
-  onClick={() => {
-    // Tạo tên phòng duy nhất dựa vào ID của lịch hẹn
-    // Thay vì tự gõ tay, hãy dùng chuẩn công thức này cho cả 2 bên:
-const roomName = `MindConnect_Room_${item.id}`;
-const url = `https://meet.jit.si/${roomName}`;
-window.open(url, '_blank');
-    
-    // Mở phòng Jitsi sang một tab mới
-    window.open(url, '_blank');
-  }}
-  style={{ 
-    background: '#3b82f6', 
-    color: 'white', 
-    border: 'none', 
-    padding: '8px 16px', 
-    borderRadius: '6px', 
-    display: 'flex', 
-    alignItems: 'center', 
-    gap: '6px', 
-    cursor: 'pointer', 
-    fontWeight: 'bold',
-    boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)',
-    transition: 'all 0.2s'
-  }}
-  onMouseOver={(e) => e.currentTarget.style.opacity = '0.9'}
-  onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
->
-  <Video size={16}/> Vào phòng tư vấn
-</button>
+                          className="ms-btn-enter-room"
+                          onClick={() => {
+                            const roomName = `MindConnect_Room_${item.id}`;
+                            const url = `https://meet.jit.si/${roomName}`;
+                            window.open(url, '_blank');
+                          }}
+                          style={{ 
+                            background: '#3b82f6', 
+                            color: 'white', 
+                            border: 'none', 
+                            padding: '8px 16px', 
+                            borderRadius: '6px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '6px', 
+                            cursor: 'pointer', 
+                            fontWeight: 'bold',
+                            boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
+                          }}
+                        >
+                          <Video size={16}/> Vào phòng tư vấn
+                        </button>
                       </div>
                     ) : (
-                      /* 🚀 Xử lý thêm trường hợp nếu từ chối */
                       <span className="ms-status-rejected" style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <XCircle size={14}/> Đã từ chối
                       </span>

@@ -9,12 +9,18 @@ const Favorites = () => {
   const [allUnis, setAllUnis] = useState([]);
   const currentUserId = 1; // Giả lập User ID đang đăng nhập
 
+  // 🚀 ĐÃ SỬA: KHỚP 100% VỚI TÊN CỘT TRONG DATABASE MYSQL CỦA SẾP
   const formatSchoolData = (uni) => ({
     id: uni.id,
     name: uni.school_name || uni.name,
     logo: uni.school_logo || `https://images.unsplash.com/photo-${1523050854058 + uni.id}-8df90110c9f1?w=100&q=80`,
     location: uni.ranking_note ? uni.ranking_note.split(' - ')[1] : 'Đang cập nhật',
-    score: uni.score_thpt_last_year || uni.base_score || 'N/A',
+    
+    // Ánh xạ chính xác các loại điểm từ DB
+    scoreTHPT: uni.score_thpt_last_year || 'N/A',  // Điểm thi THPT
+    scoreHocBa: uni.base_score || 'N/A',           // Điểm Học bạ
+    scoreDGNL: uni.score_dgnl || 'N/A',            // Điểm ĐGNL
+    
     tuition: uni.tuition_fee || 'Đang cập nhật',
     major: uni.major_code ? `${uni.major_name} (${uni.major_code})` : (uni.major_name || 'Đa ngành'),
     majorNameOnly: uni.major_name || 'Đa ngành',
@@ -22,7 +28,6 @@ const Favorites = () => {
   });
 
   useEffect(() => {
-    // 1. Gọi API lấy list Favorite từ MYSQL
     const fetchFavorites = async () => {
       try {
         const res = await axios.get(`http://localhost:8000/api/favorites/${currentUserId}`);
@@ -33,7 +38,6 @@ const Favorites = () => {
       }
     };
 
-    // 2. Gọi API lấy All Schools để làm tính năng AI Gợi ý
     const fetchAll = async () => {
       try {
         const res = await axios.get('http://localhost:8000/api/universities');
@@ -47,21 +51,18 @@ const Favorites = () => {
     fetchAll();
   }, []);
 
-  // Xóa tim lưu thẳng xuống MYSQL
   const handleRemoveFavorite = async (id) => {
     try {
       await axios.post('http://localhost:8000/api/favorites/toggle', {
         user_id: currentUserId,
         university_id: id
       });
-      // Cập nhật lại giao diện
       setFavoriteSchools(favoriteSchools.filter(school => school.id !== id));
     } catch (error) {
       console.error("Lỗi khi xóa yêu thích:", error);
     }
   };
 
-  // Thêm tim từ gợi ý AI lưu thẳng xuống MYSQL
   const handleAddSuggestion = async (school) => {
     try {
       await axios.post('http://localhost:8000/api/favorites/toggle', {
@@ -74,15 +75,14 @@ const Favorites = () => {
     }
   };
 
-  // Hàm xuất file Excel (Giữ nguyên)
   const handleExportReport = () => {
     if (favoriteSchools.length === 0) {
       alert("Danh sách yêu thích đang trống. Không có dữ liệu để xuất!");
       return;
     }
-    let csvContent = "\uFEFFSTT,Tên Trường,Ngành Học,Khu Vực,Khối Xét Tuyển,Điểm Chuẩn THPT,Học Phí Dự Kiến\n";
+    let csvContent = "\uFEFFSTT,Tên Trường,Ngành Học,Khu Vực,Khối Xét Tuyển,Điểm THPT,Điểm Học Bạ,Điểm ĐGNL,Học Phí Dự Kiến\n";
     favoriteSchools.forEach((school, index) => {
-      csvContent += `"${index + 1}","${school.name}","${school.major}","${school.location}","${school.block}","${school.score}","${school.tuition}"\n`;
+      csvContent += `"${index + 1}","${school.name}","${school.major}","${school.location}","${school.block}","${school.scoreTHPT}","${school.scoreHocBa}","${school.scoreDGNL}","${school.tuition}"\n`;
     });
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -93,7 +93,8 @@ const Favorites = () => {
 
   const overallMatch = useMemo(() => {
     if (favoriteSchools.length === 0) return 0;
-    const avgScore = favoriteSchools.reduce((acc, curr) => acc + (parseFloat(curr.score) || 20), 0) / favoriteSchools.length;
+    // Dùng điểm THPT để phân tích AI
+    const avgScore = favoriteSchools.reduce((acc, curr) => acc + (parseFloat(curr.scoreTHPT) || 20), 0) / favoriteSchools.length;
     return Math.min(98, Math.max(65, Math.round((avgScore / 30) * 100) + 5));
   }, [favoriteSchools]);
 
@@ -155,13 +156,32 @@ const Favorites = () => {
                     <p><MapPin size={14} /> {school.location} • Ngành: <strong>{school.major}</strong></p>
                   </div>
                 </div>
-                <div className="school-stats-row">
-                  <div className="stat-box"><span>ĐIỂM CHUẨN</span><strong style={{color: '#ef4444'}}>{school.score}</strong></div>
-                  <div className="stat-box"><span>KHỐI XÉT TUYỂN</span><strong className="text-blue" style={{background: '#f1f5f9', padding: '2px 8px', borderRadius: '4px'}}>{school.block}</strong></div>
-                  <div className="stat-box"><span>HỌC PHÍ</span><strong>{school.tuition}</strong></div>
-                  <div className="school-actions">
+                
+                <div className="school-stats-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '15px' }}>
+                  <div className="stat-box" style={{ flex: '1' }}>
+                    <span style={{ fontSize: '10px', color: '#64748b' }}>Đ.THPT</span>
+                    <strong style={{color: '#ef4444', fontSize: '15px'}}>{school.scoreTHPT}</strong>
+                  </div>
+                  <div className="stat-box" style={{ flex: '1' }}>
+                    <span style={{ fontSize: '10px', color: '#64748b' }}>HỌC BẠ</span>
+                    <strong style={{color: '#f59e0b', fontSize: '15px'}}>{school.scoreHocBa}</strong>
+                  </div>
+                  <div className="stat-box" style={{ flex: '1' }}>
+                    <span style={{ fontSize: '10px', color: '#64748b' }}>ĐGNL</span>
+                    <strong style={{color: '#8b5cf6', fontSize: '15px'}}>{school.scoreDGNL}</strong>
+                  </div>
+                  <div className="stat-box" style={{ flex: '1' }}>
+                    <span style={{ fontSize: '10px', color: '#64748b' }}>KHỐI</span>
+                    <strong className="text-blue" style={{background: '#f1f5f9', padding: '2px 8px', borderRadius: '4px', fontSize: '13px'}}>{school.block}</strong>
+                  </div>
+                  <div className="stat-box" style={{ flex: '1.5' }}>
+                    <span style={{ fontSize: '10px', color: '#64748b' }}>HỌC PHÍ</span>
+                    <strong style={{fontSize: '13px'}}>{school.tuition}</strong>
+                  </div>
+
+                  <div className="school-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <Link to={`/detail/${school.id}`} className="btn-light-sm" style={{textDecoration: 'none'}}>Chi tiết</Link>
-                    <button onClick={() => handleRemoveFavorite(school.id)} className="btn-outline-sm" style={{color: '#ef4444', borderColor: '#fecaca', background: '#fef2f2', cursor: 'pointer'}}><Trash2 size={14} /> Xóa</button>
+                    <button onClick={() => handleRemoveFavorite(school.id)} className="btn-outline-sm" style={{color: '#ef4444', borderColor: '#fecaca', background: '#fef2f2', cursor: 'pointer', padding: '6px 10px'}}><Trash2 size={14} /></button>
                   </div>
                 </div>
               </div>
@@ -185,7 +205,7 @@ const Favorites = () => {
                   <div className="suggest-icon"><img src={school.logo} alt="logo" style={{width: '100%', height: '100%', objectFit: 'contain', borderRadius: '50%'}}/></div>
                   <div className="suggest-info" style={{flex: 1, paddingRight: '10px'}}>
                     <strong style={{display: 'block', fontSize: '0.9rem', marginBottom: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '180px'}} title={school.name}>{school.name}</strong>
-                    <span style={{fontSize: '0.75rem', color: '#64748b'}}>Phù hợp {95 - i * 2}% • {school.score} điểm</span>
+                    <span style={{fontSize: '0.75rem', color: '#64748b'}}>Phù hợp {95 - i * 2}% • THPT: {school.scoreTHPT}</span>
                   </div>
                   <button className="add-suggest" onClick={() => handleAddSuggestion(school)} title="Thêm vào yêu thích"><PlusCircle size={22} color="#4f46e5" /></button>
                 </div>
@@ -195,7 +215,6 @@ const Favorites = () => {
         </aside>
       </div>
 
-      {/* BẢNG SO SÁNH NHANH BÊN DƯỚI (Giữ nguyên như cũ) */}
       {favoriteSchools.length > 0 && (
         <section className="quick-compare-section">
           <div className="section-header">
@@ -214,8 +233,16 @@ const Favorites = () => {
               </thead>
               <tbody>
                 <tr style={{borderBottom: '1px solid #f1f5f9'}}>
-                  <td style={{padding: '15px', color: '#64748b', position: 'sticky', left: 0, background: 'white', zIndex: 1}}>Điểm chuẩn</td>
-                  {favoriteSchools.map(school => (<td key={school.id} style={{padding: '15px'}}><strong style={{color: '#ef4444'}}>{school.score}</strong></td>))}
+                  <td style={{padding: '15px', color: '#64748b', position: 'sticky', left: 0, background: 'white', zIndex: 1}}>Điểm THPT</td>
+                  {favoriteSchools.map(school => (<td key={school.id} style={{padding: '15px'}}><strong style={{color: '#ef4444'}}>{school.scoreTHPT}</strong></td>))}
+                </tr>
+                <tr style={{borderBottom: '1px solid #f1f5f9'}}>
+                  <td style={{padding: '15px', color: '#64748b', position: 'sticky', left: 0, background: 'white', zIndex: 1}}>Điểm Học bạ</td>
+                  {favoriteSchools.map(school => (<td key={school.id} style={{padding: '15px'}}><strong style={{color: '#f59e0b'}}>{school.scoreHocBa}</strong></td>))}
+                </tr>
+                <tr style={{borderBottom: '1px solid #f1f5f9'}}>
+                  <td style={{padding: '15px', color: '#64748b', position: 'sticky', left: 0, background: 'white', zIndex: 1}}>Điểm ĐGNL</td>
+                  {favoriteSchools.map(school => (<td key={school.id} style={{padding: '15px'}}><strong style={{color: '#8b5cf6'}}>{school.scoreDGNL}</strong></td>))}
                 </tr>
                 <tr style={{borderBottom: '1px solid #f1f5f9'}}>
                   <td style={{padding: '15px', color: '#64748b', position: 'sticky', left: 0, background: 'white', zIndex: 1}}>Khối xét tuyển</td>
@@ -228,10 +255,11 @@ const Favorites = () => {
                 <tr>
                   <td style={{padding: '15px', color: '#64748b', position: 'sticky', left: 0, background: 'white', zIndex: 1}}>Phân tích AI</td>
                   {favoriteSchools.map(school => {
-                    const score = parseFloat(school.score);
+                    const score = parseFloat(school.scoreTHPT) || 0; 
                     let bBg = "#d1fae5"; let bCol = "#065f46"; let bTxt = "AN TOÀN";
                     if (score >= 26.5) { bBg = "#fef2f2"; bCol = "#991b1b"; bTxt = "THỬ THÁCH"; } 
-                    else if (score < 24.5) { bBg = "#e0e7ff"; bCol = "#3730a3"; bTxt = "KHUYÊN DÙNG"; }
+                    else if (score > 0 && score < 24.5) { bBg = "#e0e7ff"; bCol = "#3730a3"; bTxt = "KHUYÊN DÙNG"; }
+                    else if (score === 0) { bBg = "#f1f5f9"; bCol = "#475569"; bTxt = "ĐANG CẬP NHẬT"; }
                     return (
                       <td key={school.id} style={{padding: '15px'}}>
                         <span style={{background: bBg, color: bCol, padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 'bold'}}>{bTxt}</span>

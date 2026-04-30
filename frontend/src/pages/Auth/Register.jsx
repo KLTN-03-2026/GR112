@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom"; // ĐÃ THÊM: Import Link ở đây
-import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom"; 
+import { Mail, ArrowLeft, CheckCircle, Eye, EyeOff, Loader2 } from "lucide-react"; // 🚀 Thêm icon
+import Swal from "sweetalert2"; // 🚀 Thêm thư viện thông báo xịn
 import "./Register.css";
 
 export default function Register() {
@@ -15,29 +16,71 @@ export default function Register() {
   const [timer, setTimer] = useState(0);
   const [canResend, setCanResend] = useState(false);
 
-  // Dùng Ref để điều khiển focus ô OTP chính xác hơn
+  // 🚀 State cho ẩn/hiện mật khẩu
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
   const otpRefs = useRef([]);
   const navigate = useNavigate();
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
+  // 🚀 Hàm kiểm tra Email chuẩn
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(String(email).toLowerCase());
+  };
+
   const handleNextStep = async (e) => {
     e.preventDefault();
-    if (!name || !email || !password || !confirm) {
+    setMessage("");
+
+    const cleanEmail = email.trim();
+    const cleanName = name.trim();
+
+    if (!cleanName || !cleanEmail || !password || !confirm) {
       setMessage("Vui lòng nhập đầy đủ thông tin");
       return;
     }
-    if (password !== confirm) {
-      setMessage("Mật khẩu xác nhận không khớp");
+
+    if (!validateEmail(cleanEmail)) {
+      setMessage("Định dạng email không hợp lệ!");
       return;
     }
+
+    // 🚀 BẮT ĐẦU: BẢO MẬT CHUẨN NGÂN HÀNG 🚀
+    const hasUpperCase = /[A-Z]/.test(password); 
+    const hasLowerCase = /[a-z]/.test(password); 
+    const hasNumber = /[0-9]/.test(password);    
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<> ]/.test(password); 
+
+    if (password.length < 8 || password.length > 20) {
+      setMessage("Mật khẩu phải từ 8 đến 20 ký tự!");
+      return;
+    }
+
+    if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Mật khẩu chưa đủ mạnh',
+        text: 'Để an toàn, mật khẩu phải bao gồm: Chữ hoa, chữ thường, số và ký tự đặc biệt (!@#...).',
+        confirmButtonColor: '#3085d6'
+      });
+      return;
+    }
+    // 🚀 KẾT THÚC: BẢO MẬT CHUẨN NGÂN HÀNG 🚀
+
+    if (password !== confirm) {
+      setMessage("Mật khẩu xác nhận không khớp!");
+      return;
+    }
+
     setLoading(true);
-    setMessage("");
 
     try {
       const response = await fetch(`${API_URL}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name: cleanName, email: cleanEmail, password }),
       });
       const data = await response.json();
 
@@ -61,7 +104,6 @@ export default function Register() {
     newOtp[index] = value.substring(value.length - 1);
     setOtp(newOtp);
 
-    // Tự động nhảy sang ô tiếp theo
     if (value && index < 5) {
       otpRefs.current[index + 1].focus();
     }
@@ -87,7 +129,7 @@ export default function Register() {
       if (response.ok) {
         setTimer(60);
         setCanResend(false);
-        setMessage("OTP mới đã được gửi!");
+        Swal.fire('Thành công', 'OTP mới đã được gửi vào Email của bạn!', 'success');
       } else {
         setMessage(data.error || 'Không thể gửi lại OTP');
       }
@@ -157,32 +199,75 @@ export default function Register() {
             <h2 className="title-left">Đăng ký tài khoản</h2>
             <div className="form-group">
               <label>Họ và tên</label>
-              <input type="text" placeholder="Nguyễn Văn A" value={name} onChange={(e) => setName(e.target.value)} required />
+              <input type="text" placeholder="Nguyễn Văn A" value={name} onChange={(e) => setName(e.target.value)} disabled={loading} required />
             </div>
+            
             <div className="form-group">
               <label>Địa chỉ Email</label>
-              <input type="email" placeholder="email@gmail.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <input type="text" placeholder="email@gmail.com" value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} required />
             </div>
+            
+            {/* 🚀 CẬP NHẬT: Input Mật khẩu có nút Tắt/Mở */}
             <div className="form-group">
               <label>Mật khẩu</label>
-              <input type="text" placeholder="Nhập mật khẩu của bạn..." value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <div className="input-wrapper" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  placeholder="Nhập mật khẩu của bạn..." 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  disabled={loading} 
+                  required 
+                  style={{ width: '100%', paddingRight: '40px' }}
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{ position: 'absolute', right: '10px', background: 'none', border: 'none', cursor: 'pointer', color: '#666' }}
+                >
+                  {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+                </button>
+              </div>
             </div>
+            
+            {/* 🚀 CẬP NHẬT: Input Xác nhận Mật khẩu có nút Tắt/Mở */}
             <div className="form-group">
               <label>Nhập lại mật khẩu</label>
-              <input type="text" placeholder="Nhập lại mật khẩu..." value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
+              <div className="input-wrapper" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <input 
+                  type={showConfirm ? "text" : "password"} 
+                  placeholder="Nhập lại mật khẩu..." 
+                  value={confirm} 
+                  onChange={(e) => setConfirm(e.target.value)} 
+                  disabled={loading} 
+                  required 
+                  style={{ width: '100%', paddingRight: '40px' }}
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  style={{ position: 'absolute', right: '10px', background: 'none', border: 'none', cursor: 'pointer', color: '#666' }}
+                >
+                  {showConfirm ? <Eye size={18} /> : <EyeOff size={18} />}
+                </button>
+              </div>
             </div>
             
             <button type="submit" className="submit-btn purple" disabled={loading}>
-              {loading ? 'Đang gửi...' : 'Đăng ký'}
+              {loading ? (
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <Loader2 className="spinner" size={20} /> Đang xử lý...
+                </span>
+              ) : (
+                'Đăng ký'
+              )}
             </button>
 
-            {/* ĐÃ THÊM: Nút quay lại trang chủ bằng Link */}
             <div style={{ textAlign: "center", marginTop: "20px" }}>
               <Link to="/" style={{ color: "#f97316", textDecoration: "none", fontWeight: "600", fontSize: "14px" }}>
                 ← Quay lại trang chủ
               </Link>
             </div>
-            
           </form>
         )}
 
@@ -203,6 +288,7 @@ export default function Register() {
                   ref={(el) => (otpRefs.current[index] = el)}
                   onChange={(e) => handleChangeOtp(e.target.value, index)}
                   onKeyDown={(e) => handleKeyDownOtp(e, index)}
+                  disabled={loading}
                 />
               ))}
             </div>
@@ -213,8 +299,12 @@ export default function Register() {
               <button className="btn-resend" onClick={handleResendOtp} disabled={!canResend || loading}>Gửi lại mã</button>
             )}
 
-            <button className="submit-btn purple" onClick={handleVerifyOtp} disabled={loading}>Xác nhận</button>
-            <button className="btn-back" onClick={() => setStep(1)}><ArrowLeft size={16}/> Quay lại thông tin</button>
+            <button className="submit-btn purple" onClick={handleVerifyOtp} disabled={loading}>
+              {loading ? 'Đang xác thực...' : 'Xác nhận'}
+            </button>
+            <button className="btn-back" onClick={() => setStep(1)} disabled={loading}>
+              <ArrowLeft size={16}/> Quay lại thông tin
+            </button>
           </div>
         )}
 

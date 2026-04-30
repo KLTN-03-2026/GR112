@@ -1,6 +1,7 @@
 // src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import Swal from 'sweetalert2'; // 🚀 IMPORT VŨ KHÍ SWEETALERT2
 import { mockUniversities } from './utils/data';
 
 // Import các component dùng chung
@@ -32,6 +33,7 @@ import Mentors from './pages/Home/Mentors';
 import RoiCalculator from './pages/Home/RoiCalculator';
 import Orientation from './pages/Home/Orientation/Orientation';
 import BookingHistory from './pages/Home/BookingHistory';
+import ArticleDetail from './pages/Home/ArticleDetail';
 
 // Import các trang Admin
 import AdminLayout from './pages/Admin/AdminLayout';
@@ -46,9 +48,25 @@ import UserManagement from './pages/Admin/UserManagement';
 import BookingManagement from './pages/Admin/BookingManagement';
 import MentorManagement from './pages/Admin/MentorManagement';
 import AdminContent from './pages/Admin/AdminContent';
+import AdminSettings from './pages/Admin/AdminSettings';
+
 // Import các trang Mentor (Đã chuyển sang thư mục Mentor)
 import MentorLayout from './pages/Mentor/MentorLayout';
 import MentorSchedule from './pages/Mentor/MentorSchedule';
+
+// =========================================================
+// 🚀 GHI ĐÈ HÀM ALERT MẶC ĐỊNH CỦA TRÌNH DUYỆT TỚI TOÀN DỰ ÁN
+// =========================================================
+window.alert = (message) => {
+  Swal.fire({
+    title: 'Thông báo',
+    text: message,
+    icon: 'info',
+    confirmButtonColor: '#4f46e5', // Màu xanh tím chủ đạo
+    confirmButtonText: 'Đã hiểu',
+    borderRadius: '16px'
+  });
+};
 
 // =========================================================
 // 1. HÀM PHÂN QUYỀN (CHẶN NGƯỜI DÙNG VÀO SAI TRANG)
@@ -104,7 +122,8 @@ const AppContent = () => {
           <Route path="/mentors" element={<Mentors />} />
           <Route path="/roi-calculator" element={<RoiCalculator />} />
           <Route path="/orientation" element={<Orientation />} />
-
+          <Route path="/article/:id" element={<ArticleDetail />} />
+ 
           {/* ==============================================
               NHÓM 2: USER (Học sinh đã đăng nhập mới dùng được)
               ============================================== */}
@@ -117,13 +136,13 @@ const AppContent = () => {
           <Route path="/chatbot" element={<ProtectedRoute allowedRoles={['user', 'admin']}><Chatbot /></ProtectedRoute>} />
           <Route path="/booking" element={<ProtectedRoute allowedRoles={['user', 'admin']}><Booking /></ProtectedRoute>} />
           <Route path="/booking-history" element={<ProtectedRoute allowedRoles={['user', 'admin']}><BookingHistory /></ProtectedRoute>} />
+          
           {/* ==============================================
               NHÓM 3: MENTOR (Khu vực dành riêng cho Cố vấn)
               ============================================== */}
           <Route path="/mentor" element={<ProtectedRoute allowedRoles={['mentor']}><MentorLayout /></ProtectedRoute>}>
             <Route index element={<Navigate to="schedule" replace />} /> {/* Tự động nhảy vào trang lịch */}
             <Route path="schedule" element={<MentorSchedule />} />
-
             <Route path="profile" element={<Profile />} />
           </Route>
 
@@ -142,7 +161,7 @@ const AppContent = () => {
             <Route path="bookings" element={<BookingManagement />} /> 
             <Route path="mentors" element={<MentorManagement />} /> 
             <Route path="admincontent" element={<AdminContent/>}/>
-
+            <Route path="settings" element={<AdminSettings />} />
           </Route>
           
         </Routes>

@@ -21,7 +21,7 @@ const Chatbot = () => {
   const [chatMessages, setChatMessages] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
-  // --- CÁC STATE CHO CHỨC NĂNG MỚI (TÌM KIẾM, XÓA, CÀI ĐẶT) ---
+  // --- CÁC STATE CHO CHỨC NĂNG MỚI ---
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); 
   const [isSearchActive, setIsSearchActive] = useState(false); 
   const [searchTerm, setSearchTerm] = useState(""); 
@@ -38,7 +38,7 @@ const Chatbot = () => {
     localStorage.setItem('chat_theme', theme);
   }, [theme]);
 
-  // --- 1. TẢI HỒ SƠ & LỊCH SỬ CHAT KHI MỞ TRANG ---
+  // --- 1. TẢI HỒ SƠ & LỊCH SỬ CHAT ---
   useEffect(() => {
     const fetchInitialData = async () => {
       if (savedUser && savedUser.id) {
@@ -47,14 +47,33 @@ const Chatbot = () => {
           let profileData = null;
           
           if (profileRes.ok) {
-            profileData = await profileRes.json();
+            const data = await profileRes.json();
+            // 🚀 ĐỒNG BỘ DỮ LIỆU ĐIỂM NGAY LÚC FETCH ĐỂ LÀM BẢNG 6 Ô
+            profileData = {
+              ...data,
+              displayScores: [
+                { label: 'Mục tiêu khối', value: data.target_block || '-' },
+                { label: 'Tổng THPT', value: data.scores?.THPT || data.exam_score || '-' },
+                { label: 'GPA Trung bình', value: data.scores?.GPA || data.gpa_10 || '-' },
+                { label: 'Thi ĐGNL', value: data.scores?.ĐGNL || data.dgnl_score || '-' },
+                { label: 'IELTS', value: data.scores?.IELTS || data.ielts_score || '-' },
+                { label: 'SAT', value: data.scores?.SAT || data.sat_score || '-' },
+              ]
+            };
           } else {
-            // Dự phòng nếu Backend lỗi thì vẫn hiện tên, lớp, trường từ localStorage
             profileData = { 
                 name: savedUser.full_name || savedUser.name || "Bạn", 
                 class: savedUser.className || "Chưa cập nhật", 
                 school: savedUser.schoolName || "Chưa cập nhật",
-                scores: {}
+                scores: {},
+                displayScores: [
+                  { label: 'Mục tiêu khối', value: '-' },
+                  { label: 'Tổng THPT', value: '-' },
+                  { label: 'GPA Trung bình', value: '-' },
+                  { label: 'Thi ĐGNL', value: '-' },
+                  { label: 'IELTS', value: '-' },
+                  { label: 'SAT', value: '-' },
+                ]
             };
           }
           
@@ -96,7 +115,15 @@ const Chatbot = () => {
             name: savedUser.full_name || savedUser.name || "Bạn", 
             class: savedUser.className || "Chưa cập nhật", 
             school: savedUser.schoolName || "Chưa cập nhật",
-            scores: {}
+            scores: {},
+            displayScores: [
+              { label: 'Mục tiêu khối', value: '-' },
+              { label: 'Tổng THPT', value: '-' },
+              { label: 'GPA Trung bình', value: '-' },
+              { label: 'Thi ĐGNL', value: '-' },
+              { label: 'IELTS', value: '-' },
+              { label: 'SAT', value: '-' },
+            ]
           });
         } finally {
           setIsLoadingHistory(false); 
@@ -106,10 +133,9 @@ const Chatbot = () => {
       }
     };
     fetchInitialData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // --- 2. HÀM CHỌN MỘT CUỘC TRÒ CHUYỆN BÊN SIDEBAR TRÁI ---
+  // --- 2. HÀM CHỌN CUỘC TRÒ CHUYỆN ---
   const handleSelectSession = async (sessionId) => {
     setCurrentSessionId(sessionId);
     setChatMessages([]); 
@@ -132,36 +158,29 @@ const Chatbot = () => {
     }
   };
 
-  // --- 3. TẠO CUỘC TRÒ CHUYỆN MỚI ---
   const handleNewChat = () => {
     setCurrentSessionId(null);
     setChatMessages([{ sender: 'bot', content: "Xin chào! Mình có thể giúp gì cho bạn?" }]);
   };
 
-  // --- HÀM XÓA CUỘC TRÒ CHUYỆN ---
   const handleDeleteSession = async (e, sessionId) => {
     e.stopPropagation(); 
     if (!window.confirm("Bạn có chắc chắn muốn xóa cuộc trò chuyện này?")) return;
-    
     try {
       const res = await fetch(`http://localhost:8000/api/chat/sessions/${sessionId}`, { method: 'DELETE' });
       if (res.ok) {
         const updatedSessions = sessions.filter(s => s.id !== sessionId);
         setSessions(updatedSessions);
-        if (currentSessionId === sessionId) {
-          handleNewChat();
-        }
+        if (currentSessionId === sessionId) handleNewChat();
       }
     } catch (error) {
       console.error("Lỗi xóa session:", error);
     }
   };
 
-  // --- HÀM ĐỌC GIỌNG NÓI ---
   const speakText = (text) => {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel(); 
-    
     const cleanText = text.replace(/[*#_]/g, '').replace(/[\r\n]+/g, ', '); 
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = 'vi-VN'; 
@@ -186,7 +205,6 @@ const Chatbot = () => {
     if(fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // --- 4. HÀM GỬI TIN NHẮN ---
   const handleSendChat = async (textToSend = chatInput, isVoice = false) => {
     if (!textToSend.trim() && !selectedImage) return;
 
@@ -212,8 +230,16 @@ const Chatbot = () => {
       let smartPrompt = textToSend;
       let hiddenInstruction = ` \n\n(Chỉ thị hệ thống: ${styleText}. ${lengthText}.)`;
 
+      // 🚀 TIÊM DỮ LIỆU ĐIỂM VÀO NÃO AI KHI CHAT
       if (userProfile && !selectedImage && chatMessages.length <= 1) {
-          hiddenInstruction = ` \n\n(Chỉ thị hệ thống: Học sinh tên ${userProfile.name}, mục tiêu thi khối ${userProfile.target_block || 'chưa rõ'}. ${styleText}. ${lengthText}.)`;
+          let scoreSummary = '';
+          if (userProfile.displayScores) {
+              scoreSummary = userProfile.displayScores
+                  .filter(s => s.value !== '-')
+                  .map(s => `${s.label}: ${s.value}`)
+                  .join(', ');
+          }
+          hiddenInstruction = ` \n\n(Chỉ thị hệ thống: Học sinh tên ${userProfile.name}, mục tiêu thi khối ${userProfile.target_block || 'chưa rõ'}. Dữ liệu học thuật: ${scoreSummary}. Tính cách: ${userProfile.holland_personality || 'Chưa làm test'}. ${styleText}. ${lengthText}.)`;
       }
       
       smartPrompt += hiddenInstruction; 
@@ -279,23 +305,7 @@ const Chatbot = () => {
     recognition.start();
   };
 
-  // 🚀 ĐÃ CẬP NHẬT TỪ ĐIỂN ĐỂ KHỚP VỚI LOẠI ĐIỂM (GPA, ĐGNL, IELTS...)
-  const subjectNames = {
-    GPA: "Điểm trung bình (GPA)",
-    ĐGNL: "Điểm thi ĐGNL",
-    IELTS: "Chứng chỉ IELTS",
-    SAT: "Chứng chỉ SAT",
-    // Giữ lại tên môn cũ phòng hờ
-    toan: "Toán học", ly: "Vật lý", hoa: "Hóa học", sinh: "Sinh học", 
-    van: "Ngữ văn", su: "Lịch sử", dia: "Địa lý", gdcd: "GDCD", anh: "Tiếng Anh"
-  };
-
   const filteredSessions = sessions.filter(s => s.title.toLowerCase().includes(searchTerm.toLowerCase()));
-
-  // 🚀 HÀM LỌC: Chỉ lấy ra những điểm có giá trị (khác null, rỗng)
-  const validScores = userProfile?.scores 
-    ? Object.entries(userProfile.scores).filter(([sub, val]) => val !== null && val !== "")
-    : [];
 
   return (
     <div className={`chat-view-container fade-in ${theme === 'dark' ? 'dark-mode' : ''}`}>
@@ -503,31 +513,54 @@ const Chatbot = () => {
       </div>
 
       {/* ==========================================
-          SIDEBAR PROFILE BÊN PHẢI (ĐÃ NÂNG CẤP)
+          SIDEBAR PROFILE BÊN PHẢI (ĐÃ NÂNG CẤP BẢNG ĐIỂM)
           ========================================== */}
       <aside className="chat-profile-panel">
-        <div className="chat-panel-section">
-          <h4>HỒ SƠ HỌC TẬP</h4>
+        
+        {/* HỒ SƠ CÁ NHÂN */}
+        <div className="chat-panel-section" style={{marginBottom: '15px'}}>
           <div className="profile-header-card">
             <div className="avatar"><img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" /></div>
             <div>
-              <h3 style={{ color: '#0f172a', fontWeight: '800', margin: '0 0 5px 0' }}>
-                {userProfile ? userProfile.name : "Đang tải..."}
+              <h3 style={{ color: '#0f172a', fontWeight: '800', margin: '0' }}>
+                {userProfile?.name || "Đang tải..."}
               </h3>
-              <p>{userProfile ? `Lớp ${userProfile.class} - ${userProfile.school}` : "Đang đồng bộ..."}</p>
+              <p style={{ fontSize: '12px', color: '#64748b', margin: '5px 0 0 0' }}>
+                {userProfile ? `Lớp ${userProfile.class} - ${userProfile.school}` : "Đang đồng bộ..."}
+              </p>
             </div>
           </div>
+        </div>
+
+        {/* 🚀 BẢNG ĐIỂM 6 Ô VUÔNG CHUẨN XÁC THEO ẢNH */}
+        <div className="chat-panel-section" style={{ padding: '15px', backgroundColor: '#fff', borderRadius: '15px', border: '1px solid #f1f5f9', marginBottom: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+          <h4 style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#1e293b', fontSize: '1rem', marginTop: 0, marginBottom: '15px' }}>
+            <i className="fas fa-graduation-cap" style={{color: '#4338ca'}}></i> Điểm số học thuật
+          </h4>
           
-          {/* Lọc điểm và hiển thị */}
-          <div className="score-grid">
-            {validScores.length > 0 ? validScores.map(([sub, val]) => (
-              <div className="score-box" key={sub}>
-                <span>{subjectNames[sub] || sub.toUpperCase()}</span>
-                <strong>{val}</strong>
-              </div>
-            )) : (
-              <p style={{fontSize: '13px', color: '#64748b'}}>Chưa có dữ liệu điểm.</p>
-            )}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+            {(userProfile?.displayScores || Array(6).fill({label: '', value: '-'})).map((item, idx) => {
+              const hasValue = item.value && item.value !== '-';
+              return (
+                <div key={idx} style={{
+                  backgroundColor: hasValue ? '#f0f4ff' : '#f8fafc',
+                  border: `1px solid ${hasValue ? '#dbeafe' : '#f1f5f9'}`,
+                  borderRadius: '12px',
+                  padding: '12px 5px',
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  minHeight: '85px',
+                  transition: 'all 0.3s ease'
+                }}>
+                  <span style={{ fontSize: '10px', color: '#94a3b8', marginBottom: '8px', fontWeight: '500' }}>{item.label}</span>
+                  <strong style={{ fontSize: '16px', color: hasValue ? '#4338ca' : '#cbd5e1', fontWeight: '800' }}>
+                    {item.value}
+                  </strong>
+                </div>
+              )
+            })}
           </div>
         </div>
 
@@ -596,7 +629,7 @@ const Chatbot = () => {
         </div>
 
         {/* =========================================
-            HIỂN THỊ AI GỢI Ý NGHỀ NGHIỆP (GIAO DIỆN MỚI)
+            HIỂN THỊ AI GỢI Ý NGHỀ NGHIỆP
             ========================================= */}
         <div className="chat-panel-section" style={{ marginTop: '25px' }}>
           <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#111827', textTransform: 'uppercase' }}>
@@ -606,7 +639,6 @@ const Chatbot = () => {
           {userProfile?.careers && userProfile.careers.length > 0 ? (
             <div className="careers-grid">
               {userProfile.careers.map((career, idx) => {
-                // Kiểm tra xem nghề này có phải Top 1 không
                 const isTop = career.top === true || career.is_top === 1 || career.is_top === true;
                 
                 return (
@@ -617,10 +649,10 @@ const Chatbot = () => {
                     style={{
                       padding: '16px',
                       marginBottom: '12px',
-                      backgroundColor: isTop ? '#fffbeb' : '#ffffff', // Nền vàng nhạt cho Top 1
+                      backgroundColor: isTop ? '#fffbeb' : '#ffffff', 
                       border: '1px solid',
                       borderColor: isTop ? '#fde68a' : '#e5e7eb',
-                      borderLeft: isTop ? '4px solid #f59e0b' : '1px solid #e5e7eb', // Vạch cam nhấn mạnh
+                      borderLeft: isTop ? '4px solid #f59e0b' : '1px solid #e5e7eb', 
                       borderRadius: '12px',
                       boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
                       cursor: 'pointer',
@@ -631,7 +663,6 @@ const Chatbot = () => {
                   >
                     
                     <div className="job-header" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                      {/* Icon của nghề */}
                       <div style={{
                         width: '42px', height: '42px', borderRadius: '50%', flexShrink: 0,
                         backgroundColor: isTop ? '#fef3c7' : '#f3f4f6',
@@ -642,7 +673,6 @@ const Chatbot = () => {
                         <i className={career.icon || 'fas fa-briefcase'}></i>
                       </div>
                       
-                      {/* Tên nghề */}
                       <div>
                         <h5 style={{ margin: 0, fontSize: '15px', color: '#1f2937', fontWeight: '800' }}>
                           {career.title} 
@@ -658,12 +688,10 @@ const Chatbot = () => {
                       </div>
                     </div>
                     
-                    {/* Mô tả lý do phù hợp */}
                     <p style={{ fontSize: '13px', color: '#4b5563', margin: '0 0 8px 54px', lineHeight: '1.5' }}>
                       {career.desc || career.description}
                     </p>
 
-                    {/* Nút bấm ảo để nhắc nhở có thể click */}
                     <small style={{ color: '#6366f1', fontSize: '12px', marginLeft: '54px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <i className="fas fa-magic"></i> Bấm để AI tư vấn chi tiết
                     </small>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Edit, Trash2, CheckCircle, XCircle, X } from 'lucide-react';
+import Swal from 'sweetalert2'; // 🚀 IMPORT VŨ KHÍ SWEETALERT2
 import './MentorManagement.css'; 
 
 const MentorManagement = () => {
@@ -56,7 +57,7 @@ const MentorManagement = () => {
     setShowModal(true);
   };
 
-  // Xử lý Gửi Form (Cả Thêm lẫn Sửa)
+  // 🚀 XỬ LÝ GỬI FORM (ĐÃ ĐỘ LẠI BẰNG SWEETALERT2)
   const handleSubmit = (e) => {
     e.preventDefault();
     const method = isEditing ? 'PUT' : 'POST';
@@ -74,21 +75,54 @@ const MentorManagement = () => {
     })
     .then(res => res.json())
     .then(() => {
-      alert(isEditing ? "Cập nhật thành công!" : "Thêm cố vấn thành công!");
+      Swal.fire({
+        title: 'Thành công!',
+        text: isEditing ? "Cập nhật thông tin Cố vấn thành công!" : "Thêm Cố vấn mới thành công!",
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false
+      });
       setShowModal(false);
       fetchMentors();
     })
-    .catch(() => alert("Đã có lỗi xảy ra!"));
+    .catch(() => {
+      Swal.fire('Lỗi!', 'Đã có lỗi xảy ra, vui lòng thử lại.', 'error');
+    });
   };
 
+  // 🚀 XÓA CỐ VẤN (ĐÃ ĐỘ LẠI BẰNG SWEETALERT2)
   const handleDelete = (id) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa cố vấn này?")) {
-      fetch(`http://localhost:8000/api/admin/mentors/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      .then(() => fetchMentors());
-    }
+    Swal.fire({
+      title: 'Xóa Cố vấn?',
+      text: "Bạn có chắc chắn muốn xóa cố vấn này khỏi hệ thống? Dữ liệu không thể khôi phục!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444', // Đỏ cảnh báo
+      cancelButtonColor: '#94a3b8',  // Xám hủy bỏ
+      confirmButtonText: 'Xóa ngay',
+      cancelButtonText: 'Hủy bỏ',
+      borderRadius: '16px'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch(`http://localhost:8000/api/admin/mentors/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(() => {
+          Swal.fire({
+            title: 'Đã xóa!',
+            text: 'Cố vấn đã được xóa khỏi hệ thống.',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+          });
+          fetchMentors();
+        })
+        .catch(() => {
+          Swal.fire('Lỗi!', 'Không thể xóa cố vấn, vui lòng kiểm tra kết nối.', 'error');
+        });
+      }
+    });
   };
 
   return (

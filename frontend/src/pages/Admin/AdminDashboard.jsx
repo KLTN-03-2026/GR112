@@ -96,13 +96,38 @@ export default function AdminDashboard() {
   }, [activeChart]);
 
   // ================= 4. HÀM XỬ LÝ ACTION =================
+  // 🚀 ĐÃ BỔ SUNG HỘP THOẠI XÁC NHẬN TRƯỚC KHI DUYỆT
   const handleApprove = (id) => {
-    setActivities(activities.map(act => act.id === id ? { ...act, tag: "ĐÃ DUYỆT", color: "blue" } : act));
-    Swal.fire('Thành công', 'Đã duyệt lịch và cập nhật vào Database.', 'success');
+    Swal.fire({
+      title: 'Xác nhận duyệt lịch?',
+      text: "Bạn có chắc chắn muốn duyệt lịch hẹn này không?",
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#10b981', // Nút màu xanh lá báo hiệu an toàn
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: 'Duyệt ngay',
+      cancelButtonText: 'Hủy bỏ',
+      borderRadius: '16px'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Thực hiện Cập nhật State sau khi xác nhận
+        setActivities(activities.map(act => act.id === id ? { ...act, tag: "ĐÃ DUYỆT", color: "blue" } : act));
+        
+        // Báo thành công
+        Swal.fire({
+          title: 'Thành công!',
+          text: 'Đã duyệt lịch và cập nhật vào Database.',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      }
+    });
   };
 
   const filteredActivities = activities.filter(a => activeTab === 'all' || a.type === activeTab);
-  // 🚀 HÀM XỬ LÝ XUẤT BÁO CÁO
+  
+  // 🚀 HÀM XỬ LÝ XUẤT BÁO CÁO (Đã xịn sẵn)
   const handleExportReport = async () => {
     try {
       // Bật thông báo đang tải
@@ -130,7 +155,13 @@ export default function AdminDashboard() {
       // Dọn dẹp
       link.parentNode.removeChild(link);
       Swal.close();
-      Swal.fire('Thành công', 'Đã tải xuống file Báo cáo hệ thống!', 'success');
+      Swal.fire({
+        title: 'Thành công',
+        text: 'Đã tải xuống file Báo cáo hệ thống!',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
+      });
 
     } catch (error) {
       Swal.close();
@@ -138,6 +169,7 @@ export default function AdminDashboard() {
       Swal.fire('Lỗi', 'Không thể xuất báo cáo lúc này.', 'error');
     }
   };
+
   return (
     <div className="dashboard-content" style={{ padding: '24px', background: '#f8fafc', minHeight: '100vh' }}>
       
