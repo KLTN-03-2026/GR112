@@ -1628,25 +1628,36 @@ def delete_mentor_slot(current_user, slot_id):
 # ==========================================
 # 1. LẤY DANH SÁCH LỊCH HẸN CHO CỐ VẤN
 # ==========================================
+# Nhớ import thêm Mentor nhé sếp!
+from models import db, Booking, MentorSlot, User, Mentor 
+
 @chat_bp.route('/api/mentor/bookings', methods=['GET'])
 @mentor_required
 def get_mentor_bookings(current_user):
     try:
-        # Lấy tất cả booking của cố vấn này, trừ những cái đã bị từ chối
+        # 🚀 BƯỚC 1: Tìm ID thực sự của Cố vấn bên bảng 'mentors' thông qua email
+        mentor_profile = Mentor.query.filter_by(email=current_user.email).first()
+        
+        # Nếu chưa có profile trong bảng mentors thì trả về rỗng luôn
+        if not mentor_profile:
+            return jsonify({"bookings": []}), 200
+
+        # 🚀 BƯỚC 2: Dùng mentor_profile.id để tìm lịch hẹn thay vì current_user.id
         bookings = Booking.query.filter(
-            Booking.mentor_id == current_user.id,
+            Booking.mentor_id == mentor_profile.id,
             Booking.status != 'rejected'
         ).order_by(Booking.created_at.desc()).all()
         
         result = []
         for b in bookings:
+            # Bọc thêm điều kiện if else cho b.student và b.slot để chống lỗi vặt nếu DB bị mất data
             result.append({
                 'id': b.id,
-                'student': b.student.full_name or b.student.email.split('@')[0],
+                'student': b.student.full_name or b.student.email.split('@')[0] if b.student else "Học sinh ẩn danh",
                 'topic': b.topic,
                 'status': b.status,
-                'date': b.slot.date,
-                'time': b.slot.start_time
+                'date': b.slot.date if b.slot else "Không rõ",
+                'time': b.slot.start_time if b.slot else "Không rõ"
             })
             
         return jsonify({"bookings": result}), 200
@@ -1656,9 +1667,6 @@ def get_mentor_bookings(current_user):
 
 # ==========================================
 # 2. XỬ LÝ CHẤP NHẬN / TỪ CHỐI LỊCH HẸN
-# ==========================================
-# ==========================================
-# 2. XỬ LÝ CHẤP NHẬN / TỪ CHỐI LỊCH HẸN (ĐÃ CÓ VIDEO CALL)
 # ==========================================
 @chat_bp.route('/api/mentor/bookings/<int:booking_id>', methods=['PUT'])
 @mentor_required
@@ -1670,8 +1678,15 @@ def update_booking_status(current_user, booking_id):
         return jsonify({"error": "Trạng thái không hợp lệ!"}), 400
         
     try:
+        # 🚀 CŨNG PHẢI FIX Ở ĐÂY: Tìm ID thực sự bên bảng 'mentors'
+        mentor_profile = Mentor.query.filter_by(email=current_user.email).first()
+        if not mentor_profile:
+            return jsonify({"error": "Không tìm thấy hồ sơ cố vấn!"}), 404
+
         booking = Booking.query.get(booking_id)
-        if not booking or booking.mentor_id != current_user.id:
+        
+        # So sánh với mentor_profile.id
+        if not booking or booking.mentor_id != mentor_profile.id:
             return jsonify({"error": "Không tìm thấy lịch hẹn!"}), 404
             
         booking.status = new_status
@@ -1680,9 +1695,7 @@ def update_booking_status(current_user, booking_id):
         if slot:
             if new_status == 'confirmed':
                 slot.is_booked = True
-                # 🚀 TỰ ĐỘNG TẠO LINK PHÒNG HỌP KHI CHẤP NHẬN
-                # Room name không dấu, không khoảng cách để tránh lỗi link
-                # Sửa tên phòng cho dài và độc nhất
+                # TỰ ĐỘNG TẠO LINK PHÒNG HỌP KHI CHẤP NHẬN
                 room_name = f"MindConnect_Consulting_Private_Room_{booking.id}_Secure2026"
                 booking.meeting_link = f"https://meet.jit.si/{room_name}"
             elif new_status == 'rejected':

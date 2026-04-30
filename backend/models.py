@@ -1,6 +1,7 @@
 from extensions import db
 import json
 from sqlalchemy.dialects.mysql import LONGTEXT
+from datetime import datetime
 
 class User(db.Model):
     __tablename__ = 'user'
@@ -21,7 +22,6 @@ class User(db.Model):
     specialty = db.Column(db.String(255), nullable=True)
     experience_years = db.Column(db.Integer, nullable=True)
     
-    # Sửa thành db.func.now()
     created_at = db.Column(db.DateTime, default=db.func.now())
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
 
@@ -33,7 +33,6 @@ class ContactMessage(db.Model):
     email = db.Column(db.String(120), nullable=False)
     message = db.Column(db.Text, nullable=False)
     
-    # Sửa thành db.func.now()
     created_at = db.Column(db.DateTime, default=db.func.now())
 
     def to_dict(self):
@@ -42,11 +41,8 @@ class ContactMessage(db.Model):
             'name': self.name,
             'email': self.email,
             'message': self.message,
-            # Kiểm tra nếu có thời gian thì mới format để tránh lỗi khi dữ liệu rỗng
             'created_at': self.created_at.strftime("%Y-%m-%d %H:%M:%S") if self.created_at else None
         }
-    
-# ========================================================
 
 # ========================================================
 # CÁC BẢNG TRUNG GIAN (CHO TÍNH NĂNG AI GỢI Ý BƯỚC 1)
@@ -60,6 +56,7 @@ university_environment = db.Table('university_environment',
     db.Column('university_id', db.Integer, db.ForeignKey('university_data.id'), primary_key=True),
     db.Column('environment_id', db.String(50), db.ForeignKey('master_work_environments.id'), primary_key=True)
 )
+
 # ========================================================
 # BẢNG 1: THÔNG TIN CƠ BẢN (TRƯỜNG & NGÀNH)
 # ========================================================
@@ -72,23 +69,21 @@ class UniversityData(db.Model):
     major_code = db.Column(db.String(20))
     school_logo = db.Column(db.String(255))
     subject_block = db.Column(db.String(10), nullable=False)
-    base_score = db.Column(db.Float, nullable=False)#học ba nè
+    base_score = db.Column(db.Float, nullable=False)
     quota = db.Column(db.Integer, default=0)
     tuition_fee = db.Column(db.String(100))
     ranking_note = db.Column(db.String(100)) 
     
-    year = db.Column(db.Integer, default=2025) # 🚀 THÊM DÒNG NÀY
+    year = db.Column(db.Integer, default=2025) 
     school_type = db.Column(db.String(50))
-    score_thpt_last_year = db.Column(db.Float)          # Điểm năm ngoái xét tuyển Thi THPT
-    score_dgnl = db.Column(db.Integer)                  # Điểm ĐGNL
-    combo_cert = db.Column(db.String(100))              # Xét tuyển Kết hợp (IELTS/SAT)
-    direct_admission = db.Column(db.String(255))        # Tuyển thẳng
-    aptitude_test = db.Column(db.String(255))           # Năng khiếu
+    score_thpt_last_year = db.Column(db.Float)          
+    score_dgnl = db.Column(db.Integer)                  
+    combo_cert = db.Column(db.String(100))              
+    direct_admission = db.Column(db.String(255))        
+    aptitude_test = db.Column(db.String(255))           
 
-    # Mối quan hệ 1-1: Liên kết với bảng UniversityDetail
     details = db.relationship('UniversityDetail', backref='parent', uselist=False, cascade="all, delete-orphan")
 
-    # Mối quan hệ N-N: Liên kết với Sở thích và Môi trường
     interests = db.relationship('MasterInterest', secondary=university_interest, lazy='subquery',
         backref=db.backref('universities', lazy=True))
     
@@ -114,14 +109,15 @@ class UniversityData(db.Model):
             'direct_admission': self.direct_admission,
             'aptitude_test': self.aptitude_test,
             'year':self.year,
-            # Trả về các tags AI đã map với ngành học
             'ai_interests': [i.name for i in self.interests], 
             'ai_environments': [e.id for e in self.environments]
         }
 
+# 🚀 ĐÃ SỬA: Thêm Khóa ngoại user_id
 class ActivityLog(db.Model):
     __tablename__ = 'activity_logs'
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # Có thể null nếu hệ thống tự chạy
     action_type = db.Column(db.String(50))
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=db.func.now())
@@ -133,12 +129,10 @@ class UniversityDetail(db.Model):
     __tablename__ = 'university_details'
     
     id = db.Column(db.Integer, primary_key=True)
-    # Khóa ngoại trỏ thẳng vào id của bảng university_data
     university_id = db.Column(db.Integer, db.ForeignKey('university_data.id'), nullable=False)
     
     description = db.Column(db.Text)
     address = db.Column(db.String(255))
-    
     website = db.Column(db.String(150))
     phone = db.Column(db.String(20))
     admission_methods = db.Column(db.Text)
@@ -147,32 +141,19 @@ class UniversityDetail(db.Model):
         return {
             "description": self.description,
             "address": self.address,
-                       "website": self.website,
+            "website": self.website,
             "phone": self.phone,
             "admission_methods": self.admission_methods
         }
-
-
-
-
-
 
 class QuizResult(db.Model):
     __tablename__ = 'quiz_results'
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    
-    # Cột lưu loại bài test (holland hoặc mbti)
     quiz_type = db.Column(db.String(50), default="holland")
-    
-    # Tên nhóm tính cách (VD: "Người Giúp Đỡ (Social)")
     personality_group = db.Column(db.String(150), nullable=False)
-    
-    # (Tùy chọn) Lưu mô tả ngắn về nhóm tính cách đó
     description = db.Column(db.Text)
-    
-    # Thời gian làm bài test
     created_at = db.Column(db.DateTime, default=db.func.now())
 
     def to_dict(self):
@@ -194,14 +175,12 @@ class Career(db.Model):
     description = db.Column(db.Text)
     is_top = db.Column(db.Boolean, default=False)
 
-# ĐÃ THÊM: Bảng lưu trữ Ngân hàng câu hỏi
 class QuestionBank(db.Model):
     __tablename__ = 'question_bank'
-    
     id = db.Column(db.Integer, primary_key=True)
-    quiz_type = db.Column(db.String(20), nullable=False) # 'holland' hoặc 'mbti'
+    quiz_type = db.Column(db.String(20), nullable=False) 
     question_text = db.Column(db.Text, nullable=False)
-    category = db.Column(db.String(10), nullable=False) # R, I, A... hoặc E, I, S...
+    category = db.Column(db.String(10), nullable=False) 
 
     def to_dict(self):
         return {
@@ -217,7 +196,7 @@ class ChatSession(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     title = db.Column(db.String(255), default="Cuộc trò chuyện mới")
     created_at = db.Column(db.DateTime, default=db.func.now())
-    is_flagged = db.Column(db.Boolean, default=False) # Thêm dòng này
+    is_flagged = db.Column(db.Boolean, default=False) 
     def to_dict(self):
         return {"id": self.id, "user_id": self.user_id, "title": self.title, "is_flagged": self.is_flagged}
 
@@ -225,46 +204,29 @@ class ChatMessage(db.Model):
     __tablename__ = 'chat_messages'
     id = db.Column(db.Integer, primary_key=True)
     session_id = db.Column(db.Integer, db.ForeignKey('chat_sessions.id'), nullable=False)
-    sender = db.Column(db.String(10), nullable=False) # 'user' hoặc 'bot'
+    sender = db.Column(db.String(10), nullable=False) 
     content = db.Column(db.Text, nullable=False)
     image_data = db.Column(LONGTEXT)
     created_at = db.Column(db.DateTime, default=db.func.now())
 
     def to_dict(self):
         return {"id": self.id, "session_id": self.session_id, "sender": self.sender, "content": self.content, "image": self.image_data}
-    
-
-
-from datetime import datetime
-
-
-# Nhớ đảm bảo bạn đã import datetime ở đầu file nếu dùng created_at nhé
 
 class RoiHistory(db.Model):
     __tablename__ = 'roi_calculations'
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    
-    # --- GIAI ĐOẠN ĐI HỌC (ĐẦU TƯ) ---
     tuition_per_year = db.Column(db.Numeric(15, 2), nullable=False)
-    uni_living_per_month = db.Column(db.Numeric(15, 2), default=0)       # CỘT MỚI: Trọ + Ăn lúc học
+    uni_living_per_month = db.Column(db.Numeric(15, 2), default=0)       
     study_years = db.Column(db.Integer, nullable=False)
-    
-    # --- GIAI ĐOẠN ĐI LÀM (THU HỒI VỐN) ---
     starting_salary = db.Column(db.Numeric(15, 2), nullable=False)
-    post_grad_living_per_month = db.Column(db.Numeric(15, 2), default=0) # CỘT MỚI: Trọ + Ăn lúc làm
-    
-    # --- KẾT QUẢ PHÂN TÍCH TỪ AI ---
-    calculated_roi_percent = db.Column(db.Numeric(10, 2))                # Nâng lên (10,2) cho an toàn
-    real_surplus = db.Column(db.Numeric(15, 2))                          # CỘT MỚI: Lãi/Lỗ Ròng
-    
-    # --- THỜI GIAN LƯU ---
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)         # CỘT MỚI: Lưu thời gian tính
+    post_grad_living_per_month = db.Column(db.Numeric(15, 2), default=0) 
+    calculated_roi_percent = db.Column(db.Numeric(10, 2))                
+    real_surplus = db.Column(db.Numeric(15, 2))                          
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)         
 
     def __repr__(self):
         return f"<RoiHistory ROI:{self.calculated_roi_percent}% Surplus:{self.real_surplus}>"
-
-
 
 # ==========================================================
 # BẢNG MASTER: TỪ KHÓA SỞ THÍCH
@@ -303,25 +265,24 @@ class MasterSubjectBlock(db.Model):
     def to_dict(self):
         return {
             'id': self.id,
-            'name': self.id, # Trả về thêm 'name' trùng với 'id' vì React của bạn đang dùng b.name
-            'subjects': [s.strip() for s in self.subjects.split(',')] if self.subjects else [], # Cắt chuỗi thành mảng luôn cho xịn!
+            'name': self.id, 
+            'subjects': [s.strip() for s in self.subjects.split(',')] if self.subjects else [], 
             'description': self.description or '',
             'type': self.block_type or 'Tự nhiên'
         }
 
-# Thêm bảng này vào dưới các bảng hiện có của bạn
 class UserFavorite(db.Model):
     __tablename__ = 'user_favorites'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, nullable=False) # ID của User (Giả sử mặc định là 1)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False) # 🚀 ĐÃ SỬA: Nối FK
     university_id = db.Column(db.Integer, db.ForeignKey('university_data.id'), nullable=False)
 
 class OrientationProfile(db.Model):
     __tablename__ = 'orientation_profiles'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, nullable=False)
-    interests = db.Column(db.JSON)  # Lưu mảng dưới dạng JSON
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False) # 🚀 ĐÃ SỬA: Nối FK
+    interests = db.Column(db.JSON)  
     work_environment = db.Column(db.String(255))
     gpa_10 = db.Column(db.Float)
     gpa_11 = db.Column(db.Float)
@@ -336,6 +297,7 @@ class OrientationProfile(db.Model):
     study_location = db.Column(db.String(100))
     tuition_limit = db.Column(db.BigInteger)
     living_cost_monthly = db.Column(db.BigInteger)
+    
     def to_dict(self):
         return {
             'id': self.id,
@@ -356,9 +318,8 @@ class OrientationProfile(db.Model):
             'tuition_limit': self.tuition_limit,
             'living_cost_monthly': self.living_cost_monthly
         }
- 
 
-    # ==========================================
+# ==========================================
 # 🚀 1. THÊM MODEL MỚI CHO BẢNG MENTORS
 # ==========================================
 class Mentor(db.Model):
@@ -372,10 +333,8 @@ class Mentor(db.Model):
     experience_years = db.Column(db.Integer)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
-    # Mối quan hệ: 1 Cố vấn có nhiều Giờ rảnh và nhiều Lịch hẹn
     slots = db.relationship('MentorSlot', backref='mentor_info', lazy=True, cascade="all, delete-orphan")
     bookings = db.relationship('Booking', backref='mentor_info', foreign_keys='Booking.mentor_id', lazy=True, cascade="all, delete-orphan")
-
 
 # ==========================================
 # 🚀 2. SỬA MODEL MENTOR_SLOT
@@ -384,7 +343,6 @@ class MentorSlot(db.Model):
     __tablename__ = 'mentor_slots'
     
     id = db.Column(db.Integer, primary_key=True)
-    # SỬA Ở ĐÂY: 'mentors.id' thay vì 'user.id'
     mentor_id = db.Column(db.Integer, db.ForeignKey('mentors.id'), nullable=False) 
     
     date = db.Column(db.String(20), nullable=False)
@@ -395,7 +353,6 @@ class MentorSlot(db.Model):
         db.UniqueConstraint('mentor_id', 'date', 'start_time', name='_mentor_datetime_uc'),
     )
 
-
 # ==========================================
 # 🚀 3. SỬA MODEL BOOKING
 # ==========================================
@@ -404,21 +361,19 @@ class Booking(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    # SỬA Ở ĐÂY: 'mentors.id' thay vì 'user.id'
     mentor_id = db.Column(db.Integer, db.ForeignKey('mentors.id'), nullable=False)
     slot_id = db.Column(db.Integer, db.ForeignKey('mentor_slots.id'), nullable=False)
     topic = db.Column(db.String(255), nullable=False)
     status = db.Column(db.String(20), default='pending')
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
-    # Mối quan hệ để dễ query lấy tên học sinh và thông tin giờ rảnh
     student = db.relationship('User', foreign_keys=[student_id], backref='my_bookings')
     slot = db.relationship('MentorSlot', backref='booking_details')
 
 class UserReport(db.Model):
     __tablename__ = 'user_reports'
     id = db.Column(db.Integer, primary_key=True)
-    reported_user_id = db.Column(db.Integer)
+    reported_user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False) # 🚀 ĐÃ SỬA: Nối FK
     reason = db.Column(db.Text)
     status = db.Column(db.String(50), default='Pending')
     created_at = db.Column(db.DateTime, default=db.func.now())
@@ -439,7 +394,7 @@ class MentorReview(db.Model):
     booking_id = db.Column(db.Integer, db.ForeignKey('bookings.id'), nullable=False)
     student_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     mentor_id = db.Column(db.Integer, db.ForeignKey('mentors.id'), nullable=False)
-    rating = db.Column(db.Float, nullable=False) # Số sao: 1.0 đến 5.0
+    rating = db.Column(db.Float, nullable=False) 
     comment = db.Column(db.Text)
     status = db.Column(db.String(20), default='pending')
     created_at = db.Column(db.DateTime, default=db.func.now())
@@ -453,15 +408,14 @@ class UniversityReview(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     university_id = db.Column(db.Integer, db.ForeignKey('university_data.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    rating = db.Column(db.Integer, nullable=False, default=5) # Số sao từ 1 đến 5
+    rating = db.Column(db.Integer, nullable=False, default=5) 
     content = db.Column(db.Text, nullable=False)
     status = db.Column(db.String(20), default='pending')
     created_at = db.Column(db.DateTime, default=db.func.now())
 
-    # Thiết lập mối quan hệ để API get_university_reviews có thể lấy được tên User
     user = db.relationship('User', backref='university_reviews_list')
 
-    # ==========================================
+# ==========================================
 # BẢNG QUẢN LÝ BÀI VIẾT (CMS / BLOG)
 # ==========================================
 class Article(db.Model):
@@ -469,12 +423,12 @@ class Article(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
-    category = db.Column(db.String(100), nullable=False)      # Tên chuyên mục (VD: Cẩm nang định hướng)
-    category_code = db.Column(db.String(50), nullable=False) # Mã chuyên mục (VD: cam-nang)
-    content = db.Column(db.Text)                             # Nội dung chi tiết của bài viết
-    image_url = db.Column(LONGTEXT)                  # Link ảnh thumbnail
-    status = db.Column(db.String(50), default='Bản nháp')    # Trạng thái: 'Đã xuất bản' hoặc 'Bản nháp'
-    views = db.Column(db.Integer, default=0)                 # Lượt xem
+    category = db.Column(db.String(100), nullable=False)      
+    category_code = db.Column(db.String(50), nullable=False) 
+    content = db.Column(db.Text)                             
+    image_url = db.Column(LONGTEXT)                  
+    status = db.Column(db.String(50), default='Bản nháp')    
+    views = db.Column(db.Integer, default=0)                 
     created_at = db.Column(db.DateTime, default=db.func.now())
 
     def to_dict(self):
@@ -490,7 +444,7 @@ class Article(db.Model):
             'content': self.content
         }
 
-        # ==========================================
+# ==========================================
 # BẢNG LƯU CẤU HÌNH HỆ THỐNG (SETTINGS)
 # ==========================================
 class SystemSetting(db.Model):
@@ -501,7 +455,6 @@ class SystemSetting(db.Model):
     support_email = db.Column(db.String(255), default="support@mindconnect.edu.vn")
     hotline = db.Column(db.String(50), default="1900 1568")
     
-    # Các công tắc (Lưu kiểu Boolean: True/False)
     maintenance_mode = db.Column(db.Boolean, default=False)
     notify_new_review = db.Column(db.Boolean, default=True)
     notify_new_booking = db.Column(db.Boolean, default=True)
@@ -518,13 +471,14 @@ class SystemSetting(db.Model):
             "two_factor_auth": self.two_factor_auth
         }
 
-        # ==========================================
+# ==========================================
 # BẢNG THÔNG BÁO HỆ THỐNG (DÀNH CHO ADMIN)
 # ==========================================
 class Notification(db.Model):
     __tablename__ = 'notifications'
     
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # 🚀 ĐÃ SỬA: Nối FK (Cho phép null nếu gửi toàn bộ user)
     title = db.Column(db.String(255))
     message = db.Column(db.Text)
     is_read = db.Column(db.Boolean, default=False)
@@ -533,12 +487,13 @@ class Notification(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
+            "user_id": self.user_id,
             "title": self.title,
             "message": self.message,
             "is_read": self.is_read
         }
 
-        # ==========================================
+# ==========================================
 # BẢNG ĐĂNG KÝ NHẬN BẢN TIN (NEWSLETTER)
 # ==========================================
 class NewsletterSubscriber(db.Model):
@@ -551,20 +506,16 @@ class NewsletterSubscriber(db.Model):
     def __init__(self, email):
         self.email = email
 
-from datetime import datetime
-# Nhớ đảm bảo sếp đã import đối tượng db của SQLAlchemy ở đầu file nhé (vd: from app import db)
-
 class MentorNotification(db.Model):
     __tablename__ = 'mentor_notifications'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    mentor_id = db.Column(db.Integer, nullable=False) # ID của cố vấn nhận thông báo
+    mentor_id = db.Column(db.Integer, db.ForeignKey('mentors.id'), nullable=False) # 🚀 ĐÃ SỬA: Nối FK
     title = db.Column(db.String(255), nullable=False)
     message = db.Column(db.Text, nullable=False)
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    # Hàm tiện ích để chuyển dữ liệu sang dạng JSON trả về cho Frontend React
     def to_dict(self):
         return {
             'id': self.id,
@@ -572,6 +523,5 @@ class MentorNotification(db.Model):
             'title': self.title,
             'message': self.message,
             'is_read': self.is_read,
-            # Format lại thời gian cho đẹp (VD: 15/05/2026 14:30)
             'created_at': self.created_at.strftime('%d/%m/%Y %H:%M') if self.created_at else None 
         }

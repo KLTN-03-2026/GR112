@@ -5,7 +5,7 @@ import {
   Star, Check, EyeOff, Trash2, ChevronDown, Sparkles,
   Edit3, X, Save, Building2, UserCircle
 } from 'lucide-react';
-import Swal from 'sweetalert2'; // 🚀 IMPORT VŨ KHÍ SWEETALERT2
+import Swal from 'sweetalert2';
 
 const ContentManagement = () => {
   // --- STATE CHO QUẢN LÝ CÂU HỎI ---
@@ -57,7 +57,6 @@ const ContentManagement = () => {
       resetForm();
     } catch (e) {
       console.error("Lỗi lấy câu hỏi:", e);
-      // 🚀 ĐÃ THAY BẰNG SWEETALERT2
       Swal.fire({
         title: 'Cảnh báo kết nối!',
         text: 'Chưa kết nối được với Server Python! Nhưng bảng quản lý vẫn sẽ mở.',
@@ -95,7 +94,6 @@ const ContentManagement = () => {
         body: JSON.stringify(payload)
       });
       
-      // 🚀 Báo thành công
       Swal.fire({
         title: 'Thành công!',
         text: editingQ ? 'Đã cập nhật câu hỏi!' : 'Đã thêm câu hỏi mới!',
@@ -117,7 +115,6 @@ const ContentManagement = () => {
     }
   };
 
-  // 🚀 XÓA CÂU HỎI BẰNG SWEETALERT2
   const handleDelete = async (id) => {
     Swal.fire({
       title: 'Xóa câu hỏi?',
@@ -156,28 +153,40 @@ const ContentManagement = () => {
   };
 
   // ==========================================
-  // 🚀 CÁC HÀM XỬ LÝ API CHO QUẢN LÝ REVIEW
+  // 🚀 ĐÃ FIX: HÀM XỬ LÝ API QUẢN LÝ REVIEW
   // ==========================================
-
-  // 1. Hàm tự động lấy danh sách Review khi đổi Tab
   const fetchReviews = async () => {
     try {
       const res = await fetch(`http://localhost:8000/api/admin/reviews?type=${activeReviewTab}`);
+      const data = await res.json();
+      
+      // 🚀 BẬT RADAR: In ra F12 xem Python gửi cái gì sang
+      console.log(`[DEBUG] API trả về cho tab ${activeReviewTab}:`, data);
+
       if (res.ok) {
-        const data = await res.json();
-        setReviews(data);
+        // 🚀 BỘ LỌC AN TOÀN: Kiểm tra xem data có phải là Mảng không
+        if (Array.isArray(data)) {
+            setReviews(data);
+        } else if (data.reviews && Array.isArray(data.reviews)) {
+            setReviews(data.reviews); // Đề phòng Python bọc trong key "reviews"
+        } else {
+            console.warn("Dữ liệu không phải là mảng, ép về mảng rỗng:", data);
+            setReviews([]);
+        }
+      } else {
+        console.error("Lỗi từ Server:", data);
+        setReviews([]);
       }
     } catch (e) {
-      console.error("Lỗi lấy danh sách review:", e);
+      console.error("Lỗi kết nối khi lấy danh sách review:", e);
+      setReviews([]); // Đứt mạng cũng không được sập web
     }
   };
 
-  // Cứ mỗi lần Tab (Trường ĐH / Mentor) thay đổi, nó sẽ gọi lại API
   useEffect(() => {
     fetchReviews();
   }, [activeReviewTab]);
 
-  // 2. Hàm xử lý Duyệt / Ẩn / Xóa Review bắn xuống Python (🚀 ĐÃ ĐỘ BẰNG SWEETALERT2)
   const handleReviewAction = async (action, id) => {
     if (action === 'delete') {
       const result = await Swal.fire({
@@ -191,7 +200,7 @@ const ContentManagement = () => {
         cancelButtonText: 'Hủy bỏ',
         borderRadius: '16px'
       });
-      if (!result.isConfirmed) return; // Dừng lại nếu người dùng chọn Hủy
+      if (!result.isConfirmed) return; 
     }
 
     try {
@@ -212,7 +221,6 @@ const ContentManagement = () => {
           timer: 1500,
           showConfirmButton: false
         });
-        // Tải lại danh sách mới
         fetchReviews();
       } else {
         Swal.fire('Lỗi!', 'Có lỗi xảy ra từ Server!', 'error');
@@ -222,7 +230,6 @@ const ContentManagement = () => {
       Swal.fire('Lỗi kết nối!', 'Lỗi kết nối Server!', 'error');
     }
   };
-
 
   // ==========================================
   // RENDER GIAO DIỆN
@@ -298,7 +305,6 @@ const ContentManagement = () => {
             </div>
           </div>
           
-          {/* NÚT CHUYỂN ĐỔI TAB */}
           <div style={{ display: 'flex', background: '#f1f5f9', padding: '4px', borderRadius: '10px' }}>
             <button 
               onClick={() => setActiveReviewTab('university')}
@@ -347,7 +353,6 @@ const ContentManagement = () => {
                       <span className="time">{rev.time}</span>
                       {rev.verified && <span className="verified"><Check size={12}/> Đã xác thực</span>}
                       
-                      {/* Hiển thị trạng thái để Admin dễ nhìn */}
                       {rev.status === 'published' && <span style={{fontSize: '0.75rem', color: '#10b981', marginLeft: '10px'}}>(Đã xuất bản)</span>}
                       {rev.status === 'hidden' && <span style={{fontSize: '0.75rem', color: '#f59e0b', marginLeft: '10px'}}>(Đang ẩn)</span>}
                     </div>
@@ -371,7 +376,7 @@ const ContentManagement = () => {
       </section>
 
       {/* ==========================================
-          MODAL QUẢN LÝ CÂU HỎI NỔI LÊN (OVERLAY) 
+          MODAL QUẢN LÝ CÂU HỎI
           ========================================== */}
       {showModal && (
         <div className="cm-modal-overlay">
