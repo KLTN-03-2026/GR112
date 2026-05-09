@@ -32,7 +32,7 @@ const AdminLayout = () => {
 
   const menuItems = [
     { group: "HỆ THỐNG", items: [
-      { path: '/admin', icon: <LayoutDashboard size={18}/>, label: 'Dashboard' },
+      { path: '/admin', icon: <LayoutDashboard size={18}/>, label: 'Báo cáo và thống kê' },
       { path: '/admin/ai-system', icon: <Cpu size={18}/>, label: 'Hệ thống AI' },
     ]},
     { group: "DỮ LIỆU CỐT LÕI", items: [

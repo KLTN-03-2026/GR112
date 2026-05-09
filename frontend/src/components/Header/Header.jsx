@@ -72,7 +72,7 @@ const Header = () => {
           onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
         >
           <Sparkles size={16} color="#6366f1" />
-          <span>Gợi ý AI</span>
+          <span>Điểm thi AI</span>
           <span style={{ background: '#3b5998', color: '#fff', fontSize: '10px', padding: '2px 6px', borderRadius: '10px', marginLeft: '4px' }}>Mới</span>
         </button>
       </nav>

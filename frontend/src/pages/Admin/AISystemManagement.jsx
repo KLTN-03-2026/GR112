@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import './AISystemManagement.css';
 import { 
   Activity, Database, CheckCircle2, Globe, 
-  RotateCcw, Sparkles, Send, Zap
+  RotateCcw, Sparkles, Send, Zap,
+  Edit3, Trash2, Plus // 🚀 Đã import thêm 3 Icon cho Thêm, Sửa, Xóa
 } from 'lucide-react';
-import Swal from 'sweetalert2'; // 🚀 IMPORT VŨ KHÍ SWEETALERT2
+import Swal from 'sweetalert2'; 
 
 const AISystemManagement = () => {
   const token = localStorage.getItem('token');
   
-  // 1. STATE BẢO VỆ: Luôn có dữ liệu mặc định để không bị Crash Web
   const [dashboardData, setDashboardData] = useState({ 
     stats: { 
       total_tokens: '0.00M', 
@@ -23,7 +23,6 @@ const AISystemManagement = () => {
   const [sysStats, setSysStats] = useState({ cpu: 0, ram: 0, status: 'ĐANG TẢI...' });
   const [isTesting, setIsTesting] = useState(false);
 
-  // 2. GỌI API LẤY DATA (Có bọc lỗi try-catch)
   const fetchDashboardData = () => {
     fetch('http://localhost:8000/api/admin/ai/dashboard', {
       headers: { 
@@ -33,7 +32,6 @@ const AISystemManagement = () => {
     })
     .then(res => res.json())
     .then(data => {
-      // Chỉ cập nhật nếu backend trả về đúng cấu trúc và không có lỗi
       if(data && !data.error && data.stats) {
         setDashboardData(data); 
       }
@@ -55,18 +53,14 @@ const AISystemManagement = () => {
     .catch(err => console.error("⚠️ Lỗi kết nối Server Stats:", err));
   };
 
-  // Tự động load khi vào trang
   useEffect(() => {
     fetchDashboardData();
     fetchSystemStats();
-    // Mỗi 10 giây quét CPU/RAM 1 lần
     const interval = setInterval(fetchSystemStats, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  // 3. GỌI API TEST GEMINI (🚀 ĐÃ ĐỘ LẠI BẰNG SWEETALERT2)
   const handleTestGemini = async () => {
-    // 🚀 Dùng Swal có input thay vì window.prompt xấu xí
     const { value: promptText } = await Swal.fire({
       title: 'Trò chuyện với AI',
       input: 'text',
@@ -80,11 +74,10 @@ const AISystemManagement = () => {
       borderRadius: '16px'
     });
 
-    if (!promptText) return; // Người dùng bấm Hủy hoặc không nhập gì
+    if (!promptText) return; 
 
     setIsTesting(true);
 
-    // Có thể hiện thêm 1 Swal loading cho nó chuyên nghiệp
     Swal.fire({
       title: 'AI đang suy nghĩ...',
       text: 'Vui lòng đợi trong giây lát!',
@@ -106,7 +99,6 @@ const AISystemManagement = () => {
       if (data.error) {
         Swal.fire('Lỗi AI!', data.error, 'error');
       } else {
-        // 🚀 Hiện kết quả trả về bằng Swal siêu đẹp
         Swal.fire({
           title: `🤖 [${data.model_used}]`,
           text: data.reply,
@@ -119,11 +111,162 @@ const AISystemManagement = () => {
     })
     .catch(() => { 
       setIsTesting(false); 
-      Swal.fire('Lỗi kết nối!', 'Không thể kết nối đến Backend! Hãy chắc chắn Server Python đang chạy.', 'error');
+      Swal.fire('Lỗi kết nối!', 'Không thể kết nối đến Backend!', 'error');
     });
   };
 
-  // 🛡️ LỚP GIÁP CUỐI CÙNG: Đảm bảo biến luôn tồn tại, không bị undefined
+  // ===================== XỬ LÝ NÚT ĐỒNG BỘ THẬT =====================
+  const handleSyncData = async () => {
+    Swal.fire({
+      title: 'Đang nạp dữ liệu vào AI...',
+      html: 'Hệ thống đang đồng bộ dữ liệu Trường Đại học mới nhất.<br/>Vui lòng không đóng trang!',
+      allowOutsideClick: false,
+      didOpen: () => { Swal.showLoading(); }
+    });
+
+    try {
+      const res = await fetch('http://localhost:8000/api/admin/ai/sync-data', {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await res.json();
+      
+      if(data.error) throw new Error(data.error);
+
+      Swal.fire({
+        title: 'Hoàn tất!',
+        text: 'Dữ liệu đã được đồng bộ thành công vào mô hình AI.',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
+      });
+
+      fetchDashboardData(); 
+
+    } catch(err) {
+      Swal.fire('Lỗi đồng bộ!', err.message || 'Không thể kết nối Server', 'error');
+    }
+  };
+
+  // ===================== CRUD LOGS THỦ CÔNG (TẠO ẢO) =====================
+  const handleAddLogManual = async () => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Thêm Nhật ký mới',
+      html: `
+        <div style="text-align: left;">
+          <label style="font-size: 13px; font-weight: bold; color: #64748b;">Tên tác vụ</label>
+          <input id="swal-task" class="swal2-input" style="margin-top: 5px;" placeholder="VD: Nạp Vector mới">
+          
+          <label style="font-size: 13px; font-weight: bold; color: #64748b; margin-top: 15px; display: block;">Nguồn dữ liệu</label>
+          <input id="swal-source" class="swal2-input" style="margin-top: 5px;" placeholder="VD: DB: university_data">
+          
+          <label style="font-size: 13px; font-weight: bold; color: #64748b; margin-top: 15px; display: block;">Trạng thái</label>
+          <select id="swal-status" class="swal2-select" style="width: 100%; margin-top: 5px;">
+            <option value="Hoàn tất">Hoàn tất</option>
+            <option value="Đang xử lý">Đang xử lý</option>
+            <option value="Lỗi">Báo Lỗi</option>
+          </select>
+          
+          <label style="font-size: 13px; font-weight: bold; color: #64748b; margin-top: 15px; display: block;">Dung lượng (Nếu có)</label>
+          <input id="swal-size" class="swal2-input" style="margin-top: 5px;" placeholder="VD: 15.5MB">
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Lưu lại',
+      cancelButtonText: 'Hủy',
+      preConfirm: () => {
+        return {
+          task: document.getElementById('swal-task').value || 'Không tên',
+          source: document.getElementById('swal-source').value || 'Không rõ',
+          status: document.getElementById('swal-status').value,
+          size: document.getElementById('swal-size').value || '0MB'
+        }
+      }
+    });
+
+    if (formValues) {
+      fetch('http://localhost:8000/api/admin/ai/logs', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(formValues)
+      }).then(res => res.json()).then(() => {
+        Swal.fire('Thành công!', 'Đã thêm 1 dòng nhật ký.', 'success');
+        fetchDashboardData();
+      }).catch(() => Swal.fire('Lỗi', 'Không thể thêm nhật ký', 'error'));
+    }
+  };
+
+  const handleEditLog = async (log) => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Sửa Nhật ký',
+      html: `
+        <div style="text-align: left;">
+          <label style="font-size: 13px; font-weight: bold; color: #64748b;">Tên tác vụ</label>
+          <input id="swal-task" class="swal2-input" style="margin-top: 5px;" value="${log.task}">
+          
+          <label style="font-size: 13px; font-weight: bold; color: #64748b; margin-top: 15px; display: block;">Nguồn dữ liệu</label>
+          <input id="swal-source" class="swal2-input" style="margin-top: 5px;" value="${log.source}">
+          
+          <label style="font-size: 13px; font-weight: bold; color: #64748b; margin-top: 15px; display: block;">Trạng thái</label>
+          <select id="swal-status" class="swal2-select" style="width: 100%; margin-top: 5px;">
+            <option value="Hoàn tất" ${log.status === 'Hoàn tất' ? 'selected' : ''}>Hoàn tất</option>
+            <option value="Đang xử lý" ${log.status === 'Đang xử lý' ? 'selected' : ''}>Đang xử lý</option>
+            <option value="Lỗi" ${log.status === 'Lỗi' ? 'selected' : ''}>Báo Lỗi</option>
+          </select>
+          
+          <label style="font-size: 13px; font-weight: bold; color: #64748b; margin-top: 15px; display: block;">Dung lượng</label>
+          <input id="swal-size" class="swal2-input" style="margin-top: 5px;" value="${log.size}">
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Cập nhật',
+      cancelButtonText: 'Hủy',
+      preConfirm: () => {
+        return {
+          task: document.getElementById('swal-task').value,
+          source: document.getElementById('swal-source').value,
+          status: document.getElementById('swal-status').value,
+          size: document.getElementById('swal-size').value
+        }
+      }
+    });
+
+    if (formValues) {
+      fetch(`http://localhost:8000/api/admin/ai/logs/${log.id}`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(formValues)
+      }).then(res => res.json()).then(() => {
+        Swal.fire('Thành công!', 'Đã sửa thông tin nhật ký.', 'success');
+        fetchDashboardData();
+      }).catch(() => Swal.fire('Lỗi', 'Không thể sửa nhật ký', 'error'));
+    }
+  };
+
+  const handleDeleteLog = (id) => {
+    Swal.fire({
+      title: 'Xóa dòng này?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: 'Xóa ngay',
+      cancelButtonText: 'Hủy'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch(`http://localhost:8000/api/admin/ai/logs/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).then(res => res.json()).then(() => {
+          fetchDashboardData();
+        }).catch(() => Swal.fire('Lỗi', 'Không thể xóa', 'error'));
+      }
+    });
+  };
+
   const stats = dashboardData?.stats || {};
   const logs = dashboardData?.logs || [];
 
@@ -215,31 +358,55 @@ const AISystemManagement = () => {
         </div>
       </div>
 
-      {/* LOGS TABLE */}
+      {/* 🚀 BẢNG LOGS ĐÃ ĐƯỢC ĐỘ FULL CHỨC NĂNG */}
       <div className="ai-training-table-card">
-        <h3>Nhật ký Đồng bộ Dữ liệu</h3>
+        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
+          <h3 style={{margin: 0}}>Nhật ký Đồng bộ Dữ liệu</h3>
+          <div style={{display: 'flex', gap: '10px'}}>
+            <button onClick={handleAddLogManual} style={{ background: '#0f172a', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Plus size={16}/> Thêm thủ công
+            </button>
+            <button onClick={handleSyncData} style={{ background: '#10b981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Database size={16}/> Chạy Auto Sync
+            </button>
+          </div>
+        </div>
+        
         <table className="ai-table">
           <thead>
-            <tr><th>TÁC VỤ</th><th>THỜI GIAN</th><th>TRẠNG THÁI</th><th>CỠ FILE</th></tr>
+            <tr>
+              <th>TÁC VỤ</th>
+              <th>THỜI GIAN</th>
+              <th>TRẠNG THÁI</th>
+              <th>CỠ FILE</th>
+              <th style={{textAlign: 'center'}}>THAO TÁC</th>
+            </tr>
           </thead>
           <tbody>
-  {logs.map(log => (
-    <tr key={log.id}>
-      <td>
-        <strong>{log.task}</strong><br/>
-        <small>{log.source}</small>
-      </td>
-      <td>{log.time}</td>
-      <td>
-        {/* Nếu isRunning là true (giá trị 1 từ DB), hiện màu xanh dương */}
-        <span style={{ color: log.isRunning ? '#3b82f6' : '#10b981', fontWeight: 'bold' }}>
-          {log.status}
-        </span>
-      </td>
-      <td>{log.size}</td>
-    </tr>
-  ))}
-</tbody>
+            {logs.length === 0 ? (
+              <tr><td colSpan="5" style={{textAlign: 'center', padding: '20px', color: '#64748b'}}>Chưa có dữ liệu đồng bộ nào. Hãy bấm "Thêm thủ công"!</td></tr>
+            ) : (
+              logs.map(log => (
+                <tr key={log.id}>
+                  <td>
+                    <strong>{log.task}</strong><br/>
+                    <small>{log.source}</small>
+                  </td>
+                  <td>{log.time}</td>
+                  <td>
+                    <span style={{ color: log.status === 'Lỗi' ? '#ef4444' : (log.status === 'Đang xử lý' || log.isRunning ? '#3b82f6' : '#10b981'), fontWeight: 'bold' }}>
+                      {log.status}
+                    </span>
+                  </td>
+                  <td>{log.size}</td>
+                  <td style={{textAlign: 'center'}}>
+                    <button onClick={() => handleEditLog(log)} style={{background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', marginRight: '10px'}} title="Sửa"><Edit3 size={18}/></button>
+                    <button onClick={() => handleDeleteLog(log.id)} style={{background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer'}} title="Xóa"><Trash2 size={18}/></button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
         </table>
       </div>
     </div>

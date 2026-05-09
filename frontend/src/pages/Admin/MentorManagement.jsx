@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, CheckCircle, XCircle, X } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, CheckCircle, X } from 'lucide-react';
 import Swal from 'sweetalert2'; // 🚀 IMPORT VŨ KHÍ SWEETALERT2
 import './MentorManagement.css'; 
 
@@ -57,9 +57,36 @@ const MentorManagement = () => {
     setShowModal(true);
   };
 
-  // 🚀 XỬ LÝ GỬI FORM (ĐÃ ĐỘ LẠI BẰNG SWEETALERT2)
+  // 🚀 XỬ LÝ GỬI FORM (ĐÃ ĐỘ LẠI VALIDATION)
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // 1. KIỂM TRA ĐỊNH DẠNG EMAIL
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      Swal.fire({
+        title: 'Lỗi nhập liệu!',
+        text: "Định dạng email không hợp lệ (vd: thiếu @ hoặc domain).",
+        icon: 'error',
+        confirmButtonText: 'Sửa lại',
+        borderRadius: '16px'
+      });
+      return; // Chặn đứng, không cho code chạy tiếp xuống dưới
+    }
+
+    // 2. KIỂM TRA NĂM KINH NGHIỆM
+    // Chuyển về số, nếu rỗng thì cho phép hoặc bắt buộc nhập tùy ý sếp (ở đây em mặc định coi chuỗi rỗng là lỗi)
+    if (formData.exp === '' || isNaN(formData.exp) || Number(formData.exp) < 0) {
+      Swal.fire({
+        title: 'Lỗi nhập liệu!',
+        text: "Năm kinh nghiệm phải là số lớn hơn hoặc bằng 0.",
+        icon: 'error',
+        confirmButtonText: 'Sửa lại',
+        borderRadius: '16px'
+      });
+      return; // Chặn đứng
+    }
+
     const method = isEditing ? 'PUT' : 'POST';
     const url = isEditing 
       ? `http://localhost:8000/api/admin/mentors/${currentId}` 
@@ -90,15 +117,15 @@ const MentorManagement = () => {
     });
   };
 
-  // 🚀 XÓA CỐ VẤN (ĐÃ ĐỘ LẠI BẰNG SWEETALERT2)
+  // 🚀 XÓA CỐ VẤN
   const handleDelete = (id) => {
     Swal.fire({
       title: 'Xóa Cố vấn?',
       text: "Bạn có chắc chắn muốn xóa cố vấn này khỏi hệ thống? Dữ liệu không thể khôi phục!",
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#ef4444', // Đỏ cảnh báo
-      cancelButtonColor: '#94a3b8',  // Xám hủy bỏ
+      confirmButtonColor: '#ef4444', 
+      cancelButtonColor: '#94a3b8',  
       confirmButtonText: 'Xóa ngay',
       cancelButtonText: 'Hủy bỏ',
       borderRadius: '16px'
@@ -153,17 +180,17 @@ const MentorManagement = () => {
               </div>
               <div className="form-group">
                 <label>Email</label>
-                <input type="email" value={formData.email} required 
+                <input type="text" value={formData.email} required 
                   onChange={e => setFormData({...formData, email: e.target.value})} />
               </div>
               <div className="form-group">
                 <label>Chuyên môn</label>
-                <input type="text" value={formData.specialty}
+                <input type="text" value={formData.specialty} required
                   onChange={e => setFormData({...formData, specialty: e.target.value})} />
               </div>
               <div className="form-group">
                 <label>Kinh nghiệm (năm)</label>
-                <input type="number" value={formData.exp}
+                <input type="number" value={formData.exp} required
                   onChange={e => setFormData({...formData, exp: e.target.value})} />
               </div>
               <div className="modal-actions">

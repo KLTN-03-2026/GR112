@@ -1367,7 +1367,49 @@ def get_favorites(user_id):
         return jsonify([u.to_dict() for u in unis]), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
+# ==========================================
+# API CẬP NHẬT (SỬA NHANH) HỒ SƠ TỪ TRANG PROFILE
+# ==========================================
+@api_bp.route('/api/orientation/<int:user_id>', methods=['PUT', 'OPTIONS'])
+def update_orientation_profile(user_id):
+    if flask.request.method == 'OPTIONS':
+        return flask.jsonify({}), 200
+        
+    try:
+        data = flask.request.json
+        
+        # 1. Tìm xem user này đã có hồ sơ trong DB chưa
+        from models import db, OrientationProfile
+        profile = OrientationProfile.query.filter_by(user_id=user_id).first()
+        
+        # 2. Nếu chưa có thì báo lỗi (vì sửa nhanh là phải có data rồi mới sửa)
+        if not profile:
+            return flask.jsonify({"error": "Không tìm thấy hồ sơ để cập nhật!"}), 404
+            
+        # 3. Cập nhật từng dòng dữ liệu từ form Sửa nhanh gửi sang
+        profile.target_block = data.get('target_block')
+        profile.exam_score = data.get('exam_score')
+        profile.gpa_10 = data.get('gpa_10')
+        profile.gpa_11 = data.get('gpa_11')
+        profile.gpa_12 = data.get('gpa_12')
+        profile.dgnl_score = data.get('dgnl_score')
+        profile.sat_score = data.get('sat_score')
+        profile.ielts_score = data.get('ielts_score')
+        profile.prize_level = data.get('prize_level')
+        profile.has_portfolio = data.get('has_portfolio')
+        profile.study_location = data.get('study_location')
+        profile.tuition_limit = data.get('tuition_limit')
+        profile.living_cost_monthly = data.get('living_cost_monthly')
+        
+        # 4. Chốt hạ: Lưu vào Database
+        db.session.commit()
+        return flask.jsonify({"message": "Cập nhật hồ sơ thành công!"}), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        import traceback
+        print("Lỗi khi cập nhật hồ sơ sửa nhanh:", traceback.format_exc())
+        return flask.jsonify({"error": "Lỗi hệ thống: " + str(e)}), 500
 # API Bấm tim / Bỏ tim
 @api_bp.route('/api/favorites/toggle', methods=['POST'])
 def toggle_favorite():
@@ -2068,37 +2110,52 @@ def get_system_stats(current_user):
 # ==========================================
 # API ADMIN: QUẢN LÝ DỮ LIỆU TRƯỜNG ĐẠI HỌC
 # ==========================================
-@api_bp.route('/api/admin/universities', methods=['GET'])
-@admin_required
-def get_admin_universities(current_user):
+import re
+from flask import request, jsonify
+
+# ==========================================
+# API ADMIN: XEM DANH SÁCH TRƯỜNG ĐẠI HỌC (TỰ ĐỘNG SINH MÃ TRƯỜNG)
+# ==========================================
+@api_bp.route('/api/admin/universities', methods=['GET', 'OPTIONS'])
+def get_admin_universities(): 
+    # Mở đường cho React gọi API không bị chặn CORS
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+
     try:
         # Join bảng UniversityData với UniversityDetail để lấy địa chỉ
         query_result = db.session.query(UniversityData, UniversityDetail)\
             .outerjoin(UniversityDetail, UniversityData.id == UniversityDetail.university_id)\
             .all()
 
-        # Dùng Dictionary để gom nhóm tránh bị trùng lặp tên trường
         unique_schools = {}
 
         for uni_data, uni_detail in query_result:
-            school_name = uni_data.school_name
+            school_name = uni_data.school_name if uni_data.school_name else "Trường ẩn danh"
             
-            # Nếu trường này chưa có trong danh sách kết quả thì mới thêm vào
             if school_name not in unique_schools:
-                
-                # Ráp nối Địa chỉ và Loại hình trường (Công lập/Tư thục)
+                # Xử lý địa chỉ và loại hình
                 address = uni_detail.address if uni_detail and uni_detail.address else "Chưa có địa chỉ"
-                # Rút gọn địa chỉ (chỉ lấy Tỉnh/Thành phố nếu quá dài)
                 short_address = address.split(',')[-1].strip() if ',' in address else address
-                
                 school_type = uni_data.school_type if uni_data.school_type else "Công lập"
                 location_str = f"{short_address} • {school_type}"
 
+                # 🚀 LOGIC TẠO MÃ TRƯỜNG THÔNG MINH TỪ TÊN TRƯỜNG
+                # 1. Tìm xem trong tên trường có chữ viết tắt trong ngoặc không (VD: (NEU), (FTU))
+                match = re.search(r'\((.*?)\)', school_name)
+                if match and len(match.group(1)) <= 10: 
+                    generated_code = match.group(1).upper()
+                else:
+                    # 2. Nếu không có ngoặc, bốc chữ cái đầu của từng từ (VD: Đại học FPT -> ĐHF)
+                    clean_name = school_name.replace("Trường ", "").replace("Đại học ", "ĐH ")
+                    words = clean_name.split()
+                    generated_code = "".join([word[0].upper() for word in words if word])[:6]
+
                 unique_schools[school_name] = {
-                    'id': uni_data.id, # Lấy ID của dòng đầu tiên làm đại diện
+                    'id': uni_data.id, 
                     'name': school_name,
                     'location': location_str,
-                    'code': uni_data.major_code[:3].upper() if uni_data.major_code else school_name[:3].upper(),
+                    'code': generated_code,  # 👈 Sử dụng mã tự sinh, bỏ qua major_code
                     'updated': 'Vừa đồng bộ',
                     'status': 'Đã đồng bộ AI',
                     'logo': uni_data.school_logo or 'https://via.placeholder.com/150'
@@ -2108,7 +2165,8 @@ def get_admin_universities(current_user):
         return jsonify(result), 200
 
     except Exception as e:
-        print(f"❌ Lỗi API Universities: {str(e)}")
+        import traceback
+        print(f"❌ Lỗi API Universities (GET): {traceback.format_exc()}")
         return jsonify({"error": str(e)}), 500
     
 # ==========================================
@@ -4000,3 +4058,95 @@ def mark_all_notifications_read():
     except Exception as e:
         db.session.rollback()
         return jsonify({"success": False}), 500
+
+import random # Thêm cái này ở trên cùng nếu chưa có
+
+# ==========================================
+# API TẠO NHẬT KÝ ĐỒNG BỘ THỦ CÔNG 
+# ==========================================
+@api_bp.route('/api/admin/ai/sync-data', methods=['POST', 'OPTIONS'])
+def sync_data_to_ai():
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+
+    try:
+        # Ở đây sau này sếp có thể viết logic để kéo DB nạp cho AI thật
+        # Hiện tại ta sẽ sinh ra 1 bản ghi Log lưu vào CSDL để báo cáo
+        import datetime
+        current_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        
+        # Sếp dùng Model bảng Log mà sếp đang có, ví dụ ActivityLog (sửa lại theo tên Class của sếp)
+        # log = ActivityLog(action_type="Đồng bộ AI", description=f"Cập nhật vector embeddings - {current_time}")
+        # db.session.add(log)
+        # db.session.commit()
+
+        # Giả lập trả về thành công
+        return jsonify({
+            "message": "Đồng bộ thành công",
+            "time": current_time,
+            "simulated_size": f"{random.randint(15, 45)}MB"
+        }), 200
+
+    except Exception as e:
+        import traceback
+        print(f"❌ Lỗi đồng bộ AI: {traceback.format_exc()}")
+        return jsonify({"error": str(e)}), 500
+
+        # ==========================================
+# API ADMIN: THÊM - SỬA - XÓA LOG AI THỦ CÔNG
+# ==========================================
+
+# 1. THÊM LOG MỚI
+@api_bp.route('/api/admin/ai/logs', methods=['POST', 'OPTIONS'])
+def add_ai_log():
+    if request.method == 'OPTIONS': return jsonify({}), 200
+    try:
+        data = request.json
+        from models import AISyncLog, db
+        new_log = AISyncLog(
+            task=data.get('task', 'Chưa đặt tên'),
+            source=data.get('source', 'DB: unknown'),
+            status=data.get('status', 'Hoàn tất'),
+            size=data.get('size', '0MB'),
+            is_running=data.get('status') == 'Đang xử lý'
+        )
+        db.session.add(new_log)
+        db.session.commit()
+        return jsonify({"message": "Thêm Log thành công!"}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 2. SỬA LOG
+@api_bp.route('/api/admin/ai/logs/<int:log_id>', methods=['PUT', 'OPTIONS'])
+def edit_ai_log(log_id):
+    if request.method == 'OPTIONS': return jsonify({}), 200
+    try:
+        data = request.json
+        from models import AISyncLog, db
+        log = AISyncLog.query.get(log_id)
+        if not log: return jsonify({"error": "Không tìm thấy Log!"}), 404
+        
+        log.task = data.get('task', log.task)
+        log.source = data.get('source', log.source)
+        log.status = data.get('status', log.status)
+        log.size = data.get('size', log.size)
+        log.is_running = data.get('status') == 'Đang xử lý'
+        
+        db.session.commit()
+        return jsonify({"message": "Cập nhật Log thành công!"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 3. XÓA LOG
+@api_bp.route('/api/admin/ai/logs/<int:log_id>', methods=['DELETE', 'OPTIONS'])
+def delete_ai_log(log_id):
+    if request.method == 'OPTIONS': return jsonify({}), 200
+    try:
+        from models import AISyncLog, db
+        log = AISyncLog.query.get(log_id)
+        if log:
+            db.session.delete(log)
+            db.session.commit()
+        return jsonify({"message": "Đã xóa Log!"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

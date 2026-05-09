@@ -76,21 +76,33 @@ const UserManagement = () => {
   const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
-  // 🚀 4. MỞ MODAL SỬA (Đã chuẩn hóa role về lowercase để xử lý an toàn)
+  // 4. MỞ MODAL SỬA
   const openEditModal = (user) => {
     setFormData({ 
       id: user.id, 
       name: user.name, 
       email: user.email, 
-      role: user.role.toLowerCase(), // Chuẩn hóa về chữ thường
+      role: user.role.toLowerCase(), 
       verified: user.verified 
     });
     setShowModal(true);
   };
 
-  // 5. LƯU CẬP NHẬT
+  // 🚀 5. LƯU CẬP NHẬT (ĐÃ FIX BẮT LỖI TÊN TRỐNG & EMAIL SAI)
   const handleUpdate = (e) => {
     e.preventDefault();
+
+    // KIỂM TRA ĐIỀU KIỆN TRƯỚC KHI LƯU
+    if (!formData.name.trim()) {
+      Swal.fire('Lỗi!', 'Họ và Tên không được để trống rỗng!', 'warning');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim() || !emailRegex.test(formData.email)) {
+      Swal.fire('Lỗi!', 'Email không hợp lệ (Ví dụ: abc@gmail.com)!', 'warning');
+      return;
+    }
+
     fetch(`http://localhost:8000/api/admin/users/${formData.id}`, {
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -151,7 +163,7 @@ const UserManagement = () => {
     });
   };
 
-  // 7. THÊM NGƯỜI DÙNG NHANH
+  // 🚀 7. THÊM NGƯỜI DÙNG NHANH (ĐÃ FIX BẮT LỖI EMAIL)
   const handleAddUser = async () => {
     const { value: formValues } = await Swal.fire({
       title: 'Thêm Người Dùng Mới',
@@ -181,12 +193,21 @@ const UserManagement = () => {
       confirmButtonColor: '#0f172a',
       borderRadius: '16px',
       preConfirm: () => {
-        const name = document.getElementById('swal-input-name').value;
-        const email = document.getElementById('swal-input-email').value;
-        if (!name || !email) {
-          Swal.showValidationMessage('Vui lòng nhập đầy đủ Họ Tên và Email!');
+        const name = document.getElementById('swal-input-name').value.trim();
+        const email = document.getElementById('swal-input-email').value.trim();
+        
+        // Dùng Regex để kiểm tra chuẩn email (có @ và dấu chấm)
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!name) {
+          Swal.showValidationMessage('Vui lòng nhập Họ Tên!');
           return false;
         }
+        if (!email || !emailRegex.test(email)) {
+          Swal.showValidationMessage('Email không đúng định dạng (Ví dụ: tên@gmail.com)!');
+          return false;
+        }
+
         return {
           name: name,
           email: email,
@@ -225,7 +246,7 @@ const UserManagement = () => {
     }
   };
 
-  // 🚀 8. KHÓA / MỞ KHÓA TÀI KHOẢN (Sửa lỗi case-sensitive)
+  // 8. KHÓA / MỞ KHÓA TÀI KHOẢN
   const handleToggleBan = (userId, currentRole) => {
     const isBanned = currentRole.toLowerCase() === 'banned';
     const actionText = isBanned ? 'Mở khóa' : 'Khóa';
@@ -306,18 +327,16 @@ const UserManagement = () => {
     }
   };
 
-  // 🚀 HÀM CHỌN MÀU CHO VAI TRÒ (Thêm màu riêng cho MENTOR)
   const getRoleStyle = (role) => {
     const r = role.toLowerCase();
     if (r === 'admin') return { bg: '#fee2e2', color: '#9f1239' };
-    if (r === 'banned') return { bg: '#1e293b', color: '#f8fafc' }; // Màu đen tội phạm
-    if (r === 'mentor') return { bg: '#fef3c7', color: '#b45309' }; // Màu vàng xịn cho MENTOR
-    return { bg: '#e0f2fe', color: '#0369a1' }; // Mặc định là USER
+    if (r === 'banned') return { bg: '#1e293b', color: '#f8fafc' };
+    if (r === 'mentor') return { bg: '#fef3c7', color: '#b45309' };
+    return { bg: '#e0f2fe', color: '#0369a1' }; 
   };
 
   return (
     <div className="user-mgmt-content fade-in">
-      {/* PAGE TITLE & ACTIONS */}
       <div className="page-header-um">
         <div className="title-area-um">
           <h2>Quản lý Người dùng</h2>
@@ -333,7 +352,6 @@ const UserManagement = () => {
         </div>
       </div>
 
-      {/* STATS CARDS */}
       <div className="stats-row-um">
         <div className="um-card">
           <span>TỔNG NGƯỜI DÙNG</span>
@@ -353,7 +371,6 @@ const UserManagement = () => {
         </div>
       </div>
 
-      {/* FILTER TOOLBAR */}
       <div className="filter-toolbar">
         <div className="search-input-box">
           <Search size={16} />
@@ -375,7 +392,6 @@ const UserManagement = () => {
         </div>
       </div>
 
-      {/* TABLE SECTION */}
       <div className="table-wrapper-um custom-scrollbar" style={{overflowX: 'auto'}}>
         {loading ? <p style={{textAlign: 'center', padding: '30px'}}>Đang tải dữ liệu...</p> : (
           <>
@@ -467,7 +483,6 @@ const UserManagement = () => {
         )}
       </div>
 
-      {/* AI INSIGHT BANNER */}
       <div className="ai-insight-banner">
         <div className="ai-icon-bg"><Sparkles size={20}/></div>
         <div className="ai-content">
@@ -482,7 +497,7 @@ const UserManagement = () => {
         </div>
       </div>
 
-      {/* 🚀 MODAL SỬA NGƯỜI DÙNG (Đã thêm quyền MENTOR) */}
+      {/* 🚀 MODAL SỬA NGƯỜI DÙNG (Đã ĐỘ THÊM INPUT TÊN VÀ EMAIL) */}
       {showModal && (
         <div className="cm-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(15, 23, 42, 0.65)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
           <div className="cm-modal-content" style={{ background: '#fff', width: '400px', borderRadius: '12px', padding: '24px' }}>
@@ -492,14 +507,33 @@ const UserManagement = () => {
             </div>
 
             <form onSubmit={handleUpdate} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
-              <div style={{background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0'}}>
-                <p style={{margin: '0 0 5px 0', fontWeight: 'bold', color: '#334155'}}>{formData.name}</p>
-                <p style={{margin: 0, color: '#64748b', fontSize: '13px'}}>{formData.email}</p>
+              
+              {/* 🚀 Đã đổi từ văn bản tĩnh sang thẻ INPUT để sếp xóa/sửa được */}
+              <div>
+                <label style={{fontSize: '12px', fontWeight: 'bold', color: '#64748b'}}>Họ và Tên (*)</label>
+                <input 
+                  type="text" 
+                  value={formData.name} 
+                  onChange={e => setFormData({...formData, name: e.target.value})} 
+                  style={{width: '100%', boxSizing: 'border-box', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', marginTop: '5px', background: 'white'}}
+                  placeholder="Nhập họ và tên..."
+                />
+              </div>
+
+              <div>
+                <label style={{fontSize: '12px', fontWeight: 'bold', color: '#64748b'}}>Email đăng nhập (*)</label>
+                <input 
+                  type="email" 
+                  value={formData.email} 
+                  onChange={e => setFormData({...formData, email: e.target.value})} 
+                  style={{width: '100%', boxSizing: 'border-box', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', marginTop: '5px', background: 'white'}}
+                  placeholder="Nhập email..."
+                />
               </div>
 
               <div>
                 <label style={{fontSize: '12px', fontWeight: 'bold', color: '#64748b'}}>Vai trò hệ thống</label>
-                <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} style={{width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', marginTop: '5px', background: 'white'}}>
+                <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} style={{width: '100%', boxSizing: 'border-box', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', marginTop: '5px', background: 'white'}}>
                   <option value="user">USER (Học sinh/Sinh viên)</option>
                   <option value="mentor">MENTOR (Cố vấn chuyên môn)</option> 
                   <option value="admin">ADMIN (Quản trị viên)</option>
@@ -508,7 +542,7 @@ const UserManagement = () => {
 
               <div>
                 <label style={{fontSize: '12px', fontWeight: 'bold', color: '#64748b'}}>Trạng thái xác thực</label>
-                <select value={formData.verified} onChange={e => setFormData({...formData, verified: e.target.value === 'true'})} style={{width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', marginTop: '5px', background: 'white'}}>
+                <select value={formData.verified} onChange={e => setFormData({...formData, verified: e.target.value === 'true'})} style={{width: '100%', boxSizing: 'border-box', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', marginTop: '5px', background: 'white'}}>
                   <option value="true">Active (Đã xác thực)</option>
                   <option value="false">Pending (Chưa xác thực)</option>
                 </select>

@@ -5,7 +5,7 @@ import {
   Edit3, Trash2, TrendingUp, BarChart2,
   ChevronLeft, ChevronRight, X, Save
 } from 'lucide-react';
-import Swal from 'sweetalert2'; // 🚀 IMPORT VŨ KHÍ SWEETALERT2
+import Swal from 'sweetalert2'; 
 
 const AdmissionManagement = () => {
   const [admissions, setAdmissions] = useState([]);
@@ -23,7 +23,6 @@ const AdmissionManagement = () => {
     score_thpt: '', score_hocba: '', score_dgnl: '', combo_cert: '', direct_admission: '', aptitude_test: '', year: '2025'
   });
 
-  // 🚀 REFERENCE ĐỂ MỞ CỬA SỔ CHỌN FILE EXCEL
   const fileInputRef = useRef(null); 
   const token = localStorage.getItem('token');
 
@@ -62,9 +61,23 @@ const AdmissionManagement = () => {
     setShowFormModal(true);
   };
 
-  // 🚀 ĐÃ THAY BẰNG SWEETALERT2
+  // 🚀 XỬ LÝ GỬI FORM (ĐÃ ĐỘ LẠI VALIDATION CHỈ TIÊU)
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // 🛡️ BƯỚC KIỂM TRA BẢO MẬT: CHỈ TIÊU PHẢI LÀ SỐ NGUYÊN DƯƠNG
+    const quotaNum = Number(formData.quota);
+    if (!formData.quota || !Number.isInteger(quotaNum) || quotaNum <= 0) {
+      Swal.fire({
+        title: 'Lỗi nhập liệu!',
+        text: "Chỉ tiêu phải là số nguyên dương.",
+        icon: 'error',
+        confirmButtonText: 'Sửa lại',
+        borderRadius: '16px'
+      });
+      return; // Chặn đứng, không cho gửi API
+    }
+
     const url = formData.id ? `http://localhost:8000/api/admin/admissions/${formData.id}` : 'http://localhost:8000/api/admin/admissions';
     const method = formData.id ? 'PUT' : 'POST';
 
@@ -91,7 +104,6 @@ const AdmissionManagement = () => {
     });
   };
 
-  // 🚀 ĐÃ THAY BẰNG SWEETALERT2
   const handleDelete = (id) => {
     Swal.fire({
       title: 'Xóa bản ghi?',
@@ -124,7 +136,6 @@ const AdmissionManagement = () => {
     });
   };
 
-  // 🚀 ĐÃ THAY BẰNG SWEETALERT2 VÀ THÊM HIỆU ỨNG LOADING
   const handleExcelUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -177,8 +188,6 @@ const AdmissionManagement = () => {
           </div>
         </div>
         <div className="adm-header-btns">
-          
-          {/* 🚀 ĐÂY LÀ CHỖ KÍCH HOẠT NÚT IMPORT */}
           <input type="file" accept=".xlsx, .xls" ref={fileInputRef} style={{ display: 'none' }} onChange={handleExcelUpload} />
           <button className="btn-adm-secondary" onClick={() => fileInputRef.current.click()} title="Upload file Excel">
             <Upload size={16} /> Import Excel
@@ -332,7 +341,22 @@ const AdmissionManagement = () => {
                   </div>
                   <div>
                     <label style={{fontSize: '12px', fontWeight: 'bold', color: '#64748b'}}>Chỉ tiêu</label>
-                    <input type="number" value={formData.quota} onChange={e => setFormData({...formData, quota: e.target.value})} style={{width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', marginTop: '5px'}}/>
+                    {/* 🚀 LỚP BẢO VỆ 1: CHỈ CHO PHÉP NHẬP SỐ DƯƠNG, CHẶN GÕ CHỮ */}
+                    <input 
+                      type="number" 
+                      min="1"
+                      step="1"
+                      required
+                      value={formData.quota} 
+                      onChange={e => setFormData({...formData, quota: e.target.value})} 
+                      onKeyDown={(e) => {
+                        // Chặn các phím có thể nhập dưới dạng text trong thẻ number
+                        if (['e', 'E', '+', '-', '.', ','].includes(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      style={{width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', marginTop: '5px'}}
+                    />
                   </div>
                 </div>
               </div>
