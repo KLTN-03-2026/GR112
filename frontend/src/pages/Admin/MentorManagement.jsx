@@ -19,7 +19,7 @@ const MentorManagement = () => {
 
   const fetchMentors = () => {
     setLoading(true);
-    fetch('http://localhost:8000/api/admin/mentors', {
+    fetch('https://gr112.onrender.com/api/admin/mentors', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -89,8 +89,8 @@ const MentorManagement = () => {
 
     const method = isEditing ? 'PUT' : 'POST';
     const url = isEditing 
-      ? `http://localhost:8000/api/admin/mentors/${currentId}` 
-      : 'http://localhost:8000/api/admin/mentors';
+      ? `https://gr112.onrender.com/api/admin/mentors/${currentId}` 
+      : 'https://gr112.onrender.com/api/admin/mentors';
 
     fetch(url, {
       method: method,
@@ -131,7 +131,7 @@ const MentorManagement = () => {
       borderRadius: '16px'
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch(`http://localhost:8000/api/admin/mentors/${id}`, {
+        fetch(`https://gr112.onrender.com/api/admin/mentors/${id}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
         })

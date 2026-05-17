@@ -10,7 +10,7 @@ const BookingManagement = () => {
 
   // 2. Gọi API khi trang vừa load
   useEffect(() => {
-    fetch('http://localhost:8000/api/admin/bookings', {
+    fetch('https://gr112.onrender.com/api/admin/bookings', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -40,7 +40,7 @@ const BookingManagement = () => {
       if (result.isConfirmed) {
         
         // Gọi API cập nhật
-        fetch(`http://localhost:8000/api/admin/bookings/${id}`, {
+        fetch(`https://gr112.onrender.com/api/admin/bookings/${id}`, {
           method: 'PUT',
           headers: { 
             'Authorization': `Bearer ${token}`,

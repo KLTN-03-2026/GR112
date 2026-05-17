@@ -51,7 +51,7 @@ const ProfileForm = () => {
 
     const fetchProfile = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/api/orientation/${currentUserId}`);
+        const res = await fetch(`https://gr112.onrender.com/api/orientation/${currentUserId}`);
         
         if (res.ok) {
           const data = await res.json();
@@ -119,7 +119,7 @@ const ProfileForm = () => {
         living_cost_monthly: parseInt(formData.livingCost),
       };
 
-      const res = await fetch(`http://localhost:8000/api/orientation/${currentId}`, {
+      const res = await fetch(`https://gr112.onrender.com/api/orientation/${currentId}`, {
         method: 'PUT', // Hoặc 'POST' tùy theo thiết kế backend
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

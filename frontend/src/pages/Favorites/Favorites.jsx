@@ -30,7 +30,7 @@ const Favorites = () => {
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
-        const res = await axios.get(`http://localhost:8000/api/favorites/${currentUserId}`);
+        const res = await axios.get(`https://gr112.onrender.com/api/favorites/${currentUserId}`);
         const formattedFavs = res.data.map(uni => formatSchoolData(uni));
         setFavoriteSchools(formattedFavs);
       } catch (error) {
@@ -40,7 +40,7 @@ const Favorites = () => {
 
     const fetchAll = async () => {
       try {
-        const res = await axios.get('http://localhost:8000/api/universities');
+        const res = await axios.get('https://gr112.onrender.com/api/universities');
         setAllUnis(res.data);
       } catch (error) {
         console.error("Lỗi lấy tất cả trường:", error);
@@ -53,7 +53,7 @@ const Favorites = () => {
 
   const handleRemoveFavorite = async (id) => {
     try {
-      await axios.post('http://localhost:8000/api/favorites/toggle', {
+      await axios.post('https://gr112.onrender.com/api/favorites/toggle', {
         user_id: currentUserId,
         university_id: id
       });
@@ -65,7 +65,7 @@ const Favorites = () => {
 
   const handleAddSuggestion = async (school) => {
     try {
-      await axios.post('http://localhost:8000/api/favorites/toggle', {
+      await axios.post('https://gr112.onrender.com/api/favorites/toggle', {
         user_id: currentUserId,
         university_id: school.id
       });

@@ -18,7 +18,7 @@ const AdminSettings = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/admin/settings');
+        const res = await fetch('https://gr112.onrender.com/api/admin/settings');
         if (res.ok) {
           const data = await res.json();
           setSettings(data);
@@ -37,7 +37,7 @@ const AdminSettings = () => {
   const handleSave = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:8000/api/admin/settings', {
+      const res = await fetch('https://gr112.onrender.com/api/admin/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings)

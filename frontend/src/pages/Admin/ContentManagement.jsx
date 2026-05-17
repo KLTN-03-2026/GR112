@@ -28,7 +28,7 @@ const ContentManagement = () => {
   // ==========================================
   const fetchTotalQuestions = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/admin/questions-count');
+      const res = await fetch('https://gr112.onrender.com/api/admin/questions-count');
       if (res.ok) {
         const data = await res.json();
         setTotalQuestions(data.total);
@@ -47,7 +47,7 @@ const ContentManagement = () => {
     setShowModal(true); 
     
     try {
-      const res = await fetch(`http://localhost:8000/api/admin/questions?type=${type}`);
+      const res = await fetch(`https://gr112.onrender.com/api/admin/questions?type=${type}`);
       if (!res.ok) {
         console.error("API trả về lỗi:", res.status);
         return; 
@@ -88,7 +88,7 @@ const ContentManagement = () => {
     };
 
     try {
-      await fetch('http://localhost:8000/api/admin/questions', {
+      await fetch('https://gr112.onrender.com/api/admin/questions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -103,7 +103,7 @@ const ContentManagement = () => {
       });
 
       resetForm();
-      const res = await fetch(`http://localhost:8000/api/admin/questions?type=${currentType}`);
+      const res = await fetch(`https://gr112.onrender.com/api/admin/questions?type=${currentType}`);
       if (res.ok) {
           const data = await res.json();
           setQuestions(data);
@@ -128,7 +128,7 @@ const ContentManagement = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await fetch(`http://localhost:8000/api/admin/questions/${id}`, { method: 'DELETE' });
+          await fetch(`https://gr112.onrender.com/api/admin/questions/${id}`, { method: 'DELETE' });
           
           Swal.fire({
             title: 'Đã xóa!',
@@ -138,7 +138,7 @@ const ContentManagement = () => {
             showConfirmButton: false
           });
 
-          const res = await fetch(`http://localhost:8000/api/admin/questions?type=${currentType}`);
+          const res = await fetch(`https://gr112.onrender.com/api/admin/questions?type=${currentType}`);
           if (res.ok) {
               const data = await res.json();
               setQuestions(data);
@@ -157,7 +157,7 @@ const ContentManagement = () => {
   // ==========================================
   const fetchReviews = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/admin/reviews?type=${activeReviewTab}`);
+      const res = await fetch(`https://gr112.onrender.com/api/admin/reviews?type=${activeReviewTab}`);
       const data = await res.json();
       
       // 🚀 BẬT RADAR: In ra F12 xem Python gửi cái gì sang
@@ -207,7 +207,7 @@ const ContentManagement = () => {
       const method = action === 'delete' ? 'DELETE' : 'POST';
       const bodyPayload = action === 'delete' ? null : JSON.stringify({ action: action, type: activeReviewTab });
 
-      const res = await fetch(`http://localhost:8000/api/admin/reviews/${id}`, {
+      const res = await fetch(`https://gr112.onrender.com/api/admin/reviews/${id}`, {
         method: method,
         headers: { 'Content-Type': 'application/json' },
         body: bodyPayload

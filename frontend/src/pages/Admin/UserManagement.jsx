@@ -31,7 +31,7 @@ const UserManagement = () => {
   // 1. LẤY DỮ LIỆU USER
   const fetchUsers = () => {
     setLoading(true);
-    fetch('http://localhost:8000/api/admin/users', {
+    fetch('https://gr112.onrender.com/api/admin/users', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -49,7 +49,7 @@ const UserManagement = () => {
 
   // 2. LẤY CHI TIẾT BÁO CÁO VI PHẠM
   const fetchReportDetails = () => {
-    fetch('http://localhost:8000/api/admin/reports', {
+    fetch('https://gr112.onrender.com/api/admin/reports', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -103,7 +103,7 @@ const UserManagement = () => {
       return;
     }
 
-    fetch(`http://localhost:8000/api/admin/users/${formData.id}`, {
+    fetch(`https://gr112.onrender.com/api/admin/users/${formData.id}`, {
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
@@ -140,7 +140,7 @@ const UserManagement = () => {
       borderRadius: '16px'
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch(`http://localhost:8000/api/admin/users/${id}`, { 
+        fetch(`https://gr112.onrender.com/api/admin/users/${id}`, { 
           method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } 
         })
         .then(res => { 
@@ -218,7 +218,7 @@ const UserManagement = () => {
     });
 
     if (formValues) {
-      fetch('http://localhost:8000/api/admin/users', {
+      fetch('https://gr112.onrender.com/api/admin/users', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -264,7 +264,7 @@ const UserManagement = () => {
       borderRadius: '16px'
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch(`http://localhost:8000/api/admin/users/${userId}/toggle-ban`, {
+        fetch(`https://gr112.onrender.com/api/admin/users/${userId}/toggle-ban`, {
           method: 'PUT',
           headers: { 'Authorization': `Bearer ${token}` }
         })
@@ -299,7 +299,7 @@ const UserManagement = () => {
         didOpen: () => { Swal.showLoading(); }
       });
 
-      const res = await fetch('http://localhost:8000/api/admin/users/export', {
+      const res = await fetch('https://gr112.onrender.com/api/admin/users/export', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!res.ok) throw new Error("Lỗi xuất file");

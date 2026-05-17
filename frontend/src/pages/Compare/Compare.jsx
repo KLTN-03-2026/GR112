@@ -18,7 +18,7 @@ export default function Compare() {
   useEffect(() => {
     const fetchAllUniversities = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/universities');
+        const response = await axios.get('https://gr112.onrender.com/api/universities');
         const dbData = response.data;
         setAllUniversities(dbData);
 
@@ -47,7 +47,7 @@ export default function Compare() {
       for (const school of schools) {
         try {
           // Gọi API lấy đánh giá của từng trường
-          const res = await axios.get(`http://localhost:8000/api/universities/${school.id}/reviews`);
+          const res = await axios.get(`https://gr112.onrender.com/api/universities/${school.id}/reviews`);
           const reviewsData = res.data.reviews || [];
           
           const totalReviews = reviewsData.length;

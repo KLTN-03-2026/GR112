@@ -11,7 +11,7 @@ const Mentors = () => {
   const userId = localStorage.getItem('id') || localStorage.getItem('userId') || localStorage.getItem('user_id'); 
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/mentors')
+    fetch('https://gr112.onrender.com/api/mentors')
       .then(res => res.json())
       .then(data => {
         setMentors(data.mentors || []);
@@ -61,7 +61,7 @@ const Mentors = () => {
 
     if (formValues) {
       try {
-        const response = await fetch('http://localhost:8000/api/mentors/review', {
+        const response = await fetch('https://gr112.onrender.com/api/mentors/review', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

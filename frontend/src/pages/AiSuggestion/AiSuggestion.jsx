@@ -58,7 +58,7 @@ const AiSuggestion = () => {
       const totalScore = parseFloat(scores.sub1) + parseFloat(scores.sub2) + parseFloat(scores.sub3);
       
       // Gọi API lấy toàn bộ dữ liệu trường từ Database
-      const response = await axios.get('http://localhost:8000/api/universities');
+      const response = await axios.get('https://gr112.onrender.com/api/universities');
       const allUnis = response.data;
 
       // Lọc các trường có xét tuyển khối người dùng chọn

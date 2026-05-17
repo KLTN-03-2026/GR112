@@ -23,7 +23,7 @@ const ExamBlockManagement = () => {
   // LẤY DỮ LIỆU TỪ API
   const fetchBlocks = () => {
     setLoading(true);
-    fetch('http://localhost:8000/api/admin/exam-blocks', {
+    fetch('https://gr112.onrender.com/api/admin/exam-blocks', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -63,7 +63,7 @@ const ExamBlockManagement = () => {
   // LƯU DỮ LIỆU (THÊM/SỬA) 🚀 ĐÃ THAY BẰNG SWEETALERT2
   const handleSubmit = (e) => {
     e.preventDefault();
-    const url = formData.id ? `http://localhost:8000/api/admin/exam-blocks/${formData.id}` : 'http://localhost:8000/api/admin/exam-blocks';
+    const url = formData.id ? `https://gr112.onrender.com/api/admin/exam-blocks/${formData.id}` : 'https://gr112.onrender.com/api/admin/exam-blocks';
     const method = formData.id ? 'PUT' : 'POST';
 
     fetch(url, {
@@ -118,7 +118,7 @@ const ExamBlockManagement = () => {
       borderRadius: '16px'
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch(`http://localhost:8000/api/admin/exam-blocks/${id}`, { 
+        fetch(`https://gr112.onrender.com/api/admin/exam-blocks/${id}`, { 
           method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } 
         })
         .then(res => { 

@@ -46,7 +46,7 @@ const Orientation = () => {
     // Lấy dữ liệu cũ nếu người dùng đã từng lưu hồ sơ
     const fetchOldData = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/api/orientation/${currentUserId}`);
+        const res = await fetch(`https://gr112.onrender.com/api/orientation/${currentUserId}`);
         if (res.ok) {
           const data = await res.json();
           setFormData(prev => ({
@@ -76,7 +76,7 @@ const Orientation = () => {
     // Tải toàn bộ Database trường học để lọc ở Step 4
     const fetchUnis = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/universities');
+        const res = await fetch('https://gr112.onrender.com/api/universities');
         if (res.ok) {
           const data = await res.json();
           setAllUniversities(data);
@@ -214,7 +214,7 @@ const Orientation = () => {
       // Bây giờ payload gửi đi sẽ mang chính xác currentUserId (ví dụ ID 12)
       const payload = { ...formData, userId: currentUserId };
       
-      const response = await fetch('http://localhost:8000/api/orientation', {
+      const response = await fetch('https://gr112.onrender.com/api/orientation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

@@ -43,7 +43,7 @@ const Chatbot = () => {
     const fetchInitialData = async () => {
       if (savedUser && savedUser.id) {
         try {
-          const profileRes = await fetch(`http://localhost:8000/api/get-full-profile/${savedUser.id}`);
+          const profileRes = await fetch(`https://gr112.onrender.com/api/get-full-profile/${savedUser.id}`);
           let profileData = null;
           
           if (profileRes.ok) {
@@ -79,7 +79,7 @@ const Chatbot = () => {
           
           setUserProfile(profileData);
             
-          const sessionRes = await fetch(`http://localhost:8000/api/chat/sessions/${savedUser.id}`);
+          const sessionRes = await fetch(`https://gr112.onrender.com/api/chat/sessions/${savedUser.id}`);
           if (sessionRes.ok) {
             const sessionData = await sessionRes.json();
             setSessions(sessionData);
@@ -141,7 +141,7 @@ const Chatbot = () => {
     setChatMessages([]); 
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:8000/api/chat/history/${sessionId}`);
+      const res = await fetch(`https://gr112.onrender.com/api/chat/history/${sessionId}`);
       if (res.ok) {
         const historyData = await res.json();
         const formattedMsgs = historyData.map(msg => ({
@@ -167,7 +167,7 @@ const Chatbot = () => {
     e.stopPropagation(); 
     if (!window.confirm("Bạn có chắc chắn muốn xóa cuộc trò chuyện này?")) return;
     try {
-      const res = await fetch(`http://localhost:8000/api/chat/sessions/${sessionId}`, { method: 'DELETE' });
+      const res = await fetch(`https://gr112.onrender.com/api/chat/sessions/${sessionId}`, { method: 'DELETE' });
       if (res.ok) {
         const updatedSessions = sessions.filter(s => s.id !== sessionId);
         setSessions(updatedSessions);
@@ -244,7 +244,7 @@ const Chatbot = () => {
       
       smartPrompt += hiddenInstruction; 
 
-      const response = await fetch('http://localhost:8000/api/chat', {
+      const response = await fetch('https://gr112.onrender.com/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

@@ -26,7 +26,7 @@ const Quiz = () => {
     setIsFetchingQ(true);
 
     try {
-      const qRes = await fetch(`http://localhost:8000/api/admin/questions?type=${type}`);
+      const qRes = await fetch(`https://gr112.onrender.com/api/admin/questions?type=${type}`);
       const dbQuestions = await qRes.json();
 
       if (!dbQuestions || dbQuestions.length === 0) {
@@ -40,7 +40,7 @@ const Quiz = () => {
 
       const savedUser = JSON.parse(localStorage.getItem("user"));
       if (savedUser && savedUser.id) {
-        const response = await fetch(`http://localhost:8000/api/get-quiz-result/${savedUser.id}?type=${type}`);
+        const response = await fetch(`https://gr112.onrender.com/api/get-quiz-result/${savedUser.id}?type=${type}`);
         const data = await response.json();
         
         if (response.ok && data.exists) {
@@ -86,7 +86,7 @@ const Quiz = () => {
     if (step === totalQuestions + 1 && totalQuestions > 0) {
       const fetchQuizResult = async () => {
         try {
-          const response = await fetch('http://localhost:8000/api/submit-quiz', {
+          const response = await fetch('https://gr112.onrender.com/api/submit-quiz', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ quizType, answers })
@@ -119,7 +119,7 @@ const Quiz = () => {
       return;
     }
     try {
-      const response = await fetch('http://localhost:8000/api/save-quiz-result', {
+      const response = await fetch('https://gr112.onrender.com/api/save-quiz-result', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

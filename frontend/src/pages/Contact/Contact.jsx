@@ -10,7 +10,7 @@ const Contact = () => {
     
     try {
       // ĐỔI SANG PORT 8000
-      const response = await fetch('http://localhost:8000/api/contact', {
+      const response = await fetch('https://gr112.onrender.com/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

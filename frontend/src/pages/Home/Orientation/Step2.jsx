@@ -50,7 +50,7 @@ const Step2 = ({ formData, setFormData }) => {
   useEffect(() => {
     const fetchUniversities = async () => {
       try {
-        const res = await axios.get('http://localhost:8000/api/universities');
+        const res = await axios.get('https://gr112.onrender.com/api/universities');
         setAllUnis(res.data);
       } catch (e) {
         console.error("Lỗi tải dữ liệu trường Step 2:", e);

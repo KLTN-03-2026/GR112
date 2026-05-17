@@ -37,7 +37,7 @@ const UniversityDetail = () => {
   // 1. HÀM TẢI DANH SÁCH ĐÁNH GIÁ TỪ DATABASE
   const fetchReviews = async () => {
     try {
-      const res = await axios.get(`http://localhost:8000/api/universities/${id}/reviews`);
+      const res = await axios.get(`hhttps://gr112.onrender.com/api/universities/${id}/reviews`);
       if (res.data.reviews) {
         setReviews(res.data.reviews);
       }
@@ -50,7 +50,7 @@ const UniversityDetail = () => {
   useEffect(() => {
     const fetchDetail = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/api/universities/${id}`);
+        const response = await axios.get(`https://gr112.onrender.com/api/universities/${id}`);
         setUniData(response.data);
         setLoading(false);
       } catch (error) {
@@ -100,7 +100,7 @@ const UniversityDetail = () => {
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8000/api/universities/${id}/reviews`, {
+      const response = await fetch(`https://gr112.onrender.com/api/universities/${id}/reviews`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

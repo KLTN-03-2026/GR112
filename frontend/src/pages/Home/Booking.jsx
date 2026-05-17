@@ -30,7 +30,7 @@ const Booking = () => {
       const fetchMentors = async () => {
         setIsLoadingMentors(true);
         try {
-          const res = await fetch('http://localhost:8000/api/mentors'); 
+          const res = await fetch('https://gr112.onrender.com/api/mentors'); 
           const data = await res.json();
           if (res.ok) setMentorsList(data.mentors || []); 
         } catch (error) {
@@ -48,7 +48,7 @@ const Booking = () => {
     const fetchSlots = async () => {
       if (formData.mentorId) {
         try {
-          const res = await fetch(`http://localhost:8000/api/mentors/${formData.mentorId}/slots`);
+          const res = await fetch(`https://gr112.onrender.com/api/mentors/${formData.mentorId}/slots`);
           const data = await res.json();
           if (res.ok) setAvailableSlots(data.slots || []);
         } catch (error) {
@@ -74,7 +74,7 @@ const Booking = () => {
     }
 
     try {
-      const res = await fetch('http://localhost:8000/api/bookings', { // 🚀 CHỈNH LẠI ĐÚNG LINK API
+      const res = await fetch('https://gr112.onrender.com/api/bookings', { // 🚀 CHỈNH LẠI ĐÚNG LINK API
         method: 'POST', 
         headers: { 
             'Content-Type': 'application/json',

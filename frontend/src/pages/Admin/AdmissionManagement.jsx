@@ -28,7 +28,7 @@ const AdmissionManagement = () => {
 
   const fetchData = () => {
     setLoading(true);
-    fetch(`http://localhost:8000/api/admin/admissions?year=${yearFilter}`, {
+    fetch(`https://gr112.onrender.com/api/admin/admissions?year=${yearFilter}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -78,7 +78,7 @@ const AdmissionManagement = () => {
       return; // Chặn đứng, không cho gửi API
     }
 
-    const url = formData.id ? `http://localhost:8000/api/admin/admissions/${formData.id}` : 'http://localhost:8000/api/admin/admissions';
+    const url = formData.id ? `https://gr112.onrender.com/api/admin/admissions/${formData.id}` : 'https://gr112.onrender.com/api/admin/admissions';
     const method = formData.id ? 'PUT' : 'POST';
 
     fetch(url, {
@@ -117,7 +117,7 @@ const AdmissionManagement = () => {
       borderRadius: '16px'
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch(`http://localhost:8000/api/admin/admissions/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } })
+        fetch(`https://gr112.onrender.com/api/admin/admissions/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } })
         .then(res => { 
           if(res.ok) {
             Swal.fire({
@@ -151,7 +151,7 @@ const AdmissionManagement = () => {
     uploadData.append('file', file);
     uploadData.append('year', yearFilter); 
 
-    fetch('http://localhost:8000/api/admin/admissions/import', {
+    fetch('https://gr112.onrender.com/api/admin/admissions/import', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` },
       body: uploadData

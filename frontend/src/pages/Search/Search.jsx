@@ -29,7 +29,7 @@ const Search = () => {
   useEffect(() => {
     const fetchSavedFavs = async () => {
       try {
-        const res = await axios.get(`http://localhost:8000/api/favorites/${currentUserId}`);
+        const res = await axios.get(`https://gr112.onrender.com/api/favorites/${currentUserId}`);
         setFavList(res.data.map(s => s.id));
       } catch (e) {
         console.error("Lỗi lấy danh sách tim từ Database:", e);
@@ -42,7 +42,7 @@ const Search = () => {
   const handleToggleFavorite = async (e, school) => {
     e.preventDefault(); 
     try {
-      const response = await axios.post('http://localhost:8000/api/favorites/toggle', {
+      const response = await axios.post('https://gr112.onrender.com/api/favorites/toggle', {
         user_id: currentUserId,
         university_id: school.id
       });
@@ -70,7 +70,7 @@ const Search = () => {
     const fetchUniversities = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.get('http://localhost:8000/api/universities');
+        const response = await axios.get('https://gr112.onrender.com/api/universities');
         setAllUniversities(response.data);
         setDisplayUnis(response.data);
       } catch (error) {

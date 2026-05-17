@@ -33,7 +33,7 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
 
   // ================= 2. CẤU HÌNH GỌI API =================
-  const API_BASE_URL = 'http://localhost:8000/api/admin'; 
+  const API_BASE_URL = 'https://gr112.onrender.com/api/admin'; 
   const axiosConfig = {
     headers: { 'Authorization': `Bearer ${token}` }
   };

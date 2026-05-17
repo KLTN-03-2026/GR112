@@ -58,7 +58,7 @@ const Profile = () => {
   const handleSubmit = async (e) => { 
     e.preventDefault(); 
     try {
-        const res = await fetch("http://localhost:8000/api/update-profile", {
+        const res = await fetch("https://gr112.onrender.com/api/update-profile", {
             method: "PUT", 
             headers: { "Content-Type": "application/json" }, 
             body: JSON.stringify(formData),

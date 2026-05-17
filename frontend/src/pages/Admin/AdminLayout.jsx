@@ -68,7 +68,7 @@ const AdminLayout = () => {
   useEffect(() => {
     const fetchNotifs = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/admin/notifications');
+        const res = await fetch('https://gr112.onrender.com/api/admin/notifications');
         if (res.ok) {
           const data = await res.json();
           // Cập nhật mảng nếu API sếp có trả về mảng rỗng thì dùng [] 

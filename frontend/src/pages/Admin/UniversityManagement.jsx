@@ -45,7 +45,7 @@ const UniversityManagement = () => {
   // 1. LẤY DANH SÁCH TRƯỜNG
   const fetchUniversities = () => {
     setLoading(true);
-    fetch('http://localhost:8000/api/admin/universities', {
+    fetch('https://gr112.onrender.com/api/admin/universities', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -57,7 +57,7 @@ const UniversityManagement = () => {
 
   // 2. LẤY THỐNG KÊ (AUDIT & LỊCH SỬ)
   const fetchSystemStats = () => {
-    fetch('http://localhost:8000/api/admin/system-stats', {
+    fetch('https://gr112.onrender.com/api/admin/system-stats', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -100,7 +100,7 @@ const UniversityManagement = () => {
   };
 
   const fetchMajorsBySchool = (schoolName) => {
-    fetch(`http://localhost:8000/api/admin/universities/majors?school=${encodeURIComponent(schoolName)}`, {
+    fetch(`https://gr112.onrender.com/api/admin/universities/majors?school=${encodeURIComponent(schoolName)}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -126,7 +126,7 @@ const UniversityManagement = () => {
   // 🚀 XỬ LÝ GỬI FORM (ĐÃ ĐỘ LẠI BẰNG SWEETALERT2)
   const handleSubmitForm = (e) => {
     e.preventDefault();
-    const url = formData.id ? `http://localhost:8000/api/admin/universities/${formData.id}` : 'http://localhost:8000/api/admin/universities';
+    const url = formData.id ? `https://gr112.onrender.com/api/admin/universities/${formData.id}` : 'https://gr112.onrender.com/api/admin/universities';
     const method = formData.id ? 'PUT' : 'POST';
 
     fetch(url, {
@@ -168,7 +168,7 @@ const UniversityManagement = () => {
       borderRadius: '16px'
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch(`http://localhost:8000/api/admin/universities/${id}`, {
+        fetch(`https://gr112.onrender.com/api/admin/universities/${id}`, {
           method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
         }).then(res => {
           if (res.ok) {

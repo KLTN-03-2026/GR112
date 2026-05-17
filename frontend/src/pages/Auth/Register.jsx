@@ -22,7 +22,7 @@ export default function Register() {
 
   const otpRefs = useRef([]);
   const navigate = useNavigate();
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+  const API_URL = process.env.REACT_APP_API_URL || 'https://gr112.onrender.com';
 
   // 🚀 Hàm kiểm tra Email chuẩn
   const validateEmail = (email) => {

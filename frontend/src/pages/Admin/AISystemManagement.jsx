@@ -24,7 +24,7 @@ const AISystemManagement = () => {
   const [isTesting, setIsTesting] = useState(false);
 
   const fetchDashboardData = () => {
-    fetch('http://localhost:8000/api/admin/ai/dashboard', {
+    fetch('https://gr112.onrender.com/api/admin/ai/dashboard', {
       headers: { 
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -40,7 +40,7 @@ const AISystemManagement = () => {
   };
 
   const fetchSystemStats = () => {
-    fetch('http://localhost:8000/api/admin/ai/system-stats', {
+    fetch('https://gr112.onrender.com/api/admin/ai/system-stats', {
       headers: { 
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -85,7 +85,7 @@ const AISystemManagement = () => {
       didOpen: () => { Swal.showLoading(); }
     });
 
-    fetch('http://localhost:8000/api/admin/ai/test-gemini', {
+    fetch('https://gr112.onrender.com/api/admin/ai/test-gemini', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json', 
@@ -125,7 +125,7 @@ const AISystemManagement = () => {
     });
 
     try {
-      const res = await fetch('http://localhost:8000/api/admin/ai/sync-data', {
+      const res = await fetch('https://gr112.onrender.com/api/admin/ai/sync-data', {
         method: 'POST',
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -188,7 +188,7 @@ const AISystemManagement = () => {
     });
 
     if (formValues) {
-      fetch('http://localhost:8000/api/admin/ai/logs', {
+      fetch('https://gr112.onrender.com/api/admin/ai/logs', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(formValues)
@@ -235,7 +235,7 @@ const AISystemManagement = () => {
     });
 
     if (formValues) {
-      fetch(`http://localhost:8000/api/admin/ai/logs/${log.id}`, {
+      fetch(`https://gr112.onrender.com/api/admin/ai/logs/${log.id}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(formValues)
@@ -257,7 +257,7 @@ const AISystemManagement = () => {
       cancelButtonText: 'Hủy'
     }).then((result) => {
       if (result.isConfirmed) {
-        fetch(`http://localhost:8000/api/admin/ai/logs/${id}`, {
+        fetch(`https://gr112.onrender.com/api/admin/ai/logs/${id}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
         }).then(res => res.json()).then(() => {

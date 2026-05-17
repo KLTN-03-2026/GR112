@@ -120,8 +120,8 @@ const Home = () => {
     const fetchData = async () => {
       try {
         const [uniRes, articleRes] = await Promise.all([
-          fetch('http://localhost:8000/api/universities'),
-          fetch('http://localhost:8000/api/articles') 
+          fetch('https://gr112.onrender.com/api/universities'),
+          fetch('https://gr112.onrender.com/api/articles') 
         ]);
         
         if (uniRes.ok) setUniversities(await uniRes.json());

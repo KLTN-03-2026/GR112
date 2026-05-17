@@ -16,7 +16,7 @@ export default function ChangePassword() {
   const [showConfirmPass, setShowConfirmPass] = useState(false);
 
   const navigate = useNavigate();
-  const API_URL = 'http://localhost:8000';
+  const API_URL = 'https://gr112.onrender.com';
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");

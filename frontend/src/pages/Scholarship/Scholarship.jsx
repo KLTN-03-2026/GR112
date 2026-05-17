@@ -10,7 +10,7 @@ const Scholarship = () => {
     const fetchScholarships = async () => {
       try {
         // Gọi API lấy toàn bộ bài viết đã xuất bản
-        const res = await fetch('http://localhost:8000/api/articles');
+        const res = await fetch('https://gr112.onrender.com/api/articles');
         if (res.ok) {
           const data = await res.json();
           // LỌC: Chỉ lấy những bài thuộc chuyên mục 'hoc-bong'

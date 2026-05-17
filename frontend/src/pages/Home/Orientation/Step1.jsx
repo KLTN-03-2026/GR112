@@ -12,8 +12,8 @@ const Step1 = ({ formData, setFormData, toggleInterest }) => {
       try {
         setIsLoading(true);
         const [resOptions, resUnis] = await Promise.all([
-          fetch('http://localhost:8000/api/step1-options'),
-          fetch('http://localhost:8000/api/universities')
+          fetch('https://gr112.onrender.com/api/step1-options'),
+          fetch('https://gr112.onrender.com/api/universities')
         ]);
         
         if (resOptions.ok) {

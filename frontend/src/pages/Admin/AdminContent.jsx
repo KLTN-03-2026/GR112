@@ -27,7 +27,7 @@ const AdminContent = () => {
 
   const fetchArticles = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/admin/articles');
+      const res = await fetch('https://gr112.onrender.com/api/admin/articles');
       if (res.ok) {
         const data = await res.json();
         setArticles(data);
@@ -60,7 +60,7 @@ const AdminContent = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const res = await fetch(`http://localhost:8000/api/admin/articles/${id}`, { method: 'DELETE' });
+          const res = await fetch(`https://gr112.onrender.com/api/admin/articles/${id}`, { method: 'DELETE' });
           if (res.ok) {
             Swal.fire({
               title: 'Đã xóa!',
@@ -108,7 +108,7 @@ const AdminContent = () => {
   // 🚀 ĐÃ THAY BẰNG SWEETALERT2
   const handleSaveArticle = async (e) => {
     e.preventDefault();
-    const url = editingId ? `http://localhost:8000/api/admin/articles/${editingId}` : 'http://localhost:8000/api/admin/articles';
+    const url = editingId ? `https://gr112.onrender.com/api/admin/articles/${editingId}` : 'https://gr112.onrender.com/api/admin/articles';
     const method = editingId ? 'PUT' : 'POST';
 
     try {
@@ -146,7 +146,7 @@ const AdminContent = () => {
 
   const fetchSubscribers = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/admin/subscribers');
+      const res = await fetch('https://gr112.onrender.com/api/admin/subscribers');
       if(res.ok) {
         const data = await res.json();
         setSubscribers(data);
@@ -180,7 +180,7 @@ const AdminContent = () => {
         setNewsletterMsg('');
 
         try {
-          const res = await fetch('http://localhost:8000/api/admin/broadcast', {
+          const res = await fetch('https://gr112.onrender.com/api/admin/broadcast', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ subject: emailSubject, content: emailBody })

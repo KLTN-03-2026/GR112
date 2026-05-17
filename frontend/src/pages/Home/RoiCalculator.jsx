@@ -45,7 +45,7 @@ const RoiCalculator = () => {
       };
 
       // 1. GỌI API BACKEND ĐỂ TÍNH TOÁN & LƯU DATABASE
-      const res = await fetch('http://localhost:8000/api/roi', {
+      const res = await fetch('https://gr112.onrender.com/api/roi', {
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payloadToSend) // Gửi cục dữ liệu đã đổi tên

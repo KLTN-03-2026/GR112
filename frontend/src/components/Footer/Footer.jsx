@@ -22,7 +22,7 @@ const Footer = () => {
 
     try {
       // Đã đổi endpoint thành /api/subscribe cho khớp với file router.py
-      const response = await fetch('http://localhost:8000/api/subscribe', {
+      const response = await fetch('https://gr112.onrender.com/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })

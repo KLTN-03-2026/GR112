@@ -8,7 +8,7 @@ export default function BookingHistory() {
   useEffect(() => {
     const token = localStorage.getItem('token');
 
-    fetch('http://localhost:8000/api/user/bookings', {
+    fetch('https://gr112.onrender.com/api/user/bookings', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -36,7 +36,7 @@ export default function BookingHistory() {
     
     if (userReason) {
       const token = localStorage.getItem('token');
-      fetch('http://localhost:8000/api/user/report', {
+      fetch('https://gr112.onrender.com/api/user/report', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

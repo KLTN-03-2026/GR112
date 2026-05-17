@@ -21,7 +21,7 @@ const MentorSchedule = () => {
   const fetchSlots = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:8000/api/mentor/slots', {
+      const res = await fetch('https://gr112.onrender.com/api/mentor/slots', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -34,7 +34,7 @@ const MentorSchedule = () => {
   const fetchBookings = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:8000/api/mentor/bookings', {
+      const res = await fetch('https://gr112.onrender.com/api/mentor/bookings', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -57,7 +57,7 @@ const MentorSchedule = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:8000/api/mentor/slots', {
+      const res = await fetch('https://gr112.onrender.com/api/mentor/slots', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -102,7 +102,7 @@ const MentorSchedule = () => {
       if (result.isConfirmed) {
         try {
           const token = localStorage.getItem('token');
-          const res = await fetch(`http://localhost:8000/api/mentor/slots/${slotId}`, {
+          const res = await fetch(`https://gr112.onrender.com/api/mentor/slots/${slotId}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
           });
@@ -144,7 +144,7 @@ const MentorSchedule = () => {
       if (result.isConfirmed) {
         try {
           const token = localStorage.getItem('token');
-          const res = await fetch(`http://localhost:8000/api/mentor/bookings/${bookingId}`, {
+          const res = await fetch(`https://gr112.onrender.com/api/mentor/bookings/${bookingId}`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',

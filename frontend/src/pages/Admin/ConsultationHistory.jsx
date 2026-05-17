@@ -16,7 +16,7 @@ const ConsultationHistory = () => {
   // 1. Tải danh sách phiên chat khi mở trang
   const fetchSessions = () => {
     setLoading(true);
-    fetch('http://localhost:8000/api/admin/chat-sessions', {
+    fetch('https://gr112.onrender.com/api/admin/chat-sessions', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -42,7 +42,7 @@ const ConsultationHistory = () => {
     setSelectedSession(session);
     setMessages([]); // Clear tin nhắn cũ
     
-    fetch(`http://localhost:8000/api/admin/chat-sessions/${session.id}/messages`, {
+    fetch(`https://gr112.onrender.com/api/admin/chat-sessions/${session.id}/messages`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -219,7 +219,7 @@ const ConsultationHistory = () => {
   // Nếu đã gắn cờ thì thêm class 'active-flag' để đổi màu đỏ
   className={`btn-flag ${selectedSession.is_flagged ? 'active-flag' : ''}`} 
   onClick={() => {
-    fetch(`http://localhost:8000/api/admin/chat-sessions/${selectedSession.id}/flag`, {
+    fetch(`https://gr112.onrender.com/api/admin/chat-sessions/${selectedSession.id}/flag`, {
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -246,7 +246,7 @@ const ConsultationHistory = () => {
     if (window.confirm("⚠️ Bạn có chắc chắn muốn xóa TOÀN BỘ lịch sử của phiên chat này không? Dữ liệu không thể khôi phục.")) {
       
       // 2. Gọi API Xóa
-      fetch(`http://localhost:8000/api/admin/chat-sessions/${selectedSession.id}`, {
+      fetch(`https://gr112.onrender.com/api/admin/chat-sessions/${selectedSession.id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       })

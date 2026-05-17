@@ -42,7 +42,7 @@ const MentorLayout = () => {
   useEffect(() => {
     const fetchNotifs = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/mentor/notifications', {
+        const res = await fetch('https://gr112.onrender.com/api/mentor/notifications', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -114,7 +114,7 @@ const MentorLayout = () => {
   const handleMarkAllRead = async (e) => {
     e.stopPropagation();
     try {
-      await fetch('http://localhost:8000/api/mentor/notifications/read-all', {
+      await fetch('https://gr112.onrender.com/api/mentor/notifications/read-all', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
