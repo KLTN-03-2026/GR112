@@ -5,7 +5,7 @@ load_dotenv()
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'super_secret_key_123')
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URI', 'mysql+mysqlconnector://root:12345678@127.0.0.1/consulting_db')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URI')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Cấu hình Mail
