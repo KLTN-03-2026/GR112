@@ -14,7 +14,7 @@ const RoiCalculator = () => {
 
   const formatInputNumber = (value) => {
     if (!value) return '';
-    const onlyNumbers = value.toString().replace(/\D/g, '');
+    const onlyNumbers = value.toString().replace(/\D/g, ''); // Tự động xóa mọi ký tự không phải số (bao gồm dấu âm)
     return onlyNumbers.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
@@ -30,12 +30,18 @@ const RoiCalculator = () => {
   const studyYears = parseFloat(formData.years) || 4;
   const workYears = Math.max(0, 10 - studyYears); 
 
+  // Hàm chặn gõ phím dấu trừ (-) và chữ 'e' (số mũ)
+  const preventNegativeInput = (e) => {
+    if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+      e.preventDefault();
+    }
+  };
+
   const handleCalculate = async (e) => {
     e.preventDefault(); 
     setLoading(true);
 
     try {
-      // 🚀 ĐÃ SỬA: "Phiên dịch" lại tên biến cho khớp y chang với Backend Python
       const payloadToSend = {
         tuition_per_year: formData.tuition,
         uni_living_per_month: formData.uniLiving,
@@ -44,17 +50,15 @@ const RoiCalculator = () => {
         post_grad_living_per_month: formData.postGradLiving
       };
 
-      // 1. GỌI API BACKEND ĐỂ TÍNH TOÁN & LƯU DATABASE
       const res = await fetch('https://gr112.onrender.com/api/roi', {
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payloadToSend) // Gửi cục dữ liệu đã đổi tên
+        body: JSON.stringify(payloadToSend) 
       });
       
       const data = await res.json();
       
       if (res.ok) {
-        // Nếu Backend trả về thành công, lấy dữ liệu show lên giao diện
         setResult(data);
       } else {
         alert("Lỗi từ server: " + data.error);
@@ -85,6 +89,7 @@ const RoiCalculator = () => {
               <input 
                 type="text" inputMode="numeric" className="pr-input" placeholder="VD: 30,000,000" required
                 value={formatInputNumber(formData.tuition)} 
+                onKeyDown={preventNegativeInput}
                 onChange={(e) => handleInputChange('tuition', e.target.value)} 
               />
             </div>
@@ -93,6 +98,7 @@ const RoiCalculator = () => {
               <input 
                 type="text" inputMode="numeric" className="pr-input" placeholder="VD: 4,000,000" required
                 value={formatInputNumber(formData.uniLiving)} 
+                onKeyDown={preventNegativeInput}
                 onChange={(e) => handleInputChange('uniLiving', e.target.value)} 
               />
             </div>
@@ -100,8 +106,15 @@ const RoiCalculator = () => {
           <div className="pr-form-group">
             <label>Thời gian học (Năm)</label>
             <input 
-              type="number" className="pr-input" value={formData.years} required
-              onChange={(e) => setFormData({...formData, years: e.target.value})} 
+              type="number" className="pr-input" required
+              min="1" max="10" step="0.5"
+              value={formData.years} 
+              onKeyDown={preventNegativeInput}
+              onChange={(e) => {
+                // Ép xóa dấu trừ nếu user dán text có dấu âm vào
+                const positiveVal = e.target.value.replace(/-/g, '');
+                setFormData({...formData, years: positiveVal});
+              }} 
             />
           </div>
 
@@ -114,6 +127,7 @@ const RoiCalculator = () => {
               <input 
                 type="text" inputMode="numeric" className="pr-input" placeholder="VD: 15,000,000" required
                 value={formatInputNumber(formData.salary)} 
+                onKeyDown={preventNegativeInput}
                 onChange={(e) => handleInputChange('salary', e.target.value)} 
               />
             </div>
@@ -122,6 +136,7 @@ const RoiCalculator = () => {
               <input 
                 type="text" inputMode="numeric" className="pr-input" placeholder="VD: 6,000,000" required
                 value={formatInputNumber(formData.postGradLiving)} 
+                onKeyDown={preventNegativeInput}
                 onChange={(e) => handleInputChange('postGradLiving', e.target.value)} 
               />
             </div>

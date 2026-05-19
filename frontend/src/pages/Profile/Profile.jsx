@@ -6,19 +6,19 @@ const Profile = () => {
   const [formData, setFormData] = useState({
     fullName: '', username: '', role: 'user', phone: '', dob: '', email: '', address: '',
     // Dành cho Học sinh (User)
-    className: '', schoolName: '',
+    className: '', schoolName: '', ielts: '', gpa: '',
     // Dành cho Cố vấn (Mentor)
     specialty: '', experienceYears: '' 
   });
 
   const [needUpdate, setNeedUpdate] = useState(false);
-  const [currentUserRole, setCurrentUserRole] = useState('user'); // Mặc định là user để chống giật UI
+  const [currentUserRole, setCurrentUserRole] = useState('user'); 
 
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     if (savedUser && savedUser !== "undefined" && savedUser !== "null") {
       const user = JSON.parse(savedUser);
-      setCurrentUserRole(user.role || 'user'); // Lưu lại role để dùng cho việc rẽ nhánh UI
+      setCurrentUserRole(user.role || 'user'); 
 
       setFormData({ 
         fullName: user.fullName || '', 
@@ -31,18 +31,18 @@ const Profile = () => {
         // Data riêng
         className: user.className || '', 
         schoolName: user.schoolName || '',
+        ielts: user.ielts || '',
+        gpa: user.gpa || '',
         specialty: user.specialty || '',
         experienceYears: user.experienceYears || ''
       });
 
       // CHECK NHẮC NHỞ TÙY THEO VAI TRÒ
       if (user.role === 'mentor') {
-        // Mentor thiếu chuyên môn hoặc số năm kinh nghiệm -> Nhắc nhở
         if (!user.fullName || !user.specialty || !user.experienceYears) {
           setNeedUpdate(true);
         }
       } else {
-        // User (Học sinh) thiếu trường, lớp -> Nhắc nhở
         if (!user.fullName || !user.className || !user.schoolName) {
           setNeedUpdate(true);
         }
@@ -53,10 +53,65 @@ const Profile = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    if (name === 'role') {
+      setCurrentUserRole(value);
+    }
   };
 
   const handleSubmit = async (e) => { 
     e.preventDefault(); 
+
+    // ==========================================
+    // 1. KIỂM TRA SỐ ĐIỆN THOẠI
+    // ==========================================
+    if (formData.phone) {
+      const phoneRegex = /^0\d{9}$/; 
+      if (!phoneRegex.test(formData.phone)) {
+        alert("Số điện thoại không hợp lệ");
+        return; 
+      }
+    }
+
+    // ==========================================
+    // 2. KIỂM TRA NGÀY SINH
+    // ==========================================
+    if (formData.dob) {
+      const selectedDate = new Date(formData.dob);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); 
+
+      if (selectedDate > today) {
+        alert("Ngày sinh không hợp lệ");
+        return; 
+      }
+    }
+
+    // ==========================================
+    // 3. KIỂM TRA IELTS
+    // ==========================================
+    if (formData.ielts) {
+      const ieltsScore = parseFloat(formData.ielts);
+      if (ieltsScore > 9.0) {
+        alert("IELTS không được vượt quá 9.0");
+        return;
+      }
+    }
+
+    // ==========================================
+    // 4. KIỂM TRA GPA
+    // ==========================================
+    if (formData.gpa) {
+      const gpaScore = parseFloat(formData.gpa);
+      if (gpaScore < 0 || gpaScore > 10) {
+        alert("GPA phải nằm trong khoảng từ 0 đến 10");
+        return;
+      }
+    }
+
+    // ==========================================
+    // GỌI API LƯU DỮ LIỆU KHI ĐÃ HỢP LỆ
+    // ==========================================
     try {
         const res = await fetch("https://gr112.onrender.com/api/update-profile", {
             method: "PUT", 
@@ -107,13 +162,11 @@ const Profile = () => {
     <main className="container fade-in">
       <h1 className="page-title">Thông tin cá nhân</h1>
       
-      {/* KHU VỰC CẢNH BÁO TỰ ĐỘNG */}
       {renderAlertBanner()}
 
       <div className="form-card">
         <form onSubmit={handleSubmit}>
           <div className="form-grid">
-            {/* THÔNG TIN CHUNG (Ai cũng có) */}
             <div className="form-group">
               <label>Họ và tên <span style={{color: 'red'}}>*</span></label>
               <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} required placeholder="VD: Nguyễn Văn A" />
@@ -124,9 +177,7 @@ const Profile = () => {
               <input type="text" name="username" value={formData.username} onChange={handleChange} required placeholder="VD: nguyenvan" />
             </div>
 
-            {/* ============================================== */}
-            {/* RẼ NHÁNH: NẾU LÀ HỌC SINH (USER) */}
-            {/* ============================================== */}
+            {/* RẼ NHÁNH: HỌC SINH */}
             {currentUserRole === 'user' && (
               <>
                 <div className="form-group">
@@ -137,12 +188,18 @@ const Profile = () => {
                   <label>Trường THPT <span style={{color: 'red'}}>*</span></label>
                   <input type="text" name="schoolName" value={formData.schoolName} onChange={handleChange} required placeholder="VD: THPT Nguyễn Trãi" />
                 </div>
+                <div className="form-group">
+                  <label>Điểm IELTS</label>
+                  <input type="number" step="0.5" name="ielts" value={formData.ielts} onChange={handleChange} placeholder="VD: 7.5" />
+                </div>
+                <div className="form-group">
+                  <label>Điểm GPA</label>
+                  <input type="number" step="0.1" name="gpa" value={formData.gpa} onChange={handleChange} placeholder="VD: 8.5" />
+                </div>
               </>
             )}
 
-            {/* ============================================== */}
-            {/* RẼ NHÁNH: NẾU LÀ CỐ VẤN (MENTOR) */}
-            {/* ============================================== */}
+            {/* RẼ NHÁNH: CỐ VẤN */}
             {currentUserRole === 'mentor' && (
               <>
                 <div className="form-group">
@@ -156,10 +213,9 @@ const Profile = () => {
               </>
             )}
 
-            {/* THÔNG TIN CHUNG (Tiếp tục) */}
             <div className="form-group">
               <label>Vai trò</label>
-              <select name="role" value={formData.role} onChange={handleChange} disabled={true}>
+              <select name="role" value={formData.role} onChange={handleChange}>
                 <option value="user">Học sinh</option>
                 <option value="admin">Quản trị viên</option>
                 <option value="mentor">Cố vấn chuyên môn</option>
@@ -178,7 +234,7 @@ const Profile = () => {
             
             <div className="form-group">
               <label>Email <span style={{color: 'red'}}>*</span></label>
-              <input type="email" name="email" value={formData.email} onChange={handleChange} required placeholder="email@example.com" disabled={true}/>
+              <input type="email" name="email" value={formData.email} onChange={handleChange} required placeholder="email@example.com" />
             </div>
             
             <div className="form-group full-width">

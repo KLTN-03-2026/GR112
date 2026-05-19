@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
-const Step1 = ({ formData, setFormData, toggleInterest }) => {
+// ĐÃ SỬA: Thêm prop 'onNext' vào đây để nhận lệnh chuyển trang từ component cha
+const Step1 = ({ formData, setFormData, toggleInterest, onNext }) => {
   const [interestTags, setInterestTags] = useState([]);
   const [environments, setEnvironments] = useState([]);
   const [allUnis, setAllUnis] = useState([]); 
@@ -36,7 +37,6 @@ const Step1 = ({ formData, setFormData, toggleInterest }) => {
 
   // --- THUẬT TOÁN AI: GỢI Ý CHUẨN 100% TỪ BẢNG TRUNG GIAN DATABASE ---
   const getAiSuggestions = () => {
-    // ĐÃ SỬA: Cho phép AI chạy nếu có Sở thích HOẶC có Môi trường
     if ((formData.interests.length === 0 && !formData.workEnv) || allUnis.length === 0) return [];
 
     // 1. Chấm điểm từng ngành học
@@ -98,6 +98,22 @@ const Step1 = ({ formData, setFormData, toggleInterest }) => {
   };
 
   const aiSuggestions = getAiSuggestions();
+
+  // ==============================================================
+  // ĐÃ SỬA: HÀM KIỂM TRA ĐIỀU KIỆN TRƯỚC KHI CHUYỂN TRANG
+  // ==============================================================
+  const handleNextClick = () => {
+    // Nếu mảng sở thích rỗng HOẶC chưa chọn môi trường làm việc -> Báo lỗi chặn lại
+    if (formData.interests.length === 0 || !formData.workEnv) {
+      alert("Vui lòng chọn ít nhất từ khóa sở thích và môi trường để tiếp tục.");
+      return; 
+    }
+    
+    // Nếu đã chọn đủ, gọi hàm onNext từ component cha truyền vào để qua trang
+    if (onNext) {
+      onNext();
+    }
+  };
 
   return (
     <div className="fade-step">
@@ -163,7 +179,6 @@ const Step1 = ({ formData, setFormData, toggleInterest }) => {
                     key={env.id}
                     className={`env-card ${formData.workEnv === env.id ? 'selected' : ''}`} 
                     onClick={() => {
-                      // Click lại môi trường đang chọn thì sẽ bỏ chọn (Hủy chọn môi trường)
                       if (formData.workEnv === env.id) {
                         setFormData({...formData, workEnv: ''});
                       } else {
@@ -204,11 +219,8 @@ const Step1 = ({ formData, setFormData, toggleInterest }) => {
               {aiSuggestions.length > 0 && <span style={{fontSize: '0.8rem', color: '#64748b', marginLeft: '10px'}}>({aiSuggestions.length} kết quả)</span>}
             </h3>
             
-            {/* ĐÃ SỬA: Hiển thị nếu có chọn Sở thích HOẶC Môi trường */}
             {(formData.interests.length > 0 || formData.workEnv) ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', overflowY: 'auto', paddingRight: '5px', flex: 1 }}>
-                
-                {/* Lời dẫn thông minh tùy theo việc bạn chọn cái gì */}
                 <p style={{ fontSize: '0.8rem', opacity: 0.8, margin: '0 0 5px 0' }}>
                   Dựa trên 
                   {formData.interests.length > 0 ? ` ${formData.interests.length} sở thích` : ''}
@@ -235,9 +247,25 @@ const Step1 = ({ formData, setFormData, toggleInterest }) => {
               </div>
             )}
           </div>
-
         </div>
       </div>
+
+      {/* ============================================================== */}
+      {/* ĐÃ SỬA: NÚT TIẾP TỤC ĐƯỢC TÍCH HỢP TRỰC TIẾP VÀO STEP 1 */}
+      {/* ============================================================== */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '30px' }}>
+        <button 
+          onClick={handleNextClick} 
+          style={{ 
+            background: '#10b981', color: 'white', padding: '12px 30px', 
+            borderRadius: '8px', border: 'none', fontWeight: 'bold', 
+            fontSize: '1rem', cursor: 'pointer', transition: '0.3s'
+          }}
+        >
+          Tiếp tục <i className="fas fa-arrow-right" style={{marginLeft: '8px'}}></i>
+        </button>
+      </div>
+
     </div>
   );
 };

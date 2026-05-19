@@ -51,6 +51,10 @@ const Chatbot = () => {
             // 🚀 ĐỒNG BỘ DỮ LIỆU ĐIỂM NGAY LÚC FETCH ĐỂ LÀM BẢNG 6 Ô
             profileData = {
               ...data,
+              // 🚀 FIX LỖI TÊN: Bắt mọi trường hợp trả về từ API (full_name, fullName, name)
+              name: data.full_name || data.fullName || data.name || savedUser.full_name || savedUser.name || "Bạn",
+              class: data.class || data.className || savedUser.className || "Chưa cập nhật",
+              school: data.school || data.schoolName || savedUser.schoolName || "Chưa cập nhật",
               displayScores: [
                 { label: 'Mục tiêu khối', value: data.target_block || '-' },
                 { label: 'Tổng THPT', value: data.scores?.THPT || data.exam_score || '-' },
@@ -522,8 +526,9 @@ const Chatbot = () => {
           <div className="profile-header-card">
             <div className="avatar"><img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" /></div>
             <div>
+              {/* 🚀 ĐÃ SỬA LẠI CHỖ NÀY CHO CHẮC CÚ 100% HIỂN THỊ TÊN */}
               <h3 style={{ color: '#0f172a', fontWeight: '800', margin: '0' }}>
-                {userProfile?.name || "Đang tải..."}
+                {userProfile ? (userProfile.name || userProfile.full_name || userProfile.fullName || "Bạn") : "Đang tải..."}
               </h3>
               <p style={{ fontSize: '12px', color: '#64748b', margin: '5px 0 0 0' }}>
                 {userProfile ? `Lớp ${userProfile.class} - ${userProfile.school}` : "Đang đồng bộ..."}

@@ -16,7 +16,7 @@ const Quiz = () => {
   const [questions, setQuestions] = useState([]);
   const [isFetchingQ, setIsFetchingQ] = useState(false); 
 
-  // 🚀 THÊM: State để quản lý việc đóng/mở thanh Accordion chi tiết
+  // State để quản lý việc đóng/mở thanh Accordion chi tiết
   const [expandedAcc, setExpandedAcc] = useState('holland'); 
 
   const totalQuestions = questions.length;
@@ -139,7 +139,6 @@ const Quiz = () => {
   // ==========================================
   
   if (step === 0) {
-    // 🚀 THÊM DATA MÔ TẢ CHI TIẾT (ACCORDION) VÀO MẢNG
     const quizOptions = [
       {
         id: 'holland',
@@ -190,7 +189,6 @@ const Quiz = () => {
           <p style={{ color: '#6b7280', textAlign: 'center', marginBottom: '40px' }}>Hệ thống sẽ dựa vào kết quả để đề xuất ngành học, phương pháp và trường Đại học cho bạn.</p>
         </div>
 
-        {/* LƯỚI GIAO DIỆN HÌNH ẢNH (Bấm vào để thi luôn) */}
         <div className="quiz-image-grid">
           {quizOptions.map((quiz) => (
             <div key={quiz.id} className="quiz-image-card" onClick={() => handleStartQuiz(quiz.id)}>
@@ -203,14 +201,12 @@ const Quiz = () => {
           ))}
         </div>
 
-        {/* 🚀 PHẦN THANH ACCORDION CHI TIẾT (Y CHANG TRONG ẢNH) */}
         <div className="quiz-accordion-container">
           <h2 style={{ fontSize: '20px', marginBottom: '20px', color: '#111827' }}>Tìm hiểu chi tiết các công cụ</h2>
           
           {quizOptions.map((quiz) => (
             <div key={quiz.id} className="quiz-accordion-item">
               
-              {/* Đầu thanh Accordion (Bấm vào để mở/đóng) */}
               <div 
                 className={`quiz-acc-header ${expandedAcc === quiz.id ? 'active' : ''}`}
                 onClick={() => setExpandedAcc(expandedAcc === quiz.id ? null : quiz.id)}
@@ -219,7 +215,6 @@ const Quiz = () => {
                 <span>{quiz.accTitle}</span>
               </div>
 
-              {/* Nội dung bên trong (Chỉ hiện khi trạng thái đang là Mở) */}
               {expandedAcc === quiz.id && (
                 <div className="quiz-acc-body">
                   <p><strong>{quiz.accTitle}</strong> {quiz.desc.replace(quiz.accTitle, '')}</p>
@@ -238,7 +233,6 @@ const Quiz = () => {
     );
   }
 
-  // CÁC MÀN HÌNH KHÁC GIỮ NGUYÊN
   if (step === totalQuestions + 1) {
     return (
       <div className="qz-container fade-in">
@@ -274,8 +268,31 @@ const Quiz = () => {
 
   return (
     <div className="qz-container fade-in">
-      <div className="qz-question-card">
-        <div className="qz-progress-header">
+      <div className="qz-question-card" style={{ position: 'relative' }}>
+        
+        {/* 🚀 ĐÃ THÊM: Nút X (Thoát/Đóng bài test) ở góc trên bên phải */}
+        <button 
+          onClick={handleRetake} 
+          title="Đóng bài test"
+          style={{
+            position: 'absolute',
+            top: '20px',
+            right: '20px',
+            background: 'none',
+            border: 'none',
+            fontSize: '1.5rem',
+            color: '#9ca3af',
+            cursor: 'pointer',
+            transition: 'color 0.2s ease',
+            zIndex: 10
+          }}
+          onMouseOver={(e) => e.currentTarget.style.color = '#ef4444'}
+          onMouseOut={(e) => e.currentTarget.style.color = '#9ca3af'}
+        >
+          <i className="fas fa-times"></i>
+        </button>
+
+        <div className="qz-progress-header" style={{ paddingRight: '40px' }}>
           <span>Câu hỏi {step} / {totalQuestions} ({quizType?.toUpperCase()})</span>
           <span>{Math.round(progressPercentage)}%</span>
         </div>
@@ -285,7 +302,6 @@ const Quiz = () => {
         <h2 className="qz-question-text">{currentQuestion?.text}</h2>
         <div className="qz-options-container">
           {[1, 2, 3, 4, 5].map((val) => {
-            // Khai báo lại mảng chữ bị thiếu ở đây
             const labels = ["Rất không đúng", "Không đúng lắm", "Phân vân / Trung lập", "Khá đúng", "Rất đúng"];
             return (
               <button 
@@ -294,7 +310,7 @@ const Quiz = () => {
                 onClick={() => handleSelectOption(val)}
               >
                 <div className="qz-opt-circle">{val}</div> 
-                {labels[val-1]} {/* Lôi chữ ra hiển thị kế bên cái vòng tròn */}
+                {labels[val-1]}
               </button>
             )
           })}

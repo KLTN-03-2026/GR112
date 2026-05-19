@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, Zap, ShieldCheck, Target, AlertTriangle } from 'lucide-react';
-import axios from 'axios'; // Đã thêm axios
+import axios from 'axios'; 
 import './AiSuggestion.css';
 
 const BLOCK_CONFIG = {
@@ -34,22 +34,55 @@ const BLOCK_CONFIG = {
 const AiSuggestion = () => {
   const [selectedBlock, setSelectedBlock] = useState('A01');
   const [scores, setScores] = useState({ sub1: '', sub2: '', sub3: '' });
+  
+  // 🚀 ĐÃ THÊM: State để chứa thông báo lỗi riêng cho từng môn
+  const [errors, setErrors] = useState({ sub1: '', sub2: '', sub3: '' });
+  
   const [loading, setLoading] = useState(false);
   const [analysisData, setAnalysisData] = useState(null);
 
   const handleBlockChange = (e) => {
     setSelectedBlock(e.target.value);
     setScores({ sub1: '', sub2: '', sub3: '' });
+    setErrors({ sub1: '', sub2: '', sub3: '' }); // Đổi khối thì xóa lỗi
     setAnalysisData(null); 
+  };
+
+  // 🚀 ĐÃ THÊM: Hàm kiểm tra lỗi điểm số
+  const validateScore = (value) => {
+    if (!value) return ''; // Nếu trống thì không báo lỗi (sẽ bị bắt ở bước bắt buộc nhập)
+    const num = parseFloat(value);
+    if (num < 0 || num > 10) {
+      return "Điểm số phải nằm trong khoảng từ 0 đến 10";
+    }
+    return '';
+  };
+
+  // 🚀 ĐÃ THÊM: Xử lý khi người dùng gõ điểm
+  const handleScoreChange = (field, value) => {
+    setScores(prev => ({ ...prev, [field]: value }));
+    // Kiểm tra và hiển thị lỗi ngay lập tức lúc gõ
+    setErrors(prev => ({ ...prev, [field]: validateScore(value) }));
   };
 
   // ==========================================
   // THUẬT TOÁN AI PHÂN TÍCH LỘ TRÌNH (FRONTEND)
   // ==========================================
   const handleAnalyze = async () => {
+    // Kiểm tra xem đã nhập đủ 3 môn chưa
     if (!scores.sub1 || !scores.sub2 || !scores.sub3) {
       alert("Vui lòng nhập đầy đủ điểm 3 môn nhé!");
       return;
+    }
+
+    // 🚀 ĐÃ SỬA: Chặn nếu có bất kỳ ô nào bị lỗi điểm ngoài vùng 0-10
+    const err1 = validateScore(scores.sub1);
+    const err2 = validateScore(scores.sub2);
+    const err3 = validateScore(scores.sub3);
+
+    if (err1 || err2 || err3) {
+      setErrors({ sub1: err1, sub2: err2, sub3: err3 });
+      return; // CHẶN GỌI AI NGAY LẬP TỨC
     }
 
     setLoading(true);
@@ -154,17 +187,38 @@ const AiSuggestion = () => {
               </select>
             </div>
 
+            {/* 🚀 ĐÃ SỬA: Thêm CSS viền đỏ và dòng Text báo lỗi dưới mỗi ô input */}
             <div className="form-group">
               <label>{BLOCK_CONFIG[selectedBlock].subjects[0]}</label>
-              <input type="number" step="0.1" value={scores.sub1} onChange={(e) => setScores({...scores, sub1: e.target.value})} />
+              <input 
+                type="number" step="0.1" 
+                value={scores.sub1} 
+                onChange={(e) => handleScoreChange('sub1', e.target.value)} 
+                style={{ borderColor: errors.sub1 ? '#ef4444' : '#cbd5e1', outlineColor: errors.sub1 ? '#ef4444' : '' }}
+              />
+              {errors.sub1 && <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '4px', display: 'block', fontWeight: 500 }}>{errors.sub1}</span>}
             </div>
+
             <div className="form-group">
               <label>{BLOCK_CONFIG[selectedBlock].subjects[1]}</label>
-              <input type="number" step="0.1" value={scores.sub2} onChange={(e) => setScores({...scores, sub2: e.target.value})} />
+              <input 
+                type="number" step="0.1" 
+                value={scores.sub2} 
+                onChange={(e) => handleScoreChange('sub2', e.target.value)} 
+                style={{ borderColor: errors.sub2 ? '#ef4444' : '#cbd5e1', outlineColor: errors.sub2 ? '#ef4444' : '' }}
+              />
+              {errors.sub2 && <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '4px', display: 'block', fontWeight: 500 }}>{errors.sub2}</span>}
             </div>
+
             <div className="form-group">
               <label>{BLOCK_CONFIG[selectedBlock].subjects[2]}</label>
-              <input type="number" step="0.1" value={scores.sub3} onChange={(e) => setScores({...scores, sub3: e.target.value})} />
+              <input 
+                type="number" step="0.1" 
+                value={scores.sub3} 
+                onChange={(e) => handleScoreChange('sub3', e.target.value)} 
+                style={{ borderColor: errors.sub3 ? '#ef4444' : '#cbd5e1', outlineColor: errors.sub3 ? '#ef4444' : '' }}
+              />
+              {errors.sub3 && <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '4px', display: 'block', fontWeight: 500 }}>{errors.sub3}</span>}
             </div>
 
             <button className="btn-analyze" onClick={handleAnalyze} disabled={loading}>
@@ -197,7 +251,6 @@ const AiSuggestion = () => {
                   {analysisData.results.safe.map(school => (
                     <div className="school-card safe-card" key={school.id}>
                       <div className="card-header">
-                        {/* ĐÃ FIX LỖI ẢNH LOGO BỊ TRỐNG */}
                         <img src={school.school_logo} alt="Logo" className="school-logo-sm" style={{objectFit: 'contain', background: 'white'}} />
                         <div className="school-info">
                           <h4 style={{maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}} title={school.school_name}>{school.school_name}</h4>
