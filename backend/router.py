@@ -124,6 +124,9 @@ def login_required(f):
 @api_bp.route('/')
 def home():
     return "SERVER OK"
+from datetime import datetime, timedelta,timezone 
+
+# Sau đó ở dòng 140, sếp chỉ cần viết:
 
 # ==========================================
 # 4. TÀI KHOẢN (ĐĂNG KÝ, OTP, ĐĂNG NHẬP, QUÊN MK)
@@ -137,7 +140,8 @@ def register():
 
     hashed_password = generate_password_hash(data.get("password"))
     otp = str(random.randint(100000, 999999))
-    expire_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+    # Ở hàm register, sếp nên dùng:
+    expire_time = datetime.now(timezone.utc) + timedelta(minutes=5)
 
     user = User(
         name=data.get("name"), email=email, password=hashed_password,
@@ -162,7 +166,10 @@ def verify():
 
     if not user: return jsonify({"error": "Không tìm thấy user"}), 404
     if user.otp != data.get("otp"): return jsonify({"error": "OTP sai"}), 400
-    if datetime.datetime.utcnow() > user.otp_expire: return jsonify({"error": "OTP hết hạn"}), 400
+    # Thay vì dùng: if datetime.datetime.utcnow() > user.otp_expire:
+# Sếp dùng:
+    if datetime.now(timezone.utc) > user.otp_expire.replace(tzinfo=timezone.utc):
+     return jsonify({"error": "OTP hết hạn"}), 400
 
     user.verified = True
     user.otp = None 
