@@ -8,7 +8,9 @@
   font-family: 'Inter', sans-serif;
   color: #0f172a;
 }
-
+.my-swal-popup {
+  border-radius: 16px !important;
+}
 .ac-header {
   display: flex;
   justify-content: space-between;

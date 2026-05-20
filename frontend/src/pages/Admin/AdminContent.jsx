@@ -3,12 +3,11 @@ import {
   Search, Plus, Edit, Trash2, FileText, Eye, BookOpen, Award, 
   CheckCircle2, X, Save, Compass, Star, Users, Download, Mail, Send, Clock 
 } from 'lucide-react';
-import Swal from 'sweetalert2'; // 🚀 IMPORT VŨ KHÍ SWEETALERT2
+import Swal from 'sweetalert2'; 
 import './AdminContent.css';
 
 const AdminContent = () => {
-  // --- STATE CHUNG ---
-  const [activeTab, setActiveTab] = useState('articles'); // 'articles' hoặc 'newsletter'
+  const [activeTab, setActiveTab] = useState('articles');
 
   // ==========================================
   // 1. STATE & LOGIC CHO QUẢN LÝ BÀI VIẾT
@@ -45,30 +44,23 @@ const AdminContent = () => {
     return matchSearch && matchCategory;
   });
 
-  // 🚀 ĐÃ THAY BẰNG SWEETALERT2
   const handleDelete = async (id, title) => {
     Swal.fire({
       title: 'Xóa bài viết?',
       text: `Bạn có chắc chắn muốn xóa bài viết: "${title}"? Dữ liệu không thể khôi phục!`,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#ef4444', // Màu đỏ cảnh báo
+      confirmButtonColor: '#ef4444',
       cancelButtonColor: '#94a3b8',
       confirmButtonText: 'Xóa vĩnh viễn',
       cancelButtonText: 'Hủy bỏ',
-      borderRadius: '16px'
+      customClass: { popup: 'my-swal-rounded' }
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
           const res = await fetch(`https://gr112.onrender.com/api/admin/articles/${id}`, { method: 'DELETE' });
           if (res.ok) {
-            Swal.fire({
-              title: 'Đã xóa!',
-              text: 'Bài viết đã được xóa thành công.',
-              icon: 'success',
-              timer: 1500,
-              showConfirmButton: false
-            });
+            Swal.fire({ title: 'Đã xóa!', text: 'Bài viết đã được xóa thành công.', icon: 'success', timer: 1500, showConfirmButton: false });
             fetchArticles();
           }
         } catch (error) {
@@ -105,7 +97,6 @@ const AdminContent = () => {
     setIsModalOpen(true);
   };
 
-  // 🚀 ĐÃ THAY BẰNG SWEETALERT2
   const handleSaveArticle = async (e) => {
     e.preventDefault();
     const url = editingId ? `https://gr112.onrender.com/api/admin/articles/${editingId}` : 'https://gr112.onrender.com/api/admin/articles';
@@ -118,13 +109,7 @@ const AdminContent = () => {
         body: JSON.stringify(formData)
       });
       if (res.ok) {
-        Swal.fire({
-          title: 'Thành công!',
-          text: editingId ? "Đã cập nhật bài viết!" : "Đã thêm bài viết mới!",
-          icon: 'success',
-          timer: 1500,
-          showConfirmButton: false
-        });
+        Swal.fire({ title: 'Thành công!', text: editingId ? "Đã cập nhật bài viết!" : "Đã thêm bài viết mới!", icon: 'success', timer: 1500, showConfirmButton: false });
         setIsModalOpen(false);
         fetchArticles();
       } else {
@@ -156,16 +141,22 @@ const AdminContent = () => {
     }
   };
 
-  // 🚀 ĐÃ THAY BẰNG SWEETALERT2
+  // 🚀 ĐÃ FIX DỨT ĐIỂM: Lấy token chính xác và xử lý lỗi UI
   const handleBroadcast = async (e) => {
     e.preventDefault();
-    if (!emailSubject || !emailBody) {
-      Swal.fire('Thiếu thông tin!', 'Vui lòng nhập tiêu đề và nội dung Email.', 'warning');
+    
+    // 1. Lấy token để mở khóa API Admin
+    const token = localStorage.getItem("token"); 
+
+    if (!token) {
+      Swal.fire('Chưa đăng nhập!', 'Không tìm thấy Token. Vui lòng đăng nhập lại với tài khoản Admin.', 'error');
       return;
     }
 
-    // 🚀 LẤY TOKEN ĐỂ "MỞ KHÓA" API CỦA ADMIN
-    const token = localStorage.getItem("token"); 
+    if (!emailSubject || !emailBody) {
+      Swal.fire('Thiếu thông tin!', 'Vui lòng nhập đầy đủ tiêu đề và nội dung Email.', 'warning');
+      return;
+    }
 
     Swal.fire({
       title: 'Xác nhận gửi Mail',
@@ -175,8 +166,8 @@ const AdminContent = () => {
       confirmButtonColor: '#4f46e5',
       cancelButtonColor: '#94a3b8',
       confirmButtonText: 'Gửi ngay',
-      cancelButtonText: 'Kiểm tra lại',
-      borderRadius: '16px'
+      cancelButtonText: 'Hủy bỏ',
+      customClass: { popup: 'my-swal-rounded' } // Fix lỗi CSS borderRadius
     }).then(async (result) => {
       if (result.isConfirmed) {
         setIsSending(true);
@@ -187,25 +178,32 @@ const AdminContent = () => {
             method: 'POST',
             headers: { 
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}` // 👈 CHÌA KHÓA CỦA SẾP NẰM Ở ĐÂY!
+              'Authorization': `Bearer ${token}` // 👈 Gửi chìa khóa kèm theo request
             },
             body: JSON.stringify({ subject: emailSubject, content: emailBody })
           });
+
+          // Nếu chìa khóa sai hoặc không có quyền Admin
+          if (res.status === 401 || res.status === 403) {
+             Swal.fire('Lỗi Quyền Hạn!', 'Phiên đăng nhập đã hết hạn hoặc bạn không có quyền Admin. Hãy đăng nhập lại!', 'error');
+             setNewsletterMsg("Lỗi: Không có quyền truy cập (401/403)");
+             setIsSending(false);
+             return;
+          }
+
           const data = await res.json();
           
-          if (res.status === 401 || res.status === 403) {
-             Swal.fire('Quyền hạn!', 'Bạn không có quyền thực hiện hành động này hoặc Token đã hết hạn!', 'error');
-          } else if (data.success) {
+          if (res.ok && data.success) {
             Swal.fire('Gửi thành công!', `Đã gửi mail tới ${subscribers.length} người dùng.`, 'success');
             setNewsletterMsg(` Thành công: ${data.message}`);
             setEmailSubject('');
             setEmailBody('');
           } else {
-            Swal.fire('Có lỗi xảy ra!', data.message, 'error');
+            Swal.fire('Có lỗi xảy ra!', data.message || "Lỗi không xác định từ Server", 'error');
             setNewsletterMsg(` Lỗi: ${data.message}`);
           }
         } catch (error) {
-          Swal.fire('Lỗi kết nối!', 'Không thể gửi do lỗi mạng.', 'error');
+          Swal.fire('Lỗi hệ thống!', 'Lỗi mạng hoặc Server không phản hồi.', 'error');
           setNewsletterMsg(" Lỗi kết nối mạng!");
         } finally {
           setIsSending(false);
@@ -214,16 +212,11 @@ const AdminContent = () => {
     });
   };
 
-  // Fetch dữ liệu khi load trang
   useEffect(() => {
     fetchArticles();
     fetchSubscribers();
   }, []);
 
-
-  // ==========================================
-  // GIAO DIỆN (RENDER)
-  // ==========================================
   return (
     <div className="admin-content-page fade-in">
       
@@ -239,7 +232,6 @@ const AdminContent = () => {
         )}
       </div>
 
-      {/* TẠO TAB CHUYỂN ĐỔI CHỨC NĂNG */}
       <div style={{ display: 'flex', gap: '20px', borderBottom: '2px solid #e2e8f0', marginBottom: '30px' }}>
         <button 
           onClick={() => setActiveTab('articles')}
@@ -265,12 +257,8 @@ const AdminContent = () => {
         </button>
       </div>
 
-      {/* ========================================== */}
-      {/* VÙNG HIỂN THỊ 1: QUẢN LÝ BÀI VIẾT */}
-      {/* ========================================== */}
       {activeTab === 'articles' && (
         <div className="fade-in">
-          {/* THỐNG KÊ NHANH */}
           <div className="ac-stats-row">
             <div className="ac-stat-card">
               <div className="ac-stat-icon blue"><FileText size={28} /></div>
@@ -295,7 +283,6 @@ const AdminContent = () => {
             </div>
           </div>
 
-          {/* BẢNG DỮ LIỆU BÀI VIẾT */}
           <div className="ac-table-container">
             <div className="ac-table-toolbar">
               <div className="ac-search-box">
@@ -393,13 +380,9 @@ const AdminContent = () => {
         </div>
       )}
 
-      {/* ========================================== */}
-      {/* VÙNG HIỂN THỊ 2: BẢN TIN & GỬI MAIL */}
-      {/* ========================================== */}
       {activeTab === 'newsletter' && (
         <div className="fade-in" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '30px' }}>
           
-          {/* KHU VỰC 1: SOẠN THẢO EMAIL */}
           <div style={{ background: 'white', padding: '30px', borderRadius: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', border: '1px solid #e2e8f0' }}>
             <h3 style={{ marginBottom: '20px', color: '#1e293b', borderBottom: '2px solid #f1f5f9', paddingBottom: '10px', display: 'flex', alignItems: 'center' }}>
               <Send size={20} style={{ marginRight: '8px', color: '#4f46e5' }}/>
@@ -441,7 +424,6 @@ const AdminContent = () => {
             </form>
           </div>
 
-          {/* KHU VỰC 2: DANH SÁCH ĐĂNG KÝ */}
           <div style={{ background: 'white', padding: '30px', borderRadius: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
             <h3 style={{ marginBottom: '20px', color: '#1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #f1f5f9', paddingBottom: '10px' }}>
               <span style={{ display: 'flex', alignItems: 'center' }}><Users size={20} style={{ marginRight: '8px', color: '#4f46e5' }}/> Danh sách Đăng ký</span>
@@ -474,9 +456,6 @@ const AdminContent = () => {
         </div>
       )}
 
-      {/* ========================================== */}
-      {/* MODAL THÊM / SỬA BÀI VIẾT (Giữ nguyên) */}
-      {/* ========================================== */}
       {isModalOpen && activeTab === 'articles' && (
         <div className="ac-modal-overlay">
           <div className="ac-modal-content fade-in">

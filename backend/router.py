@@ -2823,6 +2823,8 @@ def create_report():
         return jsonify({"error": str(e)}), 500
     
 # 3. CẬP NHẬT QUYỀN VÀ TRẠNG THÁI (PUT)
+from werkzeug.security import generate_password_hash # Nhớ kiểm tra trên đầu file router.py đã có dòng import này chưa nhé sếp
+
 @api_bp.route('/api/admin/users/<int:id>', methods=['PUT', 'OPTIONS'])
 @admin_required
 def update_user(current_user, id):
@@ -2834,8 +2836,19 @@ def update_user(current_user, id):
         if not user: 
             return jsonify({"error": "Không tìm thấy người dùng"}), 404
         
+        # Cập nhật thông tin cơ bản
+        if data.get('name'):
+            user.name = data.get('name')
+        if data.get('email'):
+            user.email = data.get('email')
+            
         user.role = data.get('role').lower() # Lưu dạng chữ thường vào DB
         user.verified = data.get('verified')
+        
+        # 🚀 XỬ LÝ MẬT KHẨU MỚI (CHỈ ĐỔI KHI ADMIN CÓ NHẬP)
+        new_password = data.get('newPassword')
+        if new_password and new_password.strip() != "":
+            user.password = generate_password_hash(new_password)
         
         db.session.commit()
         return jsonify({"message": "Cập nhật thành công!"}), 200
