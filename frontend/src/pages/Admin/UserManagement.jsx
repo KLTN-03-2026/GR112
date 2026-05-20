@@ -18,15 +18,32 @@ const UserManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
-  // STATE MODAL SỬA NGƯỜI DÙNG
+  // STATE MODAL SỬA NGƯỜI DÙNG (Đã thêm newPassword)
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({ id: null, name: '', email: '', role: '', verified: false });
+  const [formData, setFormData] = useState({ id: null, name: '', email: '', role: '', verified: false, newPassword: '' });
 
   // STATE MODAL BÁO CÁO VI PHẠM
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportDetails, setReportDetails] = useState([]);
 
   const token = localStorage.getItem('token');
+
+  // ==========================================
+  // HÀM KIỂM TRA MẬT KHẨU MẠNH (CHUẨN NGÂN HÀNG)
+  // ==========================================
+  const validateStrongPassword = (pwd) => {
+    if (!pwd) return true; // Cho phép rỗng (dùng khi Admin không muốn đổi pass)
+    const hasUpperCase = /[A-Z]/.test(pwd); 
+    const hasLowerCase = /[a-z]/.test(pwd); 
+    const hasNumber = /[0-9]/.test(pwd);    
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<> ]/.test(pwd); 
+    
+    if (pwd.length < 8 || pwd.length > 20) return "Mật khẩu phải từ 8 đến 20 ký tự!";
+    if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
+      return "Mật khẩu phải chứa: Chữ hoa, chữ thường, số và ký tự đặc biệt!";
+    }
+    return true; // Hợp lệ
+  };
 
   // 1. LẤY DỮ LIỆU USER
   const fetchUsers = () => {
@@ -76,31 +93,40 @@ const UserManagement = () => {
   const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
-  // 4. MỞ MODAL SỬA
+  // 4. MỞ MODAL SỬA (Reset newPassword)
   const openEditModal = (user) => {
     setFormData({ 
       id: user.id, 
       name: user.name, 
       email: user.email, 
       role: user.role.toLowerCase(), 
-      verified: user.verified 
+      verified: user.verified,
+      newPassword: '' 
     });
     setShowModal(true);
   };
 
-  // 🚀 5. LƯU CẬP NHẬT (ĐÃ FIX BẮT LỖI TÊN TRỐNG & EMAIL SAI)
+  // 🚀 5. LƯU CẬP NHẬT (KIỂM TRA BẢO MẬT MẬT KHẨU MỚI)
   const handleUpdate = (e) => {
     e.preventDefault();
 
-    // KIỂM TRA ĐIỀU KIỆN TRƯỚC KHI LƯU
     if (!formData.name.trim()) {
       Swal.fire('Lỗi!', 'Họ và Tên không được để trống rỗng!', 'warning');
       return;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim() || !emailRegex.test(formData.email)) {
-      Swal.fire('Lỗi!', 'Email không hợp lệ (Ví dụ: abc@gmail.com)!', 'warning');
+      Swal.fire('Lỗi!', 'Email không hợp lệ!', 'warning');
       return;
+    }
+
+    // CHECK MẬT KHẨU MỚI (NẾU CÓ NHẬP)
+    if (formData.newPassword) {
+      const passValidation = validateStrongPassword(formData.newPassword);
+      if (passValidation !== true) {
+        Swal.fire('Bảo mật yếu!', passValidation, 'warning');
+        return;
+      }
     }
 
     fetch(`https://gr112.onrender.com/api/admin/users/${formData.id}`, {
@@ -163,7 +189,7 @@ const UserManagement = () => {
     });
   };
 
-  // 🚀 7. THÊM NGƯỜI DÙNG NHANH (ĐÃ FIX BẮT LỖI EMAIL)
+  // 🚀 7. THÊM NGƯỜI DÙNG NHANH (ÉP CHUẨN BẢO MẬT)
   const handleAddUser = async () => {
     const { value: formValues } = await Swal.fire({
       title: 'Thêm Người Dùng Mới',
@@ -175,9 +201,10 @@ const UserManagement = () => {
           <label style="font-size: 13px; font-weight: bold; color: #64748b; margin-top: 10px;">Email đăng nhập (*)</label>
           <input id="swal-input-email" type="email" class="swal2-input" style="margin: 0; width: auto;" placeholder="Nhập email...">
           
-          <label style="font-size: 13px; font-weight: bold; color: #64748b; margin-top: 10px;">Mật khẩu</label>
-          <input id="swal-input-pass" type="password" class="swal2-input" style="margin: 0; width: auto;" placeholder="Mặc định: 123456">
-          
+          <label style="font-size: 13px; font-weight: bold; color: #64748b; margin-top: 10px;">Mật khẩu (*)</label>
+          <input id="swal-input-pass" type="password" class="swal2-input" style="margin: 0; width: auto;" placeholder="Gồm chữ hoa, thường, số, ký tự ĐB">
+          <small style="color: #ef4444; font-size: 11px; margin-top: 5px;">Mật khẩu phải đáp ứng tiêu chuẩn bảo mật mạnh.</small>
+
           <label style="font-size: 13px; font-weight: bold; color: #64748b; margin-top: 10px;">Vai trò hệ thống</label>
           <select id="swal-input-role" class="swal2-select" style="margin: 0; width: 100%;">
             <option value="user">USER (Học sinh)</option>
@@ -195,25 +222,22 @@ const UserManagement = () => {
       preConfirm: () => {
         const name = document.getElementById('swal-input-name').value.trim();
         const email = document.getElementById('swal-input-email').value.trim();
+        const password = document.getElementById('swal-input-pass').value;
         
-        // Dùng Regex để kiểm tra chuẩn email (có @ và dấu chấm)
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        if (!name) {
-          Swal.showValidationMessage('Vui lòng nhập Họ Tên!');
-          return false;
-        }
-        if (!email || !emailRegex.test(email)) {
-          Swal.showValidationMessage('Email không đúng định dạng (Ví dụ: tên@gmail.com)!');
+        if (!name) { Swal.showValidationMessage('Vui lòng nhập Họ Tên!'); return false; }
+        if (!email || !emailRegex.test(email)) { Swal.showValidationMessage('Email không hợp lệ!'); return false; }
+        if (!password) { Swal.showValidationMessage('Vui lòng nhập mật khẩu!'); return false; }
+
+        // BẮT BUỘC KIỂM TRA MẬT KHẨU MẠNH TẠI ĐÂY
+        const passCheck = validateStrongPassword(password);
+        if (passCheck !== true) {
+          Swal.showValidationMessage(passCheck);
           return false;
         }
 
-        return {
-          name: name,
-          email: email,
-          password: document.getElementById('swal-input-pass').value || "123456",
-          role: document.getElementById('swal-input-role').value
-        };
+        return { name, email, password, role: document.getElementById('swal-input-role').value };
       }
     });
 
@@ -445,7 +469,7 @@ const UserManagement = () => {
                         </td>
                         <td style={{textAlign: 'center', position: 'sticky', right: 0, background: '#fff', borderLeft: '1px solid #f1f5f9'}}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                            <button onClick={() => openEditModal(user)} style={{background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer'}} title="Sửa quyền"><Edit3 size={18} /></button>
+                            <button onClick={() => openEditModal(user)} style={{background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer'}} title="Sửa thông tin/Đổi MK"><Edit3 size={18} /></button>
                             <button onClick={() => handleDelete(user.id)} style={{background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer'}} title="Xóa người dùng"><Trash2 size={18} /></button>
                             
                             <button 
@@ -497,18 +521,17 @@ const UserManagement = () => {
         </div>
       </div>
 
-      {/* 🚀 MODAL SỬA NGƯỜI DÙNG (Đã ĐỘ THÊM INPUT TÊN VÀ EMAIL) */}
+      {/* 🚀 MODAL SỬA NGƯỜI DÙNG (Đã ĐỘ THÊM NÚT ĐỔI MẬT KHẨU) */}
       {showModal && (
         <div className="cm-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(15, 23, 42, 0.65)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
           <div className="cm-modal-content" style={{ background: '#fff', width: '400px', borderRadius: '12px', padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginBottom: '20px' }}>
-              <h3 style={{margin: 0, color: '#0f172a'}}>Chỉnh sửa quyền hạn</h3>
+              <h3 style={{margin: 0, color: '#0f172a'}}>Chỉnh sửa thông tin</h3>
               <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20}/></button>
             </div>
 
             <form onSubmit={handleUpdate} style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
               
-              {/* 🚀 Đã đổi từ văn bản tĩnh sang thẻ INPUT để sếp xóa/sửa được */}
               <div>
                 <label style={{fontSize: '12px', fontWeight: 'bold', color: '#64748b'}}>Họ và Tên (*)</label>
                 <input 
@@ -531,21 +554,36 @@ const UserManagement = () => {
                 />
               </div>
 
-              <div>
-                <label style={{fontSize: '12px', fontWeight: 'bold', color: '#64748b'}}>Vai trò hệ thống</label>
-                <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} style={{width: '100%', boxSizing: 'border-box', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', marginTop: '5px', background: 'white'}}>
-                  <option value="user">USER (Học sinh/Sinh viên)</option>
-                  <option value="mentor">MENTOR (Cố vấn chuyên môn)</option> 
-                  <option value="admin">ADMIN (Quản trị viên)</option>
-                </select>
+              {/* Ô ĐỔI MẬT KHẨU MỚI CHO ADMIN */}
+              <div style={{background: '#f8fafc', padding: '10px', border: '1px dashed #cbd5e1', borderRadius: '8px'}}>
+                <label style={{fontSize: '12px', fontWeight: 'bold', color: '#ef4444'}}>Đổi Mật khẩu mới (Tùy chọn)</label>
+                <input 
+                  type="password" 
+                  value={formData.newPassword} 
+                  onChange={e => setFormData({...formData, newPassword: e.target.value})} 
+                  style={{width: '100%', boxSizing: 'border-box', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', marginTop: '5px', background: 'white'}}
+                  placeholder="Bỏ trống nếu không muốn đổi..."
+                />
+                <small style={{fontSize: '10px', color: '#94a3b8', display: 'block', marginTop: '4px'}}>Yêu cầu: Hoa, Thường, Số, Ký tự đặc biệt.</small>
               </div>
 
-              <div>
-                <label style={{fontSize: '12px', fontWeight: 'bold', color: '#64748b'}}>Trạng thái xác thực</label>
-                <select value={formData.verified} onChange={e => setFormData({...formData, verified: e.target.value === 'true'})} style={{width: '100%', boxSizing: 'border-box', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', marginTop: '5px', background: 'white'}}>
-                  <option value="true">Active (Đã xác thực)</option>
-                  <option value="false">Pending (Chưa xác thực)</option>
-                </select>
+              <div style={{display: 'flex', gap: '15px'}}>
+                <div style={{flex: 1}}>
+                  <label style={{fontSize: '12px', fontWeight: 'bold', color: '#64748b'}}>Vai trò</label>
+                  <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} style={{width: '100%', boxSizing: 'border-box', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', marginTop: '5px', background: 'white'}}>
+                    <option value="user">USER</option>
+                    <option value="mentor">MENTOR</option> 
+                    <option value="admin">ADMIN</option>
+                  </select>
+                </div>
+
+                <div style={{flex: 1}}>
+                  <label style={{fontSize: '12px', fontWeight: 'bold', color: '#64748b'}}>Trạng thái</label>
+                  <select value={formData.verified} onChange={e => setFormData({...formData, verified: e.target.value === 'true'})} style={{width: '100%', boxSizing: 'border-box', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '6px', marginTop: '5px', background: 'white'}}>
+                    <option value="true">Đã xác thực</option>
+                    <option value="false">Chưa xác thực</option>
+                  </select>
+                </div>
               </div>
 
               <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px'}}>

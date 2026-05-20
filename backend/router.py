@@ -131,6 +131,51 @@ from datetime import datetime, timedelta,timezone
 # ==========================================
 # 4. TÀI KHOẢN (ĐĂNG KÝ, OTP, ĐĂNG NHẬP, QUÊN MK)
 # ==========================================
+import random
+import requests # Bắt buộc phải có để gọi API Brevo
+from datetime import datetime, timedelta, timezone 
+from flask import jsonify, request, current_app
+from werkzeug.security import generate_password_hash, check_password_hash
+import jwt
+# ... (Giữ nguyên các import Model như User, Mentor, db...)
+
+# ==========================================
+# 🚀 HÀM HỖ TRỢ: GỬI MAIL QUA API BREVO
+# ==========================================
+def send_otp_via_brevo(email, otp, subject="Mã OTP xác thực - ConsulTing"):
+    # Lấy API Key từ biến môi trường của Render (Sếp nhớ tạo biến BREVO_API_KEY trên Render nhé!)
+    import os
+    api_key = os.getenv("BREVO_API_KEY") 
+    
+    if not api_key:
+        print("LỖI: Chưa cài đặt BREVO_API_KEY")
+        return False
+        
+    url = "https://api.brevo.com/v3/smtp/email"
+    payload = {
+        "sender": {"name": "ConsulTing", "email": "info@consulting.com"},
+        "to": [{"email": email}],
+        "subject": subject,
+        "htmlContent": f"<html><body><h3>Chào bạn,</h3><p>Mã OTP của bạn là: <strong style='font-size: 20px; color: #f97316;'>{otp}</strong></p><p>Mã này có hiệu lực trong vòng 5 phút.</p></body></html>"
+    }
+    
+    headers = {
+        "accept": "application/json",
+        "api-key": api_key,
+        "content-type": "application/json"
+    }
+    
+    try:
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        return response.status_code == 201
+    except Exception as e:
+        print(f"Lỗi gọi API Brevo: {e}")
+        return False
+
+# ==========================================
+# 4. TÀI KHOẢN (ĐĂNG KÝ, OTP, ĐĂNG NHẬP, QUÊN MK)
+# ==========================================
+
 @api_bp.route('/api/register', methods=['POST'])
 def register():
     data = request.json
@@ -140,7 +185,8 @@ def register():
 
     hashed_password = generate_password_hash(data.get("password"))
     otp = str(random.randint(100000, 999999))
-    # Ở hàm register, sếp nên dùng:
+    
+    # Dùng chuẩn UTC mới
     expire_time = datetime.now(timezone.utc) + timedelta(minutes=5)
 
     user = User(
@@ -150,14 +196,13 @@ def register():
     db.session.add(user)
     db.session.commit()
 
-    try:
-        msg = Message("Mã OTP xác thực", sender=current_app.config['MAIL_USERNAME'], recipients=[email])
-        msg.body = f"Mã OTP của bạn là: {otp}"
-        mail.send(msg)
-    except Exception as e:
-        print("Lỗi gửi mail:", e)
+    # Gọi API gửi Mail
+    success = send_otp_via_brevo(email, otp, "Đăng ký tài khoản - ConsulTing")
+    if not success:
+        print("Cảnh báo: Không thể gửi OTP tới", email)
 
     return jsonify({"message": "Đã gửi OTP"}), 200
+
 
 @api_bp.route('/api/verify-otp', methods=['POST'])
 def verify():
@@ -166,15 +211,16 @@ def verify():
 
     if not user: return jsonify({"error": "Không tìm thấy user"}), 404
     if user.otp != data.get("otp"): return jsonify({"error": "OTP sai"}), 400
-    # Thay vì dùng: if datetime.datetime.utcnow() > user.otp_expire:
-# Sếp dùng:
+    
+    # Kiểm tra thời gian chuẩn UTC
     if datetime.now(timezone.utc) > user.otp_expire.replace(tzinfo=timezone.utc):
-     return jsonify({"error": "OTP hết hạn"}), 400
+        return jsonify({"error": "OTP hết hạn"}), 400
 
     user.verified = True
     user.otp = None 
     db.session.commit()
     return jsonify({"message": "Xác thực thành công"}), 200
+
 
 @api_bp.route('/api/login', methods=['POST'])
 def login():
@@ -190,45 +236,43 @@ def login():
     if not user:
         user = Mentor.query.filter_by(email=email).first()
         if user:
-            role = 'mentor' # Gán role cố định nếu tìm thấy trong bảng Mentor
+            role = 'mentor'
 
     # 3. Kiểm tra xem có tìm thấy ai không
     if not user: 
         return jsonify({"error": "Sai email"}), 400
     
-    # 4. Kiểm tra mật khẩu (Sử dụng chung hàm check_password_hash)
+    # 4. Kiểm tra mật khẩu
     if not check_password_hash(user.password, password): 
         return jsonify({"error": "Sai mật khẩu"}), 400
 
-    # 5. Kiểm tra xác thực (Giả sử cả 2 bảng đều có trường verified)
+    # 5. Kiểm tra xác thực 
     if not user.verified: 
         return jsonify({"error": "Chưa xác thực OTP"}), 400
 
-    # 6. Tạo Token (Nhớ thêm 'role' vào payload để Frontend dễ xử lý phân quyền)
+    # 6. Tạo Token chuẩn UTC
     token = jwt.encode({
         'user_id': user.id,
-        'role': user.role,
-        'exp': datetime.utcnow() + timedelta(hours=2)
+        'role': role,
+        'exp': datetime.now(timezone.utc) + timedelta(hours=2)
     }, current_app.config['SECRET_KEY'], algorithm="HS256")
 
-    # 7. Trả về dữ liệu (Linh hoạt theo từng bảng)
+    # 7. Trả về dữ liệu
     user_data = {
         "id": user.id,
         "email": user.email,
         "role": role,
-        "fullName": user.full_name if hasattr(user, 'full_name') else user.name,
+        "fullName": getattr(user, 'full_name', getattr(user, 'name', "User")),
     }
     
-    # Bổ sung các trường thông tin cá nhân nếu có
     if role != 'mentor':
         user_data.update({
             "name": user.name,
-            "phone": user.phone_number,
-            "dob": str(user.date_of_birth) if user.date_of_birth else "",
-            "address": user.address
+            "phone": getattr(user, 'phone_number', ''),
+            "dob": str(user.date_of_birth) if getattr(user, 'date_of_birth', None) else "",
+            "address": getattr(user, 'address', '')
         })
     else:
-        # Nếu là mentor, có thể trả thêm chuyên môn
         user_data.update({
             "specialty": getattr(user, 'specialty', ""),
             "experience": getattr(user, 'experience_years', 0)
@@ -239,6 +283,8 @@ def login():
         "message": "Đăng nhập thành công",
         "user": user_data
     }), 200
+
+
 @api_bp.route('/api/resend-otp', methods=['POST'])
 def resend():
     user = User.query.filter_by(email=request.json.get("email")).first()
@@ -246,15 +292,14 @@ def resend():
 
     otp = str(random.randint(100000, 999999))
     user.otp = otp
-    user.otp_expire = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+    user.otp_expire = datetime.now(timezone.utc) + timedelta(minutes=5)
     db.session.commit()
 
-    try:
-        msg = Message("OTP mới", sender=current_app.config['MAIL_USERNAME'], recipients=[user.email])
-        msg.body = f"OTP mới của bạn là: {otp}"
-        mail.send(msg)
-    except: pass
+    # Gọi API gửi Mail
+    send_otp_via_brevo(user.email, otp, "OTP mới của bạn - ConsulTing")
+
     return jsonify({"message": "Đã gửi lại OTP"}), 200
+
 
 @api_bp.route('/api/change-password', methods=['POST'])
 def change_password():
@@ -269,6 +314,7 @@ def change_password():
     db.session.commit()
     return jsonify({"message": "Đổi mật khẩu thành công!"}), 200
 
+
 @api_bp.route('/api/send-otp', methods=['POST'])
 def send_forgot_password_otp():
     user = User.query.filter_by(email=request.json.get("email")).first()
@@ -276,17 +322,14 @@ def send_forgot_password_otp():
 
     otp = str(random.randint(100000, 999999))
     user.otp = otp
-    user.otp_expire = datetime.utcnow() + timedelta(minutes=5)
+    user.otp_expire = datetime.now(timezone.utc) + timedelta(minutes=5)
     db.session.commit()
 
-    try:
-        msg = Message("Khôi phục mật khẩu - ConsulTing",
-                      sender=current_app.config['MAIL_USERNAME'], recipients=[user.email])
-        msg.body = f"Chào bạn,\n\nMã OTP để khôi phục mật khẩu của bạn là: {otp}\nMã này có hiệu lực trong 5 phút."
-        mail.send(msg)
-    except Exception as e:
-        return jsonify({"message": "Lỗi hệ thống gửi mail"}), 500
+    # Gọi API gửi Mail
+    send_otp_via_brevo(user.email, otp, "Khôi phục mật khẩu - ConsulTing")
+    
     return jsonify({"message": "Đã gửi mã OTP đến email của bạn!"}), 200
+
 
 @api_bp.route('/api/reset-password', methods=['POST'])
 def reset_password():
@@ -295,7 +338,10 @@ def reset_password():
 
     if not user: return jsonify({"message": "Không tìm thấy tài khoản"}), 404
     if user.otp != data.get("otp"): return jsonify({"message": "Mã OTP không chính xác"}), 400
-    if datetime.utcnow() > user.otp_expire: return jsonify({"message": "Mã OTP đã hết hạn"}), 400
+    
+    # Kiểm tra thời gian chuẩn UTC
+    if datetime.now(timezone.utc) > user.otp_expire.replace(tzinfo=timezone.utc): 
+        return jsonify({"message": "Mã OTP đã hết hạn"}), 400
 
     user.password = generate_password_hash(data.get("newPassword"))
     user.otp = None 
