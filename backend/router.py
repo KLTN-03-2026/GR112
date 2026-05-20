@@ -6,6 +6,7 @@ from flask_mail import Message
 from sqlalchemy import or_
 from google import genai 
 from dotenv import load_dotenv
+
 # Sửa lại thành dòng này:
 
 
@@ -168,6 +169,11 @@ def send_otp_via_brevo(email, otp, subject="Mã OTP xác thực - ConsulTing"):
     
     try:
         response = requests.post(url, json=payload, headers=headers, timeout=10)
+        
+        # 🚀 Bắt Brevo khai ra lỗi nếu nó từ chối gửi
+        if response.status_code != 201:
+            print(f"🚨 BREVO TỪ CHỐI GỬI: {response.status_code} - {response.text}")
+            
         return response.status_code == 201
     except Exception as e:
         print(f"Lỗi gọi API Brevo: {e}")
@@ -186,6 +192,11 @@ def register():
 
     hashed_password = generate_password_hash(data.get("password"))
     otp = str(random.randint(100000, 999999))
+    
+    # 🚀 IN OTP RA BẢNG ĐIỀU KHIỂN ĐỂ TEST NHANH GIAO DIỆN
+    print("="*40)
+    print(f"🚀 [ĐĂNG KÝ MỚI] MÃ OTP CỦA {email} LÀ: {otp} 🚀")
+    print("="*40)
     
     # Dùng chuẩn UTC mới
     expire_time = datetime.now(timezone.utc) + timedelta(minutes=5)
@@ -296,6 +307,11 @@ def resend():
     user.otp_expire = datetime.now(timezone.utc) + timedelta(minutes=5)
     db.session.commit()
 
+    # 🚀 IN OTP RA BẢNG ĐIỀU KHIỂN ĐỂ TEST NHANH
+    print("="*40)
+    print(f"🚀 [GỬI LẠI] MÃ OTP CỦA {user.email} LÀ: {otp} 🚀")
+    print("="*40)
+
     # Gọi API gửi Mail
     send_otp_via_brevo(user.email, otp, "OTP mới của bạn - ConsulTing")
 
@@ -325,6 +341,11 @@ def send_forgot_password_otp():
     user.otp = otp
     user.otp_expire = datetime.now(timezone.utc) + timedelta(minutes=5)
     db.session.commit()
+
+    # 🚀 IN OTP RA BẢNG ĐIỀU KHIỂN ĐỂ TEST NHANH
+    print("="*40)
+    print(f"🚀 [QUÊN MK] MÃ OTP CỦA {user.email} LÀ: {otp} 🚀")
+    print("="*40)
 
     # Gọi API gửi Mail
     send_otp_via_brevo(user.email, otp, "Khôi phục mật khẩu - ConsulTing")
