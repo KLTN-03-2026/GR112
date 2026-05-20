@@ -153,7 +153,8 @@ def send_otp_via_brevo(email, otp, subject="Mã OTP xác thực - ConsulTing"):
         
     url = "https://api.brevo.com/v3/smtp/email"
     payload = {
-        "sender": {"name": "ConsulTing", "email": "info@consulting.com"},
+        # THAY EMAIL DƯỚI ĐÂY THÀNH EMAIL ĐĂNG KÝ BREVO CỦA SẾP
+        "sender": {"name": "Hệ thống ConsulTing", "email": "vanlinhpham03@gmail.com"}, 
         "to": [{"email": email}],
         "subject": subject,
         "htmlContent": f"<html><body><h3>Chào bạn,</h3><p>Mã OTP của bạn là: <strong style='font-size: 20px; color: #f97316;'>{otp}</strong></p><p>Mã này có hiệu lực trong vòng 5 phút.</p></body></html>"
