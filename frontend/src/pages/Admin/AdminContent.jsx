@@ -164,6 +164,9 @@ const AdminContent = () => {
       return;
     }
 
+    // 🚀 LẤY TOKEN ĐỂ "MỞ KHÓA" API CỦA ADMIN
+    const token = localStorage.getItem("token"); 
+
     Swal.fire({
       title: 'Xác nhận gửi Mail',
       text: `Bạn có chắc chắn muốn gửi email này tới toàn bộ ${subscribers.length} người đăng ký không?`,
@@ -182,12 +185,17 @@ const AdminContent = () => {
         try {
           const res = await fetch('https://gr112.onrender.com/api/admin/broadcast', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}` // 👈 CHÌA KHÓA CỦA SẾP NẰM Ở ĐÂY!
+            },
             body: JSON.stringify({ subject: emailSubject, content: emailBody })
           });
           const data = await res.json();
           
-          if (data.success) {
+          if (res.status === 401 || res.status === 403) {
+             Swal.fire('Quyền hạn!', 'Bạn không có quyền thực hiện hành động này hoặc Token đã hết hạn!', 'error');
+          } else if (data.success) {
             Swal.fire('Gửi thành công!', `Đã gửi mail tới ${subscribers.length} người dùng.`, 'success');
             setNewsletterMsg(` Thành công: ${data.message}`);
             setEmailSubject('');
