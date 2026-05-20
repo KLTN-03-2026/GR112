@@ -95,9 +95,20 @@ def home():
 # ==========================================
 # 🚀 HÀM HỖ TRỢ: GỬI MAIL QUA API BREVO
 # ==========================================
+import os
+import random
+import requests
+from datetime import datetime, timedelta, timezone 
+from flask import jsonify, request, current_app
+from werkzeug.security import generate_password_hash, check_password_hash
+import jwt
+
+# ==========================================
+# 🚀 HÀM HỖ TRỢ: GỬI MAIL QUA API BREVO
+# ==========================================
 def send_otp_via_brevo(email, otp, subject="Mã OTP xác thực - ConsulTing"):
-    # Lấy API Key từ cấu hình của app
-    api_key = current_app.config.get('BREVO_API_KEY') 
+    # Lấy API Key TRỰC TIẾP từ hệ điều hành Render (Không qua config nữa)
+    api_key = os.environ.get('BREVO_API_KEY') 
     
     if not api_key:
         print("LỖI: Chưa cài đặt BREVO_API_KEY")
@@ -299,7 +310,7 @@ def reset_password():
     user.password = generate_password_hash(data.get("newPassword"))
     user.otp = None 
     db.session.commit()
-    return jsonify({"message": "Đổi mật khẩu thành công!"}), 200
+    return jsonify({"message": "Đổi mật khẩu thành công!"}), 200!"}), 200
 
 # =========================================================
 # CHỨC NĂNG TÌM KIẾM TRƯỜNG ĐẠI HỌC (CHO TRANG SEARCH)
