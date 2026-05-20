@@ -310,7 +310,7 @@ def reset_password():
     user.password = generate_password_hash(data.get("newPassword"))
     user.otp = None 
     db.session.commit()
-    return jsonify({"message": "Đổi mật khẩu thành công!"}), 200!"}), 200
+    return jsonify({"message": "Đổi mật khẩu thành công!"}), 200
 
 # =========================================================
 # CHỨC NĂNG TÌM KIẾM TRƯỜNG ĐẠI HỌC (CHO TRANG SEARCH)
