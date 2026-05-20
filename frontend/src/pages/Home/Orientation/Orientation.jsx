@@ -9,7 +9,7 @@ const Orientation = () => {
   const [step, setStep] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
   
-  // ĐÃ SỬA: Tự động lấy ID thật từ tài khoản đang đăng nhập
+  // Lấy ID thật từ tài khoản đang đăng nhập
   const [currentUserId] = useState(() => {
     const savedUser = localStorage.getItem("user");
     if (savedUser) {
@@ -88,7 +88,7 @@ const Orientation = () => {
 
     fetchOldData();
     fetchUnis();
-  }, [currentUserId]); // Cập nhật lại nếu currentUserId thay đổi
+  }, [currentUserId]);
 
   const toggleInterest = (tag) => {
     setFormData(prev => ({
@@ -211,7 +211,6 @@ const Orientation = () => {
   const handleSaveData = async () => {
     setIsSaving(true);
     try {
-      // Bây giờ payload gửi đi sẽ mang chính xác currentUserId (ví dụ ID 12)
       const payload = { ...formData, userId: currentUserId };
       
       const response = await fetch('https://gr112.onrender.com/api/orientation', {
@@ -248,7 +247,8 @@ const Orientation = () => {
       </div>
 
       <div className="ori-main">
-        {step === 1 && <Step1 formData={formData} setFormData={setFormData} toggleInterest={toggleInterest} />}
+        {/* ĐÃ SỬA: Truyền onNext={nextStep} vào Step1 */}
+        {step === 1 && <Step1 formData={formData} setFormData={setFormData} toggleInterest={toggleInterest} onNext={nextStep} />}
         {step === 2 && <Step2 formData={formData} setFormData={setFormData} />}
         {step === 3 && <Step3 formData={formData} setFormData={setFormData} />}
         {step === 4 && <Step4 formData={formData} suggestedUnis={suggestedUnis} handleSaveData={handleSaveData} isSaving={isSaving} />}
@@ -256,7 +256,9 @@ const Orientation = () => {
         <div className="ori-nav-btns">
           {step === 1 && <span className="ori-info-text"><i className="fas fa-info-circle"></i> Bạn có thể thay đổi các lựa chọn này bất cứ lúc nào.</span>}
           {step > 1 && <button className="btn-back" onClick={prevStep}>QUAY LẠI</button>}
-          {step < 4 && <button className="btn-next" onClick={nextStep}>TIẾP THEO <i className="fas fa-arrow-right"></i></button>}
+          
+          {/* ĐÃ SỬA: Ẩn nút Tiếp theo mặc định khi đang ở Step 1 */}
+          {step > 1 && step < 4 && <button className="btn-next" onClick={nextStep}>TIẾP THEO <i className="fas fa-arrow-right"></i></button>}
         </div>
       </div>
     </div>

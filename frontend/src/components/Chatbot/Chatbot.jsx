@@ -51,6 +51,8 @@ const Chatbot = () => {
             // 🚀 ĐỒNG BỘ DỮ LIỆU ĐIỂM NGAY LÚC FETCH ĐỂ LÀM BẢNG 6 Ô
             profileData = {
               ...data,
+              // 🚀 FIX LỖI TỊT GỢI Ý CỘT PHẢI: Bắt mọi tên biến API có thể trả về
+              careers: data.careers || data.suggested_careers || data.ai_careers || data.suggestedCareers || [],
               // 🚀 FIX LỖI TÊN: Bắt mọi trường hợp trả về từ API (full_name, fullName, name)
               name: data.full_name || data.fullName || data.name || savedUser.full_name || savedUser.name || "Bạn",
               class: data.class || data.className || savedUser.className || "Chưa cập nhật",
@@ -66,6 +68,7 @@ const Chatbot = () => {
             };
           } else {
             profileData = { 
+                careers: [],
                 name: savedUser.full_name || savedUser.name || "Bạn", 
                 class: savedUser.className || "Chưa cập nhật", 
                 school: savedUser.schoolName || "Chưa cập nhật",
@@ -116,6 +119,7 @@ const Chatbot = () => {
         } catch (error) {
           console.error("Lỗi lấy dữ liệu ban đầu:", error);
           setUserProfile({ 
+            careers: [],
             name: savedUser.full_name || savedUser.name || "Bạn", 
             class: savedUser.className || "Chưa cập nhật", 
             school: savedUser.schoolName || "Chưa cập nhật",
@@ -261,7 +265,12 @@ const Chatbot = () => {
       const data = await response.json();
 
       if (response.ok) {
-        const botMsg = { sender: 'bot', content: data.text, recommendations: data.data };
+        // 🚀 FIX LỖI TỊT THẺ TRƯỜNG ĐẠI HỌC: Bắt mọi biến có thể là mảng chứa trường học
+        const botMsg = { 
+            sender: 'bot', 
+            content: data.text || data.message || "Hệ thống đang xử lý, bạn đợi chút nhé!", 
+            recommendations: data.data || data.recommendations || data.schools || [] 
+        };
         setChatMessages(prev => [...prev, botMsg]);
         
         if (!currentSessionId && data.sessionId) {
@@ -272,7 +281,7 @@ const Chatbot = () => {
             ]);
         }
 
-        if (isVoice && !isMuted) speakText(data.text);
+        if (isVoice && !isMuted) speakText(botMsg.content);
       } else {
           setChatMessages(prev => [...prev, { sender: 'bot', content: "Lỗi từ AI: " + (data.error || "Thử lại sau nhé!") }]);
       }
@@ -526,7 +535,6 @@ const Chatbot = () => {
           <div className="profile-header-card">
             <div className="avatar"><img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" /></div>
             <div>
-              {/* 🚀 ĐÃ SỬA LẠI CHỖ NÀY CHO CHẮC CÚ 100% HIỂN THỊ TÊN */}
               <h3 style={{ color: '#0f172a', fontWeight: '800', margin: '0' }}>
                 {userProfile ? (userProfile.name || userProfile.full_name || userProfile.fullName || "Bạn") : "Đang tải..."}
               </h3>
@@ -537,7 +545,7 @@ const Chatbot = () => {
           </div>
         </div>
 
-        {/* 🚀 BẢNG ĐIỂM 6 Ô VUÔNG CHUẨN XÁC THEO ẢNH */}
+        {/* BẢNG ĐIỂM 6 Ô VUÔNG CHUẨN XÁC THEO ẢNH */}
         <div className="chat-panel-section" style={{ padding: '15px', backgroundColor: '#fff', borderRadius: '15px', border: '1px solid #f1f5f9', marginBottom: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
           <h4 style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#1e293b', fontSize: '1rem', marginTop: 0, marginBottom: '15px' }}>
             <i className="fas fa-graduation-cap" style={{color: '#4338ca'}}></i> Điểm số học thuật
@@ -707,7 +715,7 @@ const Chatbot = () => {
             </div>
           ) : (
             <p style={{fontSize: '13px', color: '#64748b', fontStyle: 'italic', padding: '15px', background: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1', textAlign: 'center'}}>
-              Vui lòng làm bài Trắc nghiệm để AI có cơ sở đưa ra những gợi ý nghề nghiệp chính xác nhất nhé!
+              Vui lòng làm bài Trắc nghiệm và khai báo điểm để AI có cơ sở đưa ra những gợi ý nghề nghiệp chính xác nhất nhé!
             </p>
           )}
         </div>

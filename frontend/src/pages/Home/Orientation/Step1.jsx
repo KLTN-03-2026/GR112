@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 
-// ĐÃ SỬA: Thêm prop 'onNext' vào đây để nhận lệnh chuyển trang từ component cha
 const Step1 = ({ formData, setFormData, toggleInterest, onNext }) => {
   const [interestTags, setInterestTags] = useState([]);
   const [environments, setEnvironments] = useState([]);
@@ -100,12 +99,12 @@ const Step1 = ({ formData, setFormData, toggleInterest, onNext }) => {
   const aiSuggestions = getAiSuggestions();
 
   // ==============================================================
-  // ĐÃ SỬA: HÀM KIỂM TRA ĐIỀU KIỆN TRƯỚC KHI CHUYỂN TRANG
+  // HÀM KIỂM TRA ĐIỀU KIỆN TRƯỚC KHI CHUYỂN TRANG
   // ==============================================================
   const handleNextClick = () => {
     // Nếu mảng sở thích rỗng HOẶC chưa chọn môi trường làm việc -> Báo lỗi chặn lại
     if (formData.interests.length === 0 || !formData.workEnv) {
-      alert("Vui lòng chọn ít nhất từ khóa sở thích và môi trường để tiếp tục.");
+      alert("Vui lòng chọn ít nhất 1 từ khóa sở thích và 1 môi trường để tiếp tục.");
       return; 
     }
     
@@ -131,7 +130,7 @@ const Step1 = ({ formData, setFormData, toggleInterest, onNext }) => {
 
       <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap' }}>
         
-        {/* CỘT 1: TỪ KHÓA SỞ THÍCH (40 TAGS) */}
+        {/* CỘT 1: TỪ KHÓA SỞ THÍCH */}
         <div className="ori-card" style={{ flex: 1.2, minWidth: '350px' }}>
           <h3 style={{fontSize: '1.3rem', color: '#0b132b', margin: '0 0 5px 0'}}>
             <i className="fas fa-shapes" style={{color: '#10b981'}}></i> Từ khóa sở thích
@@ -251,18 +250,11 @@ const Step1 = ({ formData, setFormData, toggleInterest, onNext }) => {
       </div>
 
       {/* ============================================================== */}
-      {/* ĐÃ SỬA: NÚT TIẾP TỤC ĐƯỢC TÍCH HỢP TRỰC TIẾP VÀO STEP 1 */}
+      {/* NÚT TIẾP TỤC ĐƯỢC CHUẨN HÓA CSS THEO GIAO DIỆN CHUNG CỦA APP */}
       {/* ============================================================== */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '30px' }}>
-        <button 
-          onClick={handleNextClick} 
-          style={{ 
-            background: '#10b981', color: 'white', padding: '12px 30px', 
-            borderRadius: '8px', border: 'none', fontWeight: 'bold', 
-            fontSize: '1rem', cursor: 'pointer', transition: '0.3s'
-          }}
-        >
-          Tiếp tục <i className="fas fa-arrow-right" style={{marginLeft: '8px'}}></i>
+      <div className="ori-nav-btns" style={{ justifyContent: 'flex-end', marginTop: '30px', borderTop: 'none', padding: 0 }}>
+        <button className="btn-next" onClick={handleNextClick}>
+          TIẾP THEO <i className="fas fa-arrow-right" style={{marginLeft: '8px'}}></i>
         </button>
       </div>
 

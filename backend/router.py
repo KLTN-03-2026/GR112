@@ -395,6 +395,8 @@ def get_university_detail(uni_id):
 # =========================================================
 @api_bp.route('/api/contact', methods=['POST'])
 def submit_contact():
+    import os
+    import requests
     try:
         data = request.get_json()
         name = data.get('name')
@@ -404,20 +406,52 @@ def submit_contact():
         if not name or not email or not message_content:
             return jsonify({'error': 'Vui lòng điền đầy đủ thông tin!'}), 400
 
+        # Lưu tin nhắn vào Database
         new_msg = ContactMessage(name=name, email=email, message=message_content)
         db.session.add(new_msg)
         db.session.commit()
 
-        subject = f"ConsulTing - Có tin nhắn mới từ {name}!" 
-        msg = Message(subject=subject, sender=current_app.config.get('MAIL_USERNAME'), recipients=['vanlinhpham03@gmail.com']) 
-        msg.body = f"Tên: {name}\nEmail: {email}\nLời nhắn:\n{message_content}"
-        mail.send(msg)
+        # ==========================================
+        # GỬI MAIL THÔNG BÁO CHO ADMIN QUA BREVO API
+        # ==========================================
+        api_key = os.environ.get('BREVO_API_KEY') 
+        if api_key:
+            url = "https://api.brevo.com/v3/smtp/email"
+            payload = {
+                "sender": {"name": "Hệ thống ConsulTing", "email": "vanlinhpham03@gmail.com"}, 
+                "to": [{"email": "vanlinhpham03@gmail.com"}], # Gửi thẳng về hòm thư của sếp
+                "replyTo": {"email": email, "name": name}, # Để sếp bấm Reply là trả lời ngay cho khách
+                "subject": f"ConsulTing - Có tin nhắn mới từ {name}!",
+                "htmlContent": f"""
+                    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                        <h3 style="color: #4f46e5;">📩 CÓ LIÊN HỆ MỚI TỪ WEBSITE</h3>
+                        <p><b>Tên khách hàng:</b> {name}</p>
+                        <p><b>Email:</b> {email}</p>
+                        <p><b>Lời nhắn:</b></p>
+                        <div style="padding: 15px; background-color: #f8fafc; border-left: 4px solid #4f46e5; border-radius: 4px;">
+                            {message_content}
+                        </div>
+                    </div>
+                """
+            }
+            headers = {
+                "accept": "application/json",
+                "api-key": api_key,
+                "content-type": "application/json"
+            }
+            
+            try:
+                # Gửi mail đi, chỉ chờ tối đa 5 giây để không làm web bị đơ
+                requests.post(url, json=payload, headers=headers, timeout=5)
+            except Exception as mail_err:
+                print(f"Lỗi gửi mail thông báo Contact: {mail_err}")
 
         return jsonify({'message': 'Gửi tin nhắn thành công!', 'data': new_msg.to_dict()}), 201
+        
     except Exception as e:
         db.session.rollback()
+        print(f"🚨 LỖI SERVER TẠI API CONTACT: {str(e)}") # In lỗi ra log để dễ check
         return jsonify({'error': str(e)}), 500
-
 # =========================================================
 # 6. PHÂN TÍCH ĐIỂM (CŨ)
 # =========================================================
@@ -3801,23 +3835,23 @@ def subscribe_newsletter():
         db.session.rollback()
         return jsonify({"success": False, "message": f"Lỗi hệ thống: {str(e)}"}), 500
 
-import smtplib
+import os
+import requests
 import threading
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from config import Config # 👈 Import file config.py của sếp vào đây
 
-# HÀM BƯU TÁ TỰ ĐỘNG GỬI EMAIL (Đã liên kết với config.py)
+# =====================================================================
+# HÀM BƯU TÁ TỰ ĐỘNG GỬI EMAIL CHÀO MỪNG (Đã chuyển sang Brevo API)
+# =====================================================================
 def send_welcome_email(receiver_email):
-    # Tự động lấy Email và Mật khẩu từ file config.py của sếp
-    sender_email = Config.MAIL_USERNAME
-    sender_password = Config.MAIL_PASSWORD
-
-    msg = MIMEMultipart()
-    msg['From'] = f"ConsulTing Team <{sender_email}>"
-    msg['To'] = receiver_email
-    msg['Subject'] = "🎉 Chào mừng bạn đến với Bản tin ConsulTing!"
-
+    # Lấy key trực tiếp từ hệ điều hành Render
+    api_key = os.environ.get('BREVO_API_KEY') 
+    
+    if not api_key:
+        print("LỖI: Chưa cài đặt BREVO_API_KEY")
+        return False
+        
+    url = "https://api.brevo.com/v3/smtp/email"
+    
     # Nội dung email siêu xịn xò
     body = """
     <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
@@ -3829,64 +3863,80 @@ def send_welcome_email(receiver_email):
         <p><b>Đội ngũ ConsulTing</b></p>
     </div>
     """
-    msg.attach(MIMEText(body, 'html'))
-
-    try:
-        # Lấy thông tin Server và Port từ config.py luôn cho chuẩn
-        server = smtplib.SMTP(Config.MAIL_SERVER, Config.MAIL_PORT)
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.send_message(msg)
-        server.quit()
-        print(f"✅ Đã gửi email thành công tới: {receiver_email}")
-    except Exception as e:
-        print(f"❌ Lỗi gửi email: {str(e)}")
-
-        import threading
-import smtplib
-from datetime import datetime
-from flask import request, jsonify
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-
-# Lưu ý: Sếp nhớ import các Model của sếp ở đầu file router.py nhé (Ví dụ: from models import db, Article, NewsletterSubscriber)
-from config import Config 
-
-# =====================================================================
-# HÀM BỔ TRỢ: GỬI MAIL HÀNG LOẠT (Chạy ngầm)
-# =====================================================================
-def send_broadcast_email_task(subject, html_content, recipient_emails):
-    sender_email = Config.MAIL_USERNAME
-    sender_password = Config.MAIL_PASSWORD
+    
+    payload = {
+        "sender": {"name": "ConsulTing Team", "email": "vanlinhpham03@gmail.com"}, 
+        "to": [{"email": receiver_email}],
+        "subject": "🎉 Chào mừng bạn đến với Bản tin ConsulTing!",
+        "htmlContent": body
+    }
+    
+    headers = {
+        "accept": "application/json",
+        "api-key": api_key,
+        "content-type": "application/json"
+    }
     
     try:
-        server = smtplib.SMTP(Config.MAIL_SERVER, Config.MAIL_PORT)
-        server.starttls()
-        server.login(sender_email, sender_password)
-        
-        for email in recipient_emails:
-            msg = MIMEMultipart()
-            msg['From'] = f"ConsulTing Admin <{sender_email}>"
-            msg['To'] = email
-            msg['Subject'] = subject
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        if response.status_code != 201:
+            print(f"🚨 BREVO TỪ CHỐI GỬI (Welcome): {response.status_code} - {response.text}")
+            return False
             
-            body = f"""
-            <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
-                <h2 style="color: #4f46e5; border-bottom: 2px solid #e0e7ff; padding-bottom: 10px;">Tin tức mới từ ConsulTing 🚀</h2>
-                <div style="font-size: 1.05rem; margin-top: 20px;">
-                    {html_content}
-                </div>
-                <br><hr style="border: 0; border-top: 1px solid #e2e8f0;">
-                <p style="font-size: 0.85rem; color: #64748b; text-align: center;">Bạn nhận được email này vì đã đăng ký bản tin trên website ConsulTing.</p>
-            </div>
-            """
-            msg.attach(MIMEText(body, 'html'))
-            server.send_message(msg)
-            
-        server.quit()
-        print(f"✅ Đã gửi mail hàng loạt thành công cho {len(recipient_emails)} người!")
+        print(f"✅ Đã gửi email chào mừng thành công tới: {receiver_email}")
+        return True
     except Exception as e:
-        print(f"❌ Lỗi gửi mail hàng loạt: {str(e)}")
+        print(f"❌ Lỗi gửi email chào mừng: {str(e)}")
+        return False
+
+# =====================================================================
+# HÀM BỔ TRỢ: GỬI MAIL HÀNG LOẠT (Chạy ngầm - Đã chuyển sang Brevo API)
+# =====================================================================
+def send_broadcast_email_task(subject, html_content, recipient_emails):
+    api_key = os.environ.get('BREVO_API_KEY') 
+    
+    if not api_key:
+        print("LỖI: Chưa cài đặt BREVO_API_KEY")
+        return False
+        
+    url = "https://api.brevo.com/v3/smtp/email"
+    headers = {
+        "accept": "application/json",
+        "api-key": api_key,
+        "content-type": "application/json"
+    }
+    
+    success_count = 0
+    
+    for email in recipient_emails:
+        body = f"""
+        <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+            <h2 style="color: #4f46e5; border-bottom: 2px solid #e0e7ff; padding-bottom: 10px;">Tin tức mới từ ConsulTing 🚀</h2>
+            <div style="font-size: 1.05rem; margin-top: 20px;">
+                {html_content}
+            </div>
+            <br><hr style="border: 0; border-top: 1px solid #e2e8f0;">
+            <p style="font-size: 0.85rem; color: #64748b; text-align: center;">Bạn nhận được email này vì đã đăng ký bản tin trên website ConsulTing.</p>
+        </div>
+        """
+        
+        payload = {
+            "sender": {"name": "ConsulTing Admin", "email": "vanlinhpham03@gmail.com"}, 
+            "to": [{"email": email}],
+            "subject": subject,
+            "htmlContent": body
+        }
+        
+        try:
+            response = requests.post(url, json=payload, headers=headers, timeout=10)
+            if response.status_code == 201:
+                success_count += 1
+            else:
+                print(f"🚨 Lỗi gửi cho {email}: {response.text}")
+        except Exception as e:
+            print(f"❌ Lỗi gửi cho {email}: {str(e)}")
+            
+    print(f"✅ Đã gửi mail hàng loạt qua Brevo thành công cho {success_count}/{len(recipient_emails)} người!")
 
 
 # =====================================================================
@@ -3995,7 +4045,8 @@ def get_subscribers():
 
 # Lệnh gửi mail hàng loạt
 @api_bp.route('/api/admin/broadcast', methods=['POST', 'OPTIONS'])
-def broadcast_email():
+@admin_required  # 👈 THÊM DÒNG NÀY ĐỂ BẢO VỆ CHỨC NĂNG CỦA ADMIN
+def broadcast_email(current_user): # 👈 Thêm current_user vào đây để hứng data từ admin_required
     if request.method == 'OPTIONS': return jsonify({}), 200
     try:
         data = request.json
@@ -4017,7 +4068,6 @@ def broadcast_email():
         return jsonify({"success": True, "message": f"Đang tiến hành gửi email đến {len(emails)} người đăng ký!"}), 200
     except Exception as e:
         return jsonify({"success": False, "message": f"Lỗi hệ thống: {str(e)}"}), 500
-
 
 
 

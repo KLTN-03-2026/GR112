@@ -42,14 +42,10 @@ const FULL_BLOCKS = [
   { id: 'V01', sub: 'Toán, Văn, Vẽ Hình họa', desc: 'Khối Thiết kế Nội thất' }
 ];
 
-// 🚀 ĐÃ SỬA: Nhận thêm prop 'onNext' để gọi hàm chuyển trang
 const Step2 = ({ formData, setFormData, onNext }) => {
   const [allUnis, setAllUnis] = useState([]); 
   const [isLoading, setIsLoading] = useState(true);
-  
-  // 🚀 ĐÃ SỬA: State để lưu trữ thông báo lỗi cho từng ô input
   const [errors, setErrors] = useState({});
-
   const blocks = FULL_BLOCKS; 
 
   useEffect(() => {
@@ -96,9 +92,11 @@ const Step2 = ({ formData, setFormData, onNext }) => {
     // Validate ngay lập tức để lấy lỗi
     const errorMsg = validateScore(value, maxScore);
     setErrors(prev => ({ ...prev, [field]: errorMsg }));
+    
+    // ĐẨY TRẠNG THÁI LỖI LÊN FILE CHA (ORIENTATION) - NẾU CẦN
+    // Cái này hơi nâng cao, tạm thời cứ kệ nó, ở đây mình dùng để đỏ ô input là đủ
   };
 
-  // Kiểm tra xem có đang dính bất kỳ lỗi đỏ nào không
   const hasErrors = Object.values(errors).some(err => err !== null && err !== '');
 
   const handleReset = () => {
@@ -223,7 +221,7 @@ const Step2 = ({ formData, setFormData, onNext }) => {
   const getInputStyle = (errorField) => ({
     width: '100%', 
     padding: '12px 15px', 
-    border: errors[errorField] ? '2px solid #ef4444' : '1.5px solid #cbd5e1', // Lỗi thì viền đỏ
+    border: errors[errorField] ? '2px solid #ef4444' : '1.5px solid #cbd5e1', 
     borderRadius: '8px', 
     outline: 'none', 
     fontSize: '1rem', 
@@ -266,7 +264,6 @@ const Step2 = ({ formData, setFormData, onNext }) => {
             <h3 style={{fontSize: '1.1rem', margin: '0 0 15px 0'}}><i className="fas fa-book-open"></i> 1. Xét Học bạ (GPA)</h3>
             
             <div className="gpa-grid" style={{ display: 'flex', gap: '15px' }}>
-              {/* LỚP 10 */}
               <div style={{flex: 1}}>
                 <span className="ori-input-label" style={{fontSize: '0.8rem', fontWeight: 600}}>LỚP 10</span>
                 <input 
@@ -278,7 +275,6 @@ const Step2 = ({ formData, setFormData, onNext }) => {
                 {errors.gpa10 && <div style={{color: '#ef4444', fontSize: '0.8rem', marginTop: '5px'}}>{errors.gpa10}</div>}
               </div>
 
-              {/* LỚP 11 */}
               <div style={{flex: 1}}>
                 <span className="ori-input-label" style={{fontSize: '0.8rem', fontWeight: 600}}>LỚP 11</span>
                 <input 
@@ -290,7 +286,6 @@ const Step2 = ({ formData, setFormData, onNext }) => {
                 {errors.gpa11 && <div style={{color: '#ef4444', fontSize: '0.8rem', marginTop: '5px'}}>{errors.gpa11}</div>}
               </div>
 
-              {/* LỚP 12 */}
               <div style={{flex: 1}}>
                 <span className="ori-input-label" style={{fontSize: '0.8rem', fontWeight: 600}}>LỚP 12 (DỰ KIẾN)</span>
                 <input 
@@ -454,29 +449,9 @@ const Step2 = ({ formData, setFormData, onNext }) => {
                  </p>
                )}
             </div>
-            
           </div>
         </div>
       </div>
-
-      {/* ============================================================== */}
-      {/* NÚT TIẾP THEO (TỰ ĐỘNG VÔ HIỆU HÓA NẾU CÓ LỖI) */}
-      {/* ============================================================== */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '30px' }}>
-        <button 
-          disabled={hasErrors} 
-          onClick={onNext} 
-          style={{ 
-            background: hasErrors ? '#94a3b8' : '#10b981', 
-            color: 'white', padding: '12px 30px', 
-            borderRadius: '8px', border: 'none', fontWeight: 'bold', 
-            fontSize: '1rem', cursor: hasErrors ? 'not-allowed' : 'pointer', transition: '0.3s'
-          }}
-        >
-          TIẾP THEO <i className="fas fa-arrow-right" style={{marginLeft: '8px'}}></i>
-        </button>
-      </div>
-
     </div>
   );
 };

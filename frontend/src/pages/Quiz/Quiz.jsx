@@ -112,6 +112,7 @@ const Quiz = () => {
     setStep(0); 
   };
 
+  // 🚀 ĐÃ SỬA HÀM NÀY: Báo thành công và ép chuyển trang cực mạnh
   const handleSaveProfile = async () => {
     const savedUser = JSON.parse(localStorage.getItem("user"));
     if (!savedUser || !savedUser.id) {
@@ -126,11 +127,17 @@ const Quiz = () => {
           userId: savedUser.id, quizType, personality: resultData.name, desc: resultData.desc
         })
       });
-      if (response.ok) navigate('/chatbot'); 
-      else alert("Có lỗi xảy ra khi lưu dữ liệu!");
+      
+      if (response.ok) {
+        alert("🎉 Lưu kết quả thành công! Chuyển đến AI Tư vấn..."); 
+        window.location.href = '/chatbot'; 
+      } else {
+        const errData = await response.json();
+        alert("Lỗi khi lưu: " + (errData.error || "Không rõ nguyên nhân"));
+      }
     } catch (error) {
       console.error("Lỗi:", error);
-      alert("Lỗi kết nối máy chủ!");
+      alert("⚠️ Lỗi kết nối máy chủ! Hãy chắc chắn Backend đang chạy.");
     }
   };
 
@@ -270,7 +277,7 @@ const Quiz = () => {
     <div className="qz-container fade-in">
       <div className="qz-question-card" style={{ position: 'relative' }}>
         
-        {/* 🚀 ĐÃ THÊM: Nút X (Thoát/Đóng bài test) ở góc trên bên phải */}
+        {/* Nút X (Thoát/Đóng bài test) ở góc trên bên phải */}
         <button 
           onClick={handleRetake} 
           title="Đóng bài test"
