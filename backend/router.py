@@ -1,40 +1,26 @@
-import jwt, datetime, random, os
+import os, random, jwt, requests
+from datetime import datetime, timedelta, timezone 
 from functools import wraps
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_mail import Message
-from sqlalchemy import or_
 from google import genai 
 from dotenv import load_dotenv
 
-# Sửa lại thành dòng này:
-
-
 from extensions import db, mail
-from models import User, ContactMessage, UniversityData, QuizResult, Career,QuestionBank, ChatSession, ChatMessage,RoiHistory,Booking,Mentor,OrientationProfile,MasterInterest, MasterWorkEnvironment,MasterSubjectBlock,MentorSlot,UniversityReview
+from models import (User, ContactMessage, UniversityData, QuizResult, Career, QuestionBank, 
+                    ChatSession, ChatMessage, RoiHistory, Booking, Mentor, OrientationProfile, 
+                    MasterInterest, MasterWorkEnvironment, MasterSubjectBlock, MentorSlot, UniversityReview)
+
+# ==========================================
 # 1. KHAI BÁO BLUEPRINT & AI CLIENT
 # ==========================================
 api_bp = Blueprint('api_bp', __name__)
 chat_bp = Blueprint('chat', __name__)
 
-# Dòng này giúp Python đọc các biến từ file .env
 load_dotenv() 
 
-# Lấy key từ file .env ra
 api_key = os.getenv("GEMINI_API_KEY")
-
-# Khởi tạo client với key vừa lấy được
-client = genai.Client(api_key=api_key)
-
-from functools import wraps
-from flask import request, jsonify, current_app
-import jwt
-# Nhớ import User model của bạn vào đây nhé
-
-from functools import wraps
-from flask import request, jsonify, current_app
-import jwt
-# Nhớ import User model của bạn vào đây
+client = genai.Client(api_key=api_key) if api_key else None
 
 # ==========================================
 # HÀM LÕI: TRÍCH XUẤT VÀ KIỂM TRA TOKEN 
@@ -53,7 +39,7 @@ def get_current_user_from_token():
         if not user:
             return None, jsonify({'message': 'Người dùng không tồn tại!'}), 401
         
-        return user, None, None # Trả về user nếu thành công
+        return user, None, None 
         
     except jwt.ExpiredSignatureError:
         return None, jsonify({'message': 'Token đã hết hạn! Vui lòng đăng nhập lại.'}), 401
@@ -61,92 +47,57 @@ def get_current_user_from_token():
         return None, jsonify({'message': 'Token không hợp lệ!'}), 401
 
 # ==========================================
-# 1. BỘ LỌC ADMIN
+# CÁC BỘ LỌC PHÂN QUYỀN (DECORATORS)
 # ==========================================
 def admin_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         user, error_res, status_code = get_current_user_from_token()
-
-        if request.method == 'OPTIONS':
-            return jsonify({}), 200
+        if request.method == 'OPTIONS': return jsonify({}), 200
         if error_res: return error_res, status_code
-        
         if user.role != 'admin':
             return jsonify({'message': 'Quyền truy cập bị từ chối! Bạn không phải Admin.'}), 403
-            
         return f(current_user=user, *args, **kwargs)
     return decorated
 
-# ==========================================
-# 2. BỘ LỌC CỐ VẤN (MENTOR)
-# ==========================================
 def mentor_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         user, error_res, status_code = get_current_user_from_token()
         if error_res: return error_res, status_code
-        
         if user.role not in ['mentor', 'admin']: 
             return jsonify({'message': 'Quyền truy cập bị từ chối! Bạn không phải Cố vấn.'}), 403
-            
         return f(current_user=user, *args, **kwargs)
     return decorated
 
-# ==========================================
-# 3. BỘ LỌC HỌC SINH (Chỉ dùng để đặt lịch)
-# ==========================================
 def user_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         user, error_res, status_code = get_current_user_from_token()
         if error_res: return error_res, status_code
-        
         if user.role != 'user': 
             return jsonify({'message': 'Chỉ tài khoản học sinh mới được thực hiện thao tác này!'}), 403
-            
         return f(current_user=user, *args, **kwargs)
     return decorated
 
-# ==========================================
-# 4. YÊU CẦU ĐĂNG NHẬP CHUNG (Chặn Guest)
-# ==========================================
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         user, error_res, status_code = get_current_user_from_token()
         if error_res: return error_res, status_code
-        
-        # Chỉ cần có tài khoản hợp lệ là qua ải
         return f(current_user=user, *args, **kwargs)
     return decorated
-# 3. API KIỂM TRA MẠNG
-# ==========================================
+
 @api_bp.route('/')
 def home():
     return "SERVER OK"
-from datetime import datetime, timedelta,timezone 
-
-# Sau đó ở dòng 140, sếp chỉ cần viết:
-
-# ==========================================
-# 4. TÀI KHOẢN (ĐĂNG KÝ, OTP, ĐĂNG NHẬP, QUÊN MK)
-# ==========================================
-import random
-import requests # Bắt buộc phải có để gọi API Brevo
-from datetime import datetime, timedelta, timezone 
-from flask import jsonify, request, current_app
-from werkzeug.security import generate_password_hash, check_password_hash
-import jwt
-# ... (Giữ nguyên các import Model như User, Mentor, db...)
 
 # ==========================================
 # 🚀 HÀM HỖ TRỢ: GỬI MAIL QUA API BREVO
 # ==========================================
 def send_otp_via_brevo(email, otp, subject="Mã OTP xác thực - ConsulTing"):
-    # Lấy API Key từ biến môi trường của Render (Sếp nhớ tạo biến BREVO_API_KEY trên Render nhé!)
-    import os
-    api_key = os.getenv("BREVO_API_KEY") 
+    # Lấy API Key từ cấu hình của app
+    api_key = current_app.config.get('BREVO_API_KEY') 
     
     if not api_key:
         print("LỖI: Chưa cài đặt BREVO_API_KEY")
@@ -154,7 +105,6 @@ def send_otp_via_brevo(email, otp, subject="Mã OTP xác thực - ConsulTing"):
         
     url = "https://api.brevo.com/v3/smtp/email"
     payload = {
-        # THAY EMAIL DƯỚI ĐÂY THÀNH EMAIL ĐĂNG KÝ BREVO CỦA SẾP
         "sender": {"name": "Hệ thống ConsulTing", "email": "vanlinhpham03@gmail.com"}, 
         "to": [{"email": email}],
         "subject": subject,
@@ -170,7 +120,7 @@ def send_otp_via_brevo(email, otp, subject="Mã OTP xác thực - ConsulTing"):
     try:
         response = requests.post(url, json=payload, headers=headers, timeout=10)
         
-        # 🚀 Bắt Brevo khai ra lỗi nếu nó từ chối gửi
+        # Bắt Brevo khai ra lỗi nếu nó từ chối gửi
         if response.status_code != 201:
             print(f"🚨 BREVO TỪ CHỐI GỬI: {response.status_code} - {response.text}")
             
@@ -193,12 +143,10 @@ def register():
     hashed_password = generate_password_hash(data.get("password"))
     otp = str(random.randint(100000, 999999))
     
-    # 🚀 IN OTP RA BẢNG ĐIỀU KHIỂN ĐỂ TEST NHANH GIAO DIỆN
     print("="*40)
     print(f"🚀 [ĐĂNG KÝ MỚI] MÃ OTP CỦA {email} LÀ: {otp} 🚀")
     print("="*40)
     
-    # Dùng chuẩn UTC mới
     expire_time = datetime.now(timezone.utc) + timedelta(minutes=5)
 
     user = User(
@@ -208,7 +156,6 @@ def register():
     db.session.add(user)
     db.session.commit()
 
-    # Gọi API gửi Mail
     success = send_otp_via_brevo(email, otp, "Đăng ký tài khoản - ConsulTing")
     if not success:
         print("Cảnh báo: Không thể gửi OTP tới", email)
@@ -224,7 +171,6 @@ def verify():
     if not user: return jsonify({"error": "Không tìm thấy user"}), 404
     if user.otp != data.get("otp"): return jsonify({"error": "OTP sai"}), 400
     
-    # Kiểm tra thời gian chuẩn UTC
     if datetime.now(timezone.utc) > user.otp_expire.replace(tzinfo=timezone.utc):
         return jsonify({"error": "OTP hết hạn"}), 400
 
@@ -240,36 +186,28 @@ def login():
     email = data.get("email")
     password = data.get("password")
 
-    # 1. Thử tìm trong bảng User trước (Học sinh/Admin)
     user = User.query.filter_by(email=email).first()
     role = user.role if user else None
 
-    # 2. Nếu không thấy ở User, thử tìm trong bảng Mentor
     if not user:
         user = Mentor.query.filter_by(email=email).first()
-        if user:
-            role = 'mentor'
+        if user: role = 'mentor'
 
-    # 3. Kiểm tra xem có tìm thấy ai không
     if not user: 
         return jsonify({"error": "Sai email"}), 400
     
-    # 4. Kiểm tra mật khẩu
     if not check_password_hash(user.password, password): 
         return jsonify({"error": "Sai mật khẩu"}), 400
 
-    # 5. Kiểm tra xác thực 
     if not user.verified: 
         return jsonify({"error": "Chưa xác thực OTP"}), 400
 
-    # 6. Tạo Token chuẩn UTC
     token = jwt.encode({
         'user_id': user.id,
         'role': role,
         'exp': datetime.now(timezone.utc) + timedelta(hours=2)
     }, current_app.config['SECRET_KEY'], algorithm="HS256")
 
-    # 7. Trả về dữ liệu
     user_data = {
         "id": user.id,
         "email": user.email,
@@ -307,14 +245,11 @@ def resend():
     user.otp_expire = datetime.now(timezone.utc) + timedelta(minutes=5)
     db.session.commit()
 
-    # 🚀 IN OTP RA BẢNG ĐIỀU KHIỂN ĐỂ TEST NHANH
     print("="*40)
     print(f"🚀 [GỬI LẠI] MÃ OTP CỦA {user.email} LÀ: {otp} 🚀")
     print("="*40)
 
-    # Gọi API gửi Mail
     send_otp_via_brevo(user.email, otp, "OTP mới của bạn - ConsulTing")
-
     return jsonify({"message": "Đã gửi lại OTP"}), 200
 
 
@@ -342,14 +277,11 @@ def send_forgot_password_otp():
     user.otp_expire = datetime.now(timezone.utc) + timedelta(minutes=5)
     db.session.commit()
 
-    # 🚀 IN OTP RA BẢNG ĐIỀU KHIỂN ĐỂ TEST NHANH
     print("="*40)
     print(f"🚀 [QUÊN MK] MÃ OTP CỦA {user.email} LÀ: {otp} 🚀")
     print("="*40)
 
-    # Gọi API gửi Mail
     send_otp_via_brevo(user.email, otp, "Khôi phục mật khẩu - ConsulTing")
-    
     return jsonify({"message": "Đã gửi mã OTP đến email của bạn!"}), 200
 
 
@@ -361,7 +293,6 @@ def reset_password():
     if not user: return jsonify({"message": "Không tìm thấy tài khoản"}), 404
     if user.otp != data.get("otp"): return jsonify({"message": "Mã OTP không chính xác"}), 400
     
-    # Kiểm tra thời gian chuẩn UTC
     if datetime.now(timezone.utc) > user.otp_expire.replace(tzinfo=timezone.utc): 
         return jsonify({"message": "Mã OTP đã hết hạn"}), 400
 
