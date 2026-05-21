@@ -4128,24 +4128,6 @@ def get_mentor_notifications():
 # API ĐÁNH DẤU ĐÃ ĐỌC (CŨNG DÙNG CHEAT CODE LUÔN)
 # =========================================================
 # 🚀 ĐÃ SỬA: Thêm '/api/mentor/notifications/read-all' có dấu gạch chéo ở đầu
-@api_bp.route('/api/mentor/notifications/read-all', methods=['POST'])
-def mark_all_notifications_read():
-    try:
-        # Vẫn cần check token cho có lệ
-        auth_header = request.headers.get('Authorization')
-        if not auth_header:
-            return jsonify({'error': 'Bạn cần đăng nhập!'}), 401
-
-        # 🚀 CHEAT CODE: Bấm 1 phát là đánh dấu "Đã đọc" cho TOÀN BỘ thông báo trong DB
-        MentorNotification.query.filter_by(is_read=False).update({'is_read': True})
-        db.session.commit() 
-        
-        return jsonify({"success": True}), 200
-
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"success": False}), 500
-
 import datetime
 # Nhớ import AILog từ file models.py của sếp nhé
 
@@ -4162,7 +4144,9 @@ def add_ai_log(current_user):
             source=data.get('source'),
             status=data.get('status'),
             size=data.get('size'),
-            time_str=datetime.datetime.now().strftime("%H:%M - Hôm nay"), # 👈 Ghi vào cột time_str
+            # time_str=datetime.datetime.now().strftime("%H:%M - Hôm nay"),
+             # Chỉ cần viết datetime.now() thôi
+time_str=datetime.now().strftime("%H:%M - Hôm nay"), # 👈 Ghi vào cột time_str
             is_running=False
         )
         db.session.add(new_log)
