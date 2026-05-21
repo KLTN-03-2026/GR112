@@ -2939,7 +2939,7 @@ from dotenv import load_dotenv # 👈 Phải import cái này để đọc file 
 from flask import request, jsonify
 
 # Nhớ đảm bảo đã import đúng các thành phần từ models của bạn
-from models import AITrainingLog, User, db
+from models import AILog, User, db
 
 load_dotenv() 
 api_key = os.getenv("GEMINI_API_KEY")
