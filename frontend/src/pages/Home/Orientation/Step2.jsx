@@ -180,31 +180,31 @@ const Step2 = ({ formData, setFormData, onNext }) => {
       let displayScore = 0;
 
       if (hasDirectAdmission) {
-        passedMethod = "🏅 Đủ đk Tuyển thẳng";
+        passedMethod = " Đủ đk Tuyển thẳng";
         displayScore = "TT";
       } else if (userDgnl > 0 && uDgnlReq > 0 && userDgnl >= uDgnlReq) {
-        passedMethod = `🎯 Đậu ĐGNL (Cần ${uDgnlReq}+)`;
+        passedMethod = ` Đậu ĐGNL (Cần ${uDgnlReq}+)`;
         displayScore = uDgnlReq;
       } else if (userSat > 0 && userSat >= reqSat) {
-        passedMethod = `🌍 Đậu SAT (Cần ${reqSat}+)`;
+        passedMethod = ` Đậu SAT (Cần ${reqSat}+)`;
         displayScore = `SAT ${reqSat}`;
       } else if (userIelts > 0 && userIelts >= reqIelts) {
-        passedMethod = `🌍 Đậu IELTS (Cần ${reqIelts}+)`;
+        passedMethod = ` Đậu IELTS (Cần ${reqIelts}+)`;
         displayScore = `IELTS ${reqIelts}`;
       } else if (hasAptitude && isAptitudeBlock) {
         if ((uThptReq > 0 && userTHPT >= uThptReq) || (uHocBaReq > 0 && userHocBa >= uHocBaReq)) {
-          passedMethod = "🎨 Đậu Năng khiếu + Văn hóa";
+          passedMethod = " Đậu Năng khiếu + Văn hóa";
           displayScore = String(Math.max(uThptReq, uHocBaReq)).replace('.', ',');
         } else {
-          passedMethod = "🎨 Đạt Năng khiếu (Cần bổ sung Văn hóa)";
+          passedMethod = " Đạt Năng khiếu (Cần bổ sung Văn hóa)";
           displayScore = String(Math.max(uThptReq, uHocBaReq)).replace('.', ',');
         }
       } 
       else if (uThptReq > 0 && userTHPT >= uThptReq) {
-        passedMethod = "📚 Đậu bằng điểm THPT";
+        passedMethod = " Đậu bằng điểm THPT";
         displayScore = String(uThptReq).replace('.', ',');
       } else if (uHocBaReq > 0 && userHocBa >= uHocBaReq) {
-        passedMethod = "📘 Đậu bằng điểm Học bạ";
+        passedMethod = " Đậu bằng điểm Học bạ";
         displayScore = String(uHocBaReq).replace('.', ',');
       }
 

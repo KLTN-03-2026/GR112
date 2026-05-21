@@ -156,7 +156,7 @@ const MentorManagement = () => {
     <div className="mentor-management-container fade-in">
       <div className="mm-header">
         <div className="mm-header-text">
-          <h2>Quản lý Cố vấn 👨‍🏫</h2>
+          <h2>Quản lý Cố vấn </h2>
           <p>Kiểm soát hồ sơ và trạng thái của các chuyên gia tư vấn.</p>
         </div>
         <button className="mm-btn-primary" onClick={openAddModal}>

@@ -221,12 +221,12 @@ const Orientation = () => {
       const result = await response.json();
       
       if (response.ok) {
-        alert("🎉 " + result.message);
+        alert(" " + result.message);
       } else {
-        alert("❌ Lỗi: " + result.error);
+        alert(" Lỗi: " + result.error);
       }
     } catch (error) {
-      alert("⚠️ Lỗi kết nối Server Backend! Hãy chắc chắn API Flask đang chạy.");
+      alert(" Lỗi kết nối Server Backend! Hãy chắc chắn API Flask đang chạy.");
     }
     setIsSaving(false);
   };

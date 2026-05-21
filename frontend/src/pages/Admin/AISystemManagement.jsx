@@ -35,11 +35,11 @@ const AISystemManagement = () => {
       if(data && !data.error) {
         setDashboardData({
             stats: data.stats || {},
-            logs: data.logs || [] // 🚀 Dữ liệu Logs thật từ DB kéo lên
+            logs: data.logs || [] 
         }); 
       }
     })
-    .catch(err => console.error("⚠️ Lỗi kết nối Dashboard AI:", err));
+    .catch(err => console.error(" Lỗi kết nối Dashboard AI:", err));
   };
 
   const fetchSystemStats = () => {
@@ -53,7 +53,7 @@ const AISystemManagement = () => {
     .then(data => {
       if(data && !data.error) setSysStats(data);
     })
-    .catch(err => console.error("⚠️ Lỗi kết nối Server Stats:", err));
+    .catch(err => console.error(" Lỗi kết nối Server Stats:", err));
   };
 
   useEffect(() => {
@@ -103,7 +103,7 @@ const AISystemManagement = () => {
         Swal.fire('Lỗi AI!', data.error, 'error');
       } else {
         Swal.fire({
-          title: `🤖 [${data.model_used}]`,
+          title: ` [${data.model_used}]`,
           text: data.reply,
           icon: 'info',
           confirmButtonColor: '#3b82f6',
@@ -153,7 +153,6 @@ const AISystemManagement = () => {
     }
   };
 
-  // ===================== 🚀 CRUD LOGS HÀNG THẬT (GỌI API) =====================
   const handleAddLogManual = async () => {
     const { value: formValues } = await Swal.fire({
       title: 'Thêm Nhật ký mới',
@@ -200,7 +199,7 @@ const AISystemManagement = () => {
       .then(data => {
         if(data.error) throw new Error(data.error);
         Swal.fire('Thành công!', 'Nhật ký đã được lưu vào Database.', 'success');
-        fetchDashboardData(); // Tải lại bảng ngay lập tức
+        fetchDashboardData(); 
       })
       .catch(err => Swal.fire('Lỗi', err.message, 'error'));
     }
@@ -377,7 +376,7 @@ const AISystemManagement = () => {
         </div>
       </div>
 
-      {/* 🚀 BẢNG LOGS */}
+      {/* 🚀 BẢNG LOGS ĐÃ ĐƯỢC FIX LỖI TRÀN CHỮ */}
       <div className="ai-training-table-card">
         <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
           <h3 style={{margin: 0}}>Nhật ký Đồng bộ Dữ liệu (Real DB)</h3>
@@ -407,9 +406,17 @@ const AISystemManagement = () => {
             ) : (
               logs.map(log => (
                 <tr key={log.id}>
-                  <td>
-                    <strong>{log.task}</strong><br/>
-                    <small>{log.source}</small>
+                  {/* 🚀 CHỖ NÀY ĐÃ ÉP CẮT CHỮ NẾU QUÁ DÀI */}
+                  <td style={{ maxWidth: '350px' }}>
+                    <strong style={{ display: 'block', marginBottom: '4px' }}>{log.task}</strong>
+                    <small style={{ 
+                      display: 'block', 
+                      wordBreak: 'break-all', 
+                      color: '#64748b',
+                      lineHeight: '1.4'
+                    }}>
+                      {log.source}
+                    </small>
                   </td>
                   <td>{log.time}</td>
                   <td>

@@ -91,7 +91,7 @@ const Mentors = () => {
   return (
     <div className="premium-page fade-in">
       <div className="pr-header">
-        <h1>Cố vấn Tinh hoa 🌟</h1>
+        <h1>Cố vấn Tinh hoa </h1>
         <p>Kết nối 1-1 với những bộ óc hàng đầu để định hướng sự nghiệp của bạn.</p>
       </div>
       
@@ -128,7 +128,7 @@ const Mentors = () => {
                   onClick={() => handleReview(m)}
                   style={{ flex: 1, background: '#fff', color: '#f59e0b', border: '2px solid #f59e0b', padding: '10px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
                 >
-                  ⭐ Đánh giá
+                   Đánh giá
                 </button>
               </div>
               

@@ -91,7 +91,7 @@ const ArticleDetail = () => {
             {/* Kết bài */}
             <div style={{ marginTop: '50px', padding: '30px', background: '#f1f5f9', borderRadius: '16px', textAlign: 'center' }}>
               <p style={{ margin: 0, fontWeight: '600', color: '#475569' }}>
-                Hy vọng bài viết này giúp ích cho lộ trình định hướng của bạn! 🚀
+                Hy vọng bài viết này giúp ích cho lộ trình định hướng của bạn! 
               </p>
             </div>
           </div>

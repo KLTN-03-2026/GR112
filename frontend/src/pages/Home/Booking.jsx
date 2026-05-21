@@ -99,7 +99,7 @@ const Booking = () => {
   return (
     <div className="premium-page fade-in">
       <div className="pr-header">
-        <h1>Tư vấn Định hướng Chọn trường Đại học 🎓</h1>
+        <h1>Tư vấn Định hướng Chọn trường Đại học </h1>
         <p>Kết nối 1-1 với chuyên gia để tìm ra ngành học và ngôi trường phù hợp nhất với năng lực của bạn.</p>
       </div>
 

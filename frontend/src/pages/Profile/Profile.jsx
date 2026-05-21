@@ -6,7 +6,7 @@ const Profile = () => {
   const [formData, setFormData] = useState({
     fullName: '', username: '', role: 'user', phone: '', dob: '', email: '', address: '',
     // Dành cho Học sinh (User)
-    className: '', schoolName: '', ielts: '', gpa: '',
+    className: '', schoolName: '', 
     // Dành cho Cố vấn (Mentor)
     specialty: '', experienceYears: '' 
   });
@@ -31,8 +31,7 @@ const Profile = () => {
         // Data riêng
         className: user.className || '', 
         schoolName: user.schoolName || '',
-        ielts: user.ielts || '',
-        gpa: user.gpa || '',
+        // Đã xóa state khởi tạo của ielts và gpa ở đây
         specialty: user.specialty || '',
         experienceYears: user.experienceYears || ''
       });
@@ -87,27 +86,7 @@ const Profile = () => {
       }
     }
 
-    // ==========================================
-    // 3. KIỂM TRA IELTS
-    // ==========================================
-    if (formData.ielts) {
-      const ieltsScore = parseFloat(formData.ielts);
-      if (ieltsScore > 9.0) {
-        alert("IELTS không được vượt quá 9.0");
-        return;
-      }
-    }
-
-    // ==========================================
-    // 4. KIỂM TRA GPA
-    // ==========================================
-    if (formData.gpa) {
-      const gpaScore = parseFloat(formData.gpa);
-      if (gpaScore < 0 || gpaScore > 10) {
-        alert("GPA phải nằm trong khoảng từ 0 đến 10");
-        return;
-      }
-    }
+    // Đã xóa phần kiểm tra (validate) ielts và gpa ở đây
 
     // ==========================================
     // GỌI API LƯU DỮ LIỆU KHI ĐÃ HỢP LỆ
@@ -188,14 +167,7 @@ const Profile = () => {
                   <label>Trường THPT <span style={{color: 'red'}}>*</span></label>
                   <input type="text" name="schoolName" value={formData.schoolName} onChange={handleChange} required placeholder="VD: THPT Nguyễn Trãi" />
                 </div>
-                <div className="form-group">
-                  <label>Điểm IELTS</label>
-                  <input type="number" step="0.5" name="ielts" value={formData.ielts} onChange={handleChange} placeholder="VD: 7.5" />
-                </div>
-                <div className="form-group">
-                  <label>Điểm GPA</label>
-                  <input type="number" step="0.1" name="gpa" value={formData.gpa} onChange={handleChange} placeholder="VD: 8.5" />
-                </div>
+                {/* 🚀 2 Ô IELTS VÀ GPA ĐÃ BỊ LOẠI BỎ KHỎI ĐÂY */}
               </>
             )}
 

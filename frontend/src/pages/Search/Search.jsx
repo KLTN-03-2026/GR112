@@ -49,7 +49,7 @@ const Search = () => {
       
       if (response.data.status === 'added') {
         setFavList([...favList, school.id]); 
-        setToastMsg('Lưu trường yêu thích thành công! ❤️');
+        setToastMsg('Lưu trường yêu thích thành công! ');
       } else {
         setFavList(favList.filter(id => id !== school.id)); 
         setToastMsg('Đã bỏ lưu trường khỏi danh sách!');

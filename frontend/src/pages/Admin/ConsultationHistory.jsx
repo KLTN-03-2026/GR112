@@ -243,7 +243,7 @@ const ConsultationHistory = () => {
   className="btn-del" 
   onClick={() => {
     // 1. Hỏi lại cho chắc chắn tránh lỡ tay bấm nhầm
-    if (window.confirm("⚠️ Bạn có chắc chắn muốn xóa TOÀN BỘ lịch sử của phiên chat này không? Dữ liệu không thể khôi phục.")) {
+    if (window.confirm(" Bạn có chắc chắn muốn xóa TOÀN BỘ lịch sử của phiên chat này không? Dữ liệu không thể khôi phục.")) {
       
       // 2. Gọi API Xóa
       fetch(`https://gr112.onrender.com/api/admin/chat-sessions/${selectedSession.id}`, {
@@ -252,11 +252,11 @@ const ConsultationHistory = () => {
       })
       .then(res => {
         if (res.ok) {
-          alert("✅ Đã xóa thành công!");
+          alert(" Đã xóa thành công!");
           setSelectedSession(null); // Ẩn khung chat bên phải đi
           fetchSessions();          // Load lại danh sách bên trái
         } else {
-          alert("❌ Có lỗi xảy ra khi xóa!");
+          alert(" Có lỗi xảy ra khi xóa!");
         }
       })
       .catch(err => console.error("Lỗi xóa:", err));

@@ -13,7 +13,7 @@ const Footer = () => {
     e.preventDefault(); 
     
     if (!email) {
-      setMessage("❌ Vui lòng nhập địa chỉ email của bạn!");
+      setMessage(" Vui lòng nhập địa chỉ email của bạn!");
       return;
     }
 
@@ -31,13 +31,13 @@ const Footer = () => {
       const result = await response.json();
 
       if (response.ok || result.success) {
-        setMessage("🎉 Đăng ký nhận bản tin thành công!"); 
+        setMessage(" Đăng ký nhận bản tin thành công!"); 
         setEmail(''); // Xóa trắng ô input
       } else {
-        setMessage(`❌ Lỗi: ${result.message || result.error}`);
+        setMessage(` Lỗi: ${result.message || result.error}`);
       }
     } catch (error) {
-      setMessage("❌ Không thể kết nối tới server! Vui lòng thử lại.");
+      setMessage(" Không thể kết nối tới server! Vui lòng thử lại.");
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -87,7 +87,7 @@ const Footer = () => {
             <p style={{ 
               marginTop: '12px', 
               fontSize: '0.85rem', 
-              color: message.includes('❌') ? '#ef4444' : '#10b981', 
+              color: message.includes('') ? '#ef4444' : '#10b981', 
               fontWeight: '600' 
             }}>
               {message}

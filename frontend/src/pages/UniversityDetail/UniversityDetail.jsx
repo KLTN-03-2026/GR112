@@ -258,10 +258,10 @@ const UniversityDetail = () => {
                 <h4 className="ud-adm-title">PHƯƠNG THỨC & ĐIỀU KIỆN KÈM THEO</h4>
                 
                 {/* HIỂN THỊ CÁC THÔNG TIN CHUYÊN SÂU TỪ DB */}
-                {uniData.combo_cert && <p>🏆 <b>Xét kết hợp chứng chỉ:</b> {uniData.combo_cert}</p>}
-                {uniData.direct_admission && <p>🎯 <b>Tuyển thẳng:</b> {uniData.direct_admission}</p>}
-                {uniData.aptitude_test && <p>🎨 <b>Thi năng khiếu:</b> {uniData.aptitude_test}</p>}
-                {uniData.quota > 0 && <p>👥 <b>Chỉ tiêu năm {uniData.year || 2025}:</b> {uniData.quota} sinh viên</p>}
+                {uniData.combo_cert && <p> <b>Xét kết hợp chứng chỉ:</b> {uniData.combo_cert}</p>}
+                {uniData.direct_admission && <p> <b>Tuyển thẳng:</b> {uniData.direct_admission}</p>}
+                {uniData.aptitude_test && <p> <b>Thi năng khiếu:</b> {uniData.aptitude_test}</p>}
+                {uniData.quota > 0 && <p> <b>Chỉ tiêu năm {uniData.year || 2025}:</b> {uniData.quota} sinh viên</p>}
                 
                 <div className="ud-desc-text" style={{whiteSpace: 'pre-line', textAlign: 'left', marginTop: '15px'}}>
                   {uniData.admission_methods}
@@ -332,7 +332,7 @@ const UniversityDetail = () => {
           
           {/* GIAO DIỆN THÔNG TIN NHANH MỚI */}
           <div className="ud-quick-info">
-            <h4>⚡ Thông định nhanh</h4>
+            <h4> Thông định nhanh</h4>
             <ul>
               <li>
                 <i className="fas fa-map-marker-alt"></i> 

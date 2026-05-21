@@ -28,7 +28,7 @@ export default function BookingHistory() {
 
   const handleReportUser = (mentorId, mentorName) => {
     if (!mentorId) {
-      alert("❌ Lỗi hệ thống: Không xác định được ID của Cố vấn này để báo cáo.");
+      alert(" Lỗi hệ thống: Không xác định được ID của Cố vấn này để báo cáo.");
       return;
     }
 
@@ -50,14 +50,14 @@ export default function BookingHistory() {
       .then(res => res.json())
       .then(data => {
         if(data.error) {
-          alert("❌ Lỗi: " + data.error);
+          alert(" Lỗi: " + data.error);
         } else {
-          alert("✅ Đã gửi báo cáo thành công! Quản trị viên sẽ xem xét sớm nhất.");
+          alert(" Đã gửi báo cáo thành công! Quản trị viên sẽ xem xét sớm nhất.");
         }
       })
       .catch(err => {
         console.error(err);
-        alert("❌ Có lỗi xảy ra khi gửi báo cáo.");
+        alert("Có lỗi xảy ra khi gửi báo cáo.");
       });
     }
   };
@@ -65,11 +65,11 @@ export default function BookingHistory() {
   const renderStatus = (status) => {
     switch (status) {
       case 'pending':
-        return <span className="status-badge pending">⏳ Đang chờ duyệt</span>;
+        return <span className="status-badge pending"> Đang chờ duyệt</span>;
       case 'confirmed':
-        return <span className="status-badge confirmed">✅ Đã chốt lịch</span>;
+        return <span className="status-badge confirmed">Đã chốt lịch</span>;
       case 'rejected':
-        return <span className="status-badge rejected">❌ Đã từ chối</span>;
+        return <span className="status-badge rejected">Đã từ chối</span>;
       default:
         return <span className="status-badge">{status}</span>;
     }
@@ -123,7 +123,7 @@ export default function BookingHistory() {
                           className="join-meet-btn"
                           style={{ textDecoration: 'none' }}
                         >
-                          📹 Vào phòng tư vấn
+                          Vào phòng tư vấn
                         </a>
                       )}
 
@@ -145,7 +145,7 @@ export default function BookingHistory() {
                         }}
                         title="Báo cáo nếu cố vấn có hành vi không phù hợp"
                       >
-                        🚩 Báo cáo vi phạm
+                         Báo cáo vi phạm
                       </button>
                     </div>
                   </td>

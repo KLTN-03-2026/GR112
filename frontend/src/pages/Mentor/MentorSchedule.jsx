@@ -177,7 +177,7 @@ const MentorSchedule = () => {
   return (
     <div className="ms-container fade-in">
       <div className="ms-header">
-        <h2>Lịch trình của tôi 🗓️</h2>
+        <h2>Lịch trình của tôi </h2>
         <p>Quản lý các phiên tư vấn và thiết lập thời gian biểu cá nhân của bạn.</p>
       </div>
 

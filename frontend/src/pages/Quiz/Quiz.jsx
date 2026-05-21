@@ -129,7 +129,7 @@ const Quiz = () => {
       });
       
       if (response.ok) {
-        alert("🎉 Lưu kết quả thành công! Chuyển đến AI Tư vấn..."); 
+        alert(" Lưu kết quả thành công! Chuyển đến AI Tư vấn..."); 
         window.location.href = '/chatbot'; 
       } else {
         const errData = await response.json();
@@ -137,7 +137,7 @@ const Quiz = () => {
       }
     } catch (error) {
       console.error("Lỗi:", error);
-      alert("⚠️ Lỗi kết nối máy chủ! Hãy chắc chắn Backend đang chạy.");
+      alert(" Lỗi kết nối máy chủ! Hãy chắc chắn Backend đang chạy.");
     }
   };
 

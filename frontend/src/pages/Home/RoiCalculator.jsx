@@ -73,7 +73,7 @@ const RoiCalculator = () => {
   return (
     <div className="premium-page fade-in">
       <div className="pr-header">
-        <h1>Dự đoán ROI Thực Tế (Kế hoạch 10 năm) 📈</h1>
+        <h1>Dự đoán ROI Thực Tế (Kế hoạch 10 năm) </h1>
         <p>Phân tích Lợi nhuận ròng sau 10 năm (Dựa trên thời giá hiện tại, không tính lạm phát).</p>
       </div>
       
@@ -219,7 +219,7 @@ const RoiCalculator = () => {
                   <strong><i className="fas fa-exclamation-triangle"></i> BÁO ĐỘNG ĐỎ (ROI ÂM -):</strong><br/><br/>
                   Bạn đang bị lỗ vốn! Mức lương trong <strong>{result.work_years} năm</strong> ra trường chỉ vừa đủ trang trải tiền ăn ở. Nó <strong>KHÔNG ĐỦ</strong> để hoàn lại số vốn đắt đỏ <strong>{formatVND(result.total_cost)}</strong> đã ném vào thời gian {result.study_years} năm đi học.<br/><br/>
                   Nói cách khác, sau 10 năm tính từ lúc nhập học, bạn đang bị âm <strong>{formatVND(Math.abs(result.real_surplus))}</strong>. <br/>
-                  <strong>💡 Giải pháp:</strong> Cần chọn trường có học phí thấp hơn, học các chứng chỉ ngắn hạn (chỉ 2-3 năm thay vì 4 năm) để ra trường kiếm tiền sớm, hoặc nhắm tới ngành có mức lương khởi điểm cao hơn!
+                  <strong> Giải pháp:</strong> Cần chọn trường có học phí thấp hơn, học các chứng chỉ ngắn hạn (chỉ 2-3 năm thay vì 4 năm) để ra trường kiếm tiền sớm, hoặc nhắm tới ngành có mức lương khởi điểm cao hơn!
                 </div>
               )}
             </div>

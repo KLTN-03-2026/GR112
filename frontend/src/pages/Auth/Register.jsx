@@ -180,7 +180,7 @@ export default function Register() {
     <div className="register-container">
       <div className="register-box">
         <div className="box-header-blue">
-          <h1>🎓ConsulTing</h1>
+          <h1>ConsulTing</h1>
           <p>Hệ thống tư vấn chọn trường Đại học</p>
         </div>
 

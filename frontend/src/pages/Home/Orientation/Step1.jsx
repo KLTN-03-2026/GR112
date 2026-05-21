@@ -5,6 +5,9 @@ const Step1 = ({ formData, setFormData, toggleInterest, onNext }) => {
   const [environments, setEnvironments] = useState([]);
   const [allUnis, setAllUnis] = useState([]); 
   const [isLoading, setIsLoading] = useState(true);
+  
+  // 🚀 STATE MỚI: Dùng để lưu trữ chữ người dùng đang gõ
+  const [customInterest, setCustomInterest] = useState('');
 
   // Gọi API lấy dữ liệu từ Backend
   useEffect(() => {
@@ -34,11 +37,34 @@ const Step1 = ({ formData, setFormData, toggleInterest, onNext }) => {
     fetchData();
   }, []);
 
+  // 🚀 HÀM MỚI: Xử lý khi người dùng nhấn Enter hoặc bấm nút Thêm
+  const handleAddCustomInterest = (e) => {
+    // Ngăn hành vi submit form mặc định nếu có
+    if (e && e.preventDefault) e.preventDefault();
+    
+    const trimmedVal = customInterest.trim();
+    if (!trimmedVal) return; // Nếu gõ toàn dấu cách thì bỏ qua
+
+    // 1. Nếu từ khóa này CHƯA có trong danh sách gốc từ DB, ta nhét nó vào
+    if (!interestTags.includes(trimmedVal)) {
+        setInterestTags([...interestTags, trimmedVal]);
+    }
+
+    // 2. Tự động chọn luôn cái từ khóa vừa thêm cho người dùng
+    if (!formData.interests.includes(trimmedVal)) {
+        // Vì hàm toggleInterest ở component cha có thể chỉ là toggle, 
+        // ta gọi nó để thêm vào formData
+        toggleInterest(trimmedVal); 
+    }
+
+    // 3. Xóa trắng ô input để người dùng nhập từ khác
+    setCustomInterest('');
+  };
+
   // --- THUẬT TOÁN AI: GỢI Ý CHUẨN 100% TỪ BẢNG TRUNG GIAN DATABASE ---
   const getAiSuggestions = () => {
     if ((formData.interests.length === 0 && !formData.workEnv) || allUnis.length === 0) return [];
 
-    // 1. Chấm điểm từng ngành học
     let scoredUnis = allUnis.map(uni => {
       let score = 0;
       const majorName = uni.major_name || uni.major || "";
@@ -47,7 +73,6 @@ const Step1 = ({ formData, setFormData, toggleInterest, onNext }) => {
       const aiInterests = uni.ai_interests || []; 
       const aiEnvs = uni.ai_environments || []; 
 
-      // A. Đối chiếu Sở thích
       if (formData.interests.length > 0) {
         formData.interests.forEach(interest => {
           if (aiInterests.includes(interest)) {
@@ -58,7 +83,6 @@ const Step1 = ({ formData, setFormData, toggleInterest, onNext }) => {
         });
       }
 
-      // B. Đối chiếu Môi trường
       if (formData.workEnv && aiEnvs.includes(formData.workEnv)) {
         score += 5;
       }
@@ -71,7 +95,6 @@ const Step1 = ({ formData, setFormData, toggleInterest, onNext }) => {
       };
     });
 
-    // 2. LỌC VÀ GỘP NGÀNH TRÙNG LẶP
     const validMatches = scoredUnis.filter(u => u.matchScore > 0);
     const uniqueSuggestions = new Map();
     
@@ -93,25 +116,17 @@ const Step1 = ({ formData, setFormData, toggleInterest, onNext }) => {
       bestMatches = Array.from(allUnique.values()).sort((a, b) => (b.base_score || 0) - (a.base_score || 0));
     }
 
-    return bestMatches; // Hiển thị toàn bộ kết quả phù hợp
+    return bestMatches;
   };
 
   const aiSuggestions = getAiSuggestions();
 
-  // ==============================================================
-  // HÀM KIỂM TRA ĐIỀU KIỆN TRƯỚC KHI CHUYỂN TRANG
-  // ==============================================================
   const handleNextClick = () => {
-    // Nếu mảng sở thích rỗng HOẶC chưa chọn môi trường làm việc -> Báo lỗi chặn lại
     if (formData.interests.length === 0 || !formData.workEnv) {
-      alert("Vui lòng chọn ít nhất 1 từ khóa sở thích và 1 môi trường để tiếp tục.");
+      alert("Vui lòng chọn (hoặc nhập) ít nhất 1 từ khóa sở thích và chọn 1 môi trường để tiếp tục.");
       return; 
     }
-    
-    // Nếu đã chọn đủ, gọi hàm onNext từ component cha truyền vào để qua trang
-    if (onNext) {
-      onNext();
-    }
+    if (onNext) onNext();
   };
 
   return (
@@ -136,10 +151,10 @@ const Step1 = ({ formData, setFormData, toggleInterest, onNext }) => {
             <i className="fas fa-shapes" style={{color: '#10b981'}}></i> Từ khóa sở thích
           </h3>
           <p style={{ fontSize: '0.95rem', color: '#64748b', marginBottom: '15px' }}>
-            Bạn có thể chọn nhiều chủ đề khiến bạn cảm thấy hào hứng và muốn đào sâu tìm hiểu nhất.
+            Bạn có thể chọn các chủ đề bên dưới, hoặc <strong>tự nhập thêm sở thích riêng</strong> của bạn.
           </p>
           
-          <div className="tag-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', maxHeight: '400px', overflowY: 'auto', paddingRight: '10px' }}>
+          <div className="tag-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', maxHeight: '350px', overflowY: 'auto', paddingRight: '10px', marginBottom: '15px' }}>
             {isLoading ? (
               <p style={{color: '#94a3b8', fontStyle: 'italic'}}>Đang tải dữ liệu từ máy chủ...</p>
             ) : interestTags.length > 0 ? (
@@ -157,6 +172,57 @@ const Step1 = ({ formData, setFormData, toggleInterest, onNext }) => {
               <p style={{color: '#ef4444'}}>Không tìm thấy dữ liệu Sở thích!</p>
             )}
           </div>
+
+          {/* 🚀 Ô INPUT ĐỂ NGƯỜI DÙNG TỰ NHẬP */}
+          {!isLoading && (
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              border: '1px solid #cbd5e1', 
+              borderRadius: '8px', 
+              padding: '4px 8px',
+              background: '#f8fafc',
+              boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.05)'
+            }}>
+              <i className="fas fa-pencil-alt" style={{ color: '#94a3b8', marginRight: '8px', fontSize: '0.9rem' }}></i>
+              <input 
+                type="text" 
+                placeholder="Nhập sở thích khác của bạn (rồi ấn Enter)..." 
+                value={customInterest}
+                onChange={(e) => setCustomInterest(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAddCustomInterest(e);
+                  }
+                }}
+                style={{ 
+                  flex: 1, 
+                  border: 'none', 
+                  outline: 'none', 
+                  background: 'transparent', 
+                  fontSize: '0.9rem',
+                  padding: '8px 0'
+                }}
+              />
+              <button 
+                onClick={handleAddCustomInterest}
+                disabled={!customInterest.trim()}
+                style={{
+                  background: customInterest.trim() ? '#10b981' : '#cbd5e1',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                  fontSize: '0.85rem',
+                  cursor: customInterest.trim() ? 'pointer' : 'not-allowed',
+                  transition: 'all 0.2s',
+                  fontWeight: 'bold'
+                }}
+              >
+                <i className="fas fa-plus"></i> Thêm
+              </button>
+            </div>
+          )}
         </div>
 
         {/* CỘT 2: MÔI TRƯỜNG LÀM VIỆC & AI GỢI Ý */}
@@ -249,9 +315,6 @@ const Step1 = ({ formData, setFormData, toggleInterest, onNext }) => {
         </div>
       </div>
 
-      {/* ============================================================== */}
-      {/* NÚT TIẾP TỤC ĐƯỢC CHUẨN HÓA CSS THEO GIAO DIỆN CHUNG CỦA APP */}
-      {/* ============================================================== */}
       <div className="ori-nav-btns" style={{ justifyContent: 'flex-end', marginTop: '30px', borderTop: 'none', padding: 0 }}>
         <button className="btn-next" onClick={handleNextClick}>
           TIẾP THEO <i className="fas fa-arrow-right" style={{marginLeft: '8px'}}></i>
