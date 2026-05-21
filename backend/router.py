@@ -6,6 +6,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from google import genai 
 from dotenv import load_dotenv
 # Thay vì chỉ import datetime, hãy thêm cái này:
+# SỬA DÒNG IMPORT TRÊN ĐẦU FILE router.py
+from datetime import datetime, timedelta, timezone
+# Xóa dòng import cũ, thay bằng dòng này:
 from datetime import datetime, timedelta, timezone
 
 from extensions import db, mail
@@ -100,6 +103,7 @@ def home():
 import os
 import random
 import requests
+from datetime import datetime, timedelta, timezone
 from datetime import datetime, timedelta, timezone 
 from flask import jsonify, request, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
