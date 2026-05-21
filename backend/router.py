@@ -214,10 +214,12 @@ def login():
     if not user.verified: 
         return jsonify({"error": "Chưa xác thực OTP"}), 400
 
+    # 🚀 CHỖ NÀY ĐÃ ĐƯỢC CHỮA TRỊ DỨT ĐIỂM BỆNH "DATETIME"
+    import datetime as dt
     token = jwt.encode({
         'user_id': user.id,
         'role': role,
-        'exp': datetime.now(timezone.utc) + timedelta(hours=2)
+        'exp': dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=2)
     }, current_app.config['SECRET_KEY'], algorithm="HS256")
 
     user_data = {
@@ -245,7 +247,6 @@ def login():
         "message": "Đăng nhập thành công",
         "user": user_data
     }), 200
-
 
 @api_bp.route('/api/resend-otp', methods=['POST'])
 def resend():
