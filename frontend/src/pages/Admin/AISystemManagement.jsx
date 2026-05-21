@@ -3,7 +3,7 @@ import './AISystemManagement.css';
 import { 
   Activity, Database, CheckCircle2, Globe, 
   RotateCcw, Sparkles, Send, Zap,
-  Edit3, Trash2, Plus // 🚀 Đã import thêm 3 Icon cho Thêm, Sửa, Xóa
+  Edit3, Trash2, Plus 
 } from 'lucide-react';
 import Swal from 'sweetalert2'; 
 
@@ -32,8 +32,11 @@ const AISystemManagement = () => {
     })
     .then(res => res.json())
     .then(data => {
-      if(data && !data.error && data.stats) {
-        setDashboardData(data); 
+      if(data && !data.error) {
+        setDashboardData({
+            stats: data.stats || {},
+            logs: data.logs || [] // 🚀 Dữ liệu Logs thật từ DB kéo lên
+        }); 
       }
     })
     .catch(err => console.error("⚠️ Lỗi kết nối Dashboard AI:", err));
@@ -115,7 +118,6 @@ const AISystemManagement = () => {
     });
   };
 
-  // ===================== XỬ LÝ NÚT ĐỒNG BỘ THẬT =====================
   const handleSyncData = async () => {
     Swal.fire({
       title: 'Đang nạp dữ liệu vào AI...',
@@ -151,7 +153,7 @@ const AISystemManagement = () => {
     }
   };
 
-  // ===================== CRUD LOGS THỦ CÔNG (TẠO ẢO) =====================
+  // ===================== 🚀 CRUD LOGS HÀNG THẬT (GỌI API) =====================
   const handleAddLogManual = async () => {
     const { value: formValues } = await Swal.fire({
       title: 'Thêm Nhật ký mới',
@@ -175,27 +177,32 @@ const AISystemManagement = () => {
         </div>
       `,
       showCancelButton: true,
-      confirmButtonText: 'Lưu lại',
+      confirmButtonText: 'Lưu vào Database',
       cancelButtonText: 'Hủy',
       preConfirm: () => {
         return {
-          task: document.getElementById('swal-task').value || 'Không tên',
-          source: document.getElementById('swal-source').value || 'Không rõ',
+          task: document.getElementById('swal-task').value || 'Tác vụ không tên',
+          source: document.getElementById('swal-source').value || 'Hệ thống nội bộ',
           status: document.getElementById('swal-status').value,
-          size: document.getElementById('swal-size').value || '0MB'
+          size: document.getElementById('swal-size').value || 'N/A'
         }
       }
     });
 
     if (formValues) {
+      Swal.showLoading();
       fetch('https://gr112.onrender.com/api/admin/ai/logs', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(formValues)
-      }).then(res => res.json()).then(() => {
-        Swal.fire('Thành công!', 'Đã thêm 1 dòng nhật ký.', 'success');
-        fetchDashboardData();
-      }).catch(() => Swal.fire('Lỗi', 'Không thể thêm nhật ký', 'error'));
+      })
+      .then(res => res.json())
+      .then(data => {
+        if(data.error) throw new Error(data.error);
+        Swal.fire('Thành công!', 'Nhật ký đã được lưu vào Database.', 'success');
+        fetchDashboardData(); // Tải lại bảng ngay lập tức
+      })
+      .catch(err => Swal.fire('Lỗi', err.message, 'error'));
     }
   };
 
@@ -222,7 +229,7 @@ const AISystemManagement = () => {
         </div>
       `,
       showCancelButton: true,
-      confirmButtonText: 'Cập nhật',
+      confirmButtonText: 'Cập nhật DB',
       cancelButtonText: 'Hủy',
       preConfirm: () => {
         return {
@@ -235,20 +242,26 @@ const AISystemManagement = () => {
     });
 
     if (formValues) {
+      Swal.showLoading();
       fetch(`https://gr112.onrender.com/api/admin/ai/logs/${log.id}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(formValues)
-      }).then(res => res.json()).then(() => {
-        Swal.fire('Thành công!', 'Đã sửa thông tin nhật ký.', 'success');
+      })
+      .then(res => res.json())
+      .then(data => {
+        if(data.error) throw new Error(data.error);
+        Swal.fire('Thành công!', 'Thông tin nhật ký đã được cập nhật.', 'success');
         fetchDashboardData();
-      }).catch(() => Swal.fire('Lỗi', 'Không thể sửa nhật ký', 'error'));
+      })
+      .catch(err => Swal.fire('Lỗi', err.message, 'error'));
     }
   };
 
   const handleDeleteLog = (id) => {
     Swal.fire({
       title: 'Xóa dòng này?',
+      text: 'Hành động này sẽ xóa vĩnh viễn nhật ký khỏi Database!',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
@@ -257,12 +270,18 @@ const AISystemManagement = () => {
       cancelButtonText: 'Hủy'
     }).then((result) => {
       if (result.isConfirmed) {
+        Swal.showLoading();
         fetch(`https://gr112.onrender.com/api/admin/ai/logs/${id}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
-        }).then(res => res.json()).then(() => {
+        })
+        .then(res => res.json())
+        .then(data => {
+          if(data.error) throw new Error(data.error);
+          Swal.fire('Đã xóa!', 'Nhật ký đã bị xóa khỏi hệ thống.', 'success');
           fetchDashboardData();
-        }).catch(() => Swal.fire('Lỗi', 'Không thể xóa', 'error'));
+        })
+        .catch(err => Swal.fire('Lỗi', err.message, 'error'));
       }
     });
   };
@@ -358,13 +377,13 @@ const AISystemManagement = () => {
         </div>
       </div>
 
-      {/* 🚀 BẢNG LOGS ĐÃ ĐƯỢC ĐỘ FULL CHỨC NĂNG */}
+      {/* 🚀 BẢNG LOGS */}
       <div className="ai-training-table-card">
         <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
-          <h3 style={{margin: 0}}>Nhật ký Đồng bộ Dữ liệu</h3>
+          <h3 style={{margin: 0}}>Nhật ký Đồng bộ Dữ liệu (Real DB)</h3>
           <div style={{display: 'flex', gap: '10px'}}>
             <button onClick={handleAddLogManual} style={{ background: '#0f172a', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Plus size={16}/> Thêm thủ công
+              <Plus size={16}/> Thêm Data
             </button>
             <button onClick={handleSyncData} style={{ background: '#10b981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Database size={16}/> Chạy Auto Sync
@@ -384,7 +403,7 @@ const AISystemManagement = () => {
           </thead>
           <tbody>
             {logs.length === 0 ? (
-              <tr><td colSpan="5" style={{textAlign: 'center', padding: '20px', color: '#64748b'}}>Chưa có dữ liệu đồng bộ nào. Hãy bấm "Thêm thủ công"!</td></tr>
+              <tr><td colSpan="5" style={{textAlign: 'center', padding: '20px', color: '#64748b'}}>Chưa có dữ liệu đồng bộ nào trong Database!</td></tr>
             ) : (
               logs.map(log => (
                 <tr key={log.id}>

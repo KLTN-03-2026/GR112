@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from extensions import db, mail
 from models import (User, ContactMessage, UniversityData, QuizResult, Career, QuestionBank, 
                     ChatSession, ChatMessage, RoiHistory, Booking, Mentor, OrientationProfile, 
-                    MasterInterest, MasterWorkEnvironment, MasterSubjectBlock, MentorSlot, UniversityReview)
+                    MasterInterest, MasterWorkEnvironment, MasterSubjectBlock, MentorSlot, UniversityReview,AILog)
 
 # ==========================================
 # 1. KHAI BÁO BLUEPRINT & AI CLIENT
@@ -4139,94 +4139,61 @@ def mark_all_notifications_read():
         db.session.rollback()
         return jsonify({"success": False}), 500
 
-import random # Thêm cái này ở trên cùng nếu chưa có
+import datetime
+# Nhớ import AILog từ file models.py của sếp nhé
 
-# ==========================================
-# API TẠO NHẬT KÝ ĐỒNG BỘ THỦ CÔNG 
-# ==========================================
-@api_bp.route('/api/admin/ai/sync-data', methods=['POST', 'OPTIONS'])
-def sync_data_to_ai():
-    if request.method == 'OPTIONS':
-        return jsonify({}), 200
-
-    try:
-        # Ở đây sau này sếp có thể viết logic để kéo DB nạp cho AI thật
-        # Hiện tại ta sẽ sinh ra 1 bản ghi Log lưu vào CSDL để báo cáo
-        import datetime
-        current_time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        
-        # Sếp dùng Model bảng Log mà sếp đang có, ví dụ ActivityLog (sửa lại theo tên Class của sếp)
-        # log = ActivityLog(action_type="Đồng bộ AI", description=f"Cập nhật vector embeddings - {current_time}")
-        # db.session.add(log)
-        # db.session.commit()
-
-        # Giả lập trả về thành công
-        return jsonify({
-            "message": "Đồng bộ thành công",
-            "time": current_time,
-            "simulated_size": f"{random.randint(15, 45)}MB"
-        }), 200
-
-    except Exception as e:
-        import traceback
-        print(f"❌ Lỗi đồng bộ AI: {traceback.format_exc()}")
-        return jsonify({"error": str(e)}), 500
-
-        # ==========================================
-# API ADMIN: THÊM - SỬA - XÓA LOG AI THỦ CÔNG
-# ==========================================
-
-# 1. THÊM LOG MỚI
 @api_bp.route('/api/admin/ai/logs', methods=['POST', 'OPTIONS'])
-def add_ai_log():
-    if request.method == 'OPTIONS': return jsonify({}), 200
+@admin_required
+def add_ai_log(current_user):
+    if request.method == 'OPTIONS': 
+        return jsonify({}), 200
+    
+    data = request.json
     try:
-        data = request.json
-        from models import AISyncLog, db
-        new_log = AISyncLog(
-            task=data.get('task', 'Chưa đặt tên'),
-            source=data.get('source', 'DB: unknown'),
-            status=data.get('status', 'Hoàn tất'),
-            size=data.get('size', '0MB'),
-            is_running=data.get('status') == 'Đang xử lý'
+        new_log = AILog(
+            task=data.get('task'),
+            source=data.get('source'),
+            status=data.get('status'),
+            size=data.get('size'),
+            time_str=datetime.datetime.now().strftime("%H:%M - Hôm nay"), # 👈 Ghi vào cột time_str
+            is_running=False
         )
         db.session.add(new_log)
         db.session.commit()
-        return jsonify({"message": "Thêm Log thành công!"}), 201
+        return jsonify({"message": "Thêm thành công"}), 200
     except Exception as e:
+        db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
-# 2. SỬA LOG
-@api_bp.route('/api/admin/ai/logs/<int:log_id>', methods=['PUT', 'OPTIONS'])
-def edit_ai_log(log_id):
-    if request.method == 'OPTIONS': return jsonify({}), 200
-    try:
-        data = request.json
-        from models import AISyncLog, db
-        log = AISyncLog.query.get(log_id)
-        if not log: return jsonify({"error": "Không tìm thấy Log!"}), 404
-        
-        log.task = data.get('task', log.task)
-        log.source = data.get('source', log.source)
-        log.status = data.get('status', log.status)
-        log.size = data.get('size', log.size)
-        log.is_running = data.get('status') == 'Đang xử lý'
-        
-        db.session.commit()
-        return jsonify({"message": "Cập nhật Log thành công!"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+@api_bp.route('/api/admin/ai/logs/<int:id>', methods=['PUT', 'OPTIONS'])
+@admin_required
+def edit_ai_log(current_user, id):
+    if request.method == 'OPTIONS': 
+        return jsonify({}), 200
+    
+    data = request.json
+    log = AILog.query.get(id)
+    if not log: 
+        return jsonify({"error": "Không tìm thấy"}), 404
+    
+    log.task = data.get('task', log.task)
+    log.source = data.get('source', log.source)
+    log.status = data.get('status', log.status)
+    log.size = data.get('size', log.size)
+    
+    db.session.commit()
+    return jsonify({"message": "Sửa thành công"}), 200
 
-# 3. XÓA LOG
-@api_bp.route('/api/admin/ai/logs/<int:log_id>', methods=['DELETE', 'OPTIONS'])
-def delete_ai_log(log_id):
-    if request.method == 'OPTIONS': return jsonify({}), 200
-    try:
-        from models import AISyncLog, db
-        log = AISyncLog.query.get(log_id)
-        if log:
-            db.session.delete(log)
-            db.session.commit()
-        return jsonify({"message": "Đã xóa Log!"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+@api_bp.route('/api/admin/ai/logs/<int:id>', methods=['DELETE', 'OPTIONS'])
+@admin_required
+def delete_ai_log(current_user, id):
+    if request.method == 'OPTIONS': 
+        return jsonify({}), 200
+    
+    log = AILog.query.get(id)
+    if not log: 
+        return jsonify({"error": "Không tìm thấy"}), 404
+    
+    db.session.delete(log)
+    db.session.commit()
+    return jsonify({"message": "Xóa thành công"}), 200

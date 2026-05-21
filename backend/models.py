@@ -525,3 +525,25 @@ class MentorNotification(db.Model):
             'is_read': self.is_read,
             'created_at': self.created_at.strftime('%d/%m/%Y %H:%M') if self.created_at else None 
         }
+    
+class AILog(db.Model):
+    __tablename__ = 'ai_training_logs' # 👈 Khớp với tên bảng của sếp
+    
+    id = db.Column(db.Integer, primary_key=True)
+    task = db.Column(db.String(255))
+    source = db.Column(db.String(255))
+    time_str = db.Column(db.String(100)) # 👈 Khớp với cột của sếp
+    status = db.Column(db.String(50))
+    size = db.Column(db.String(50))
+    is_running = db.Column(db.Boolean, default=False) # 👈 Cột của sếp
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "task": self.task,
+            "source": self.source,
+            "status": self.status,
+            "size": self.size,
+            "time": self.time_str, # 👈 Chuyển 'time_str' thành 'time' để Frontend React hiểu
+            "isRunning": self.is_running
+        }
