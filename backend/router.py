@@ -5,6 +5,8 @@ from flask import Blueprint, request, jsonify, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from google import genai 
 from dotenv import load_dotenv
+# Thay vì chỉ import datetime, hãy thêm cái này:
+from datetime import datetime, timedelta, timezone
 
 from extensions import db, mail
 from models import (User, ContactMessage, UniversityData, QuizResult, Career, QuestionBank, 
