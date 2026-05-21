@@ -378,15 +378,7 @@ class UserReport(db.Model):
     status = db.Column(db.String(50), default='Pending')
     created_at = db.Column(db.DateTime, default=db.func.now())
 
-class AITrainingLog(db.Model):
-    __tablename__ = 'ai_training_logs'
-    id = db.Column(db.Integer, primary_key=True)
-    task = db.Column(db.String(255), nullable=False)
-    source = db.Column(db.String(255))
-    time_str = db.Column(db.String(100))
-    status = db.Column(db.String(50))
-    size = db.Column(db.String(50))
-    is_running = db.Column(db.Boolean, default=False)
+
 
 class MentorReview(db.Model):
     __tablename__ = 'mentor_reviews'
