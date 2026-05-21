@@ -2951,12 +2951,17 @@ genai.configure(api_key=api_key)
 # ---------------------------------------------------------
 # 1. API: LẤY THÔNG SỐ DASHBOARD (DỮ LIỆU THỰC TẾ)
 # ---------------------------------------------------------
+import random
+
 @api_bp.route('/api/admin/ai/dashboard', methods=['GET', 'OPTIONS'])
 @admin_required
 def get_ai_dashboard(current_user):
     if request.method == 'OPTIONS': 
         return jsonify({}), 200
     try:
+        # Nhớ import đúng tên model AILog
+        from models import AILog, User 
+        
         # 1. Đếm số lượng người dùng có vai trò là 'user'
         actual_user_count = User.query.filter_by(role='user').count() 
         
@@ -2982,7 +2987,8 @@ def get_ai_dashboard(current_user):
 
         # 5. Lấy nhật ký đồng bộ từ Database
         try:
-            log_records = AITrainingLog.query.order_by(AITrainingLog.id.desc()).all()
+            # 🚀 ĐÃ SỬA: Dùng AILog thay vì AITrainingLog
+            log_records = AILog.query.order_by(AILog.id.desc()).all()
             logs = [{
                 "id": l.id, 
                 "task": l.task, 
